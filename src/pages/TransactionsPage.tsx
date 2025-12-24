@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import type { Transaction } from 'plaid';
+import type { Transaction } from '../types/firestore.types';
 
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -12,12 +12,12 @@ const TransactionsPage = () => {
     try {
       setLoading(true);
       setError(null);
-      const getTransactionsFunction = httpsCallable<undefined, { added: Transaction[], modified: Transaction[], removed: Transaction[], hasMore: boolean }>(functions, 'listTransactions');
+      const getTransactionsFunction = httpsCallable<unknown, Transaction[]>(functions, 'listTransactions');
       const result = await getTransactionsFunction();
 
       // Assuming the result data contains transactions
       // You may need to adjust this based on your actual data structure
-      setTransactions(result.data.added);
+      setTransactions(result.data);
     } catch (error) {
       console.error("Error fetching transactions:", error);
       setError(error instanceof Error ? error : new Error('Unknown error occurred'));
@@ -56,14 +56,14 @@ const TransactionsPage = () => {
 
       <div className="transactions-list">
         {transactions.map((transaction) => (
-          <div key={transaction.transaction_id} className="transaction-item">
+          <div key={transaction.id} className="transaction-item" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
             <div className="transaction-date">{transaction.date}</div>
             <div className="transaction-name">{transaction.name}</div>
             <div className="transaction-amount">
               ${Math.abs(parseFloat(String(transaction.amount))).toFixed(2)}
             </div>
             <div className="transaction-category">
-              {transaction.category?.join(', ') || 'Uncategorized'}
+              {transaction.category}
             </div>
           </div>
         ))}
