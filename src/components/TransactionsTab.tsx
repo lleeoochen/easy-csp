@@ -13,42 +13,28 @@ import {
 } from "./common/dialog";
 import { Label } from "./common/label";
 import { Select } from "./common/select";
-
-export interface Transaction {
-  id: string;
-  date: string;
-  description: string;
-  amount: number;
-  category: string;
-  subCategory: string;
-}
+import type { Transaction } from "@easy-csp/shared-types";
 
 interface TransactionsTabProps {
   transactions: Transaction[];
-  onAddTransaction: (transaction: Omit<Transaction, "id">) => void;
   onDeleteTransaction: (id: string) => void;
-  budgetCategories: {
-    fixedCosts: { name: string; subCategories: Array<{ id: string; name: string }> };
-    investments: { name: string; subCategories: Array<{ id: string; name: string }> };
-    savings: { name: string; subCategories: Array<{ id: string; name: string }> };
-    guiltFree: { name: string; subCategories: Array<{ id: string; name: string }> };
-  };
 }
 
 export function TransactionsTab({
   transactions,
-  onAddTransaction,
   onDeleteTransaction,
-  budgetCategories,
 }: TransactionsTabProps) {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string>("all");
-  const [newTransaction, setNewTransaction] = useState({
+  const [newTransaction, setNewTransaction] = useState<Transaction>({
     date: new Date().toISOString().split("T")[0],
-    description: "",
     amount: 0,
     category: "fixedCosts",
-    subCategory: "",
+    uid: "",
+    accountId: "",
+    id: "",
+    hidden: false,
+    name: ""
   });
 
   const categories = [
@@ -59,17 +45,15 @@ export function TransactionsTab({
   ];
 
   const handleAdd = () => {
-    if (newTransaction.description && newTransaction.amount > 0 && newTransaction.subCategory) {
-      onAddTransaction(newTransaction);
-      setNewTransaction({
-        date: new Date().toISOString().split("T")[0],
-        description: "",
-        amount: 0,
-        category: "fixedCosts",
-        subCategory: "",
-      });
-      setIsAddOpen(false);
-    }
+    // if (newTransaction.amount > 0) {
+    //   onAddTransaction(newTransaction);
+    //   setNewTransaction({
+    //     date: new Date().toISOString().split("T")[0],
+    //     amount: 0,
+    //     category: "fixedCosts",
+    //   });
+    //   setIsAddOpen(false);
+    // }
   };
 
   const filteredTransactions = transactions.filter(
@@ -87,15 +71,6 @@ export function TransactionsTab({
   const getCategoryColor = (category: string) => {
     return categories.find((c) => c.value === category)?.color || "bg-gray-500";
   };
-
-  const getSubCategoryName = (categoryKey: string, subCategoryId: string) => {
-    const category = budgetCategories[categoryKey as keyof typeof budgetCategories];
-    const subCat = category?.subCategories.find((s) => s.id === subCategoryId);
-    return subCat?.name || subCategoryId;
-  };
-
-  const availableSubCategories =
-    budgetCategories[newTransaction.category as keyof typeof budgetCategories]?.subCategories || [];
 
   return (
     <div className="space-y-4 p-4 pb-24">
@@ -121,20 +96,9 @@ export function TransactionsTab({
                 <Input
                   id="date"
                   type="date"
-                  value={newTransaction.date}
+                  value={newTransaction.date.toString()}
                   onChange={(e) =>
                     setNewTransaction({ ...newTransaction, date: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Input
-                  id="description"
-                  placeholder="e.g., Grocery shopping"
-                  value={newTransaction.description}
-                  onChange={(e) =>
-                    setNewTransaction({ ...newTransaction, description: e.target.value })
                   }
                 />
               </div>
@@ -156,19 +120,8 @@ export function TransactionsTab({
                   options={categories}
                   value={newTransaction.category}
                   onValueChange={(value) =>
-                    setNewTransaction({ ...newTransaction, category: value, subCategory: "" })
+                    setNewTransaction({ ...newTransaction, category: value })
                   }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="subCategory">Budget Item</Label>
-                <Select
-                  options={availableSubCategories.map(sub => ({ value: sub.id, label: sub.name }))}
-                  value={newTransaction.subCategory}
-                  onValueChange={(value) =>
-                    setNewTransaction({ ...newTransaction, subCategory: value })
-                  }
-                  placeholder="Select item"
                 />
               </div>
             </div>
@@ -206,7 +159,7 @@ export function TransactionsTab({
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                   <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${getCategoryColor(transaction.category)}`} />
                   <div className="min-w-0 flex-1">
-                    <div className="font-medium truncate">{transaction.description}</div>
+                    <div className="font-medium truncate">{transaction.name}</div>
                     <div className="text-xs text-muted-foreground mt-0.5">
                       {new Date(transaction.date).toLocaleDateString("en-US", {
                         month: "short",
@@ -228,9 +181,6 @@ export function TransactionsTab({
                     <Trash2 className="size-4 text-destructive" />
                   </Button>
                 </div>
-              </div>
-              <div className="text-xs text-muted-foreground pl-5">
-                {getSubCategoryName(transaction.category, transaction.subCategory)}
               </div>
             </div>
           ))

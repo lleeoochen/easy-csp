@@ -54,14 +54,14 @@ const SettingsPage = () => {
           <h2 className="text-lg font-semibold mb-3">Account Actions</h2>
 
           <button
-            className="w-full bg-black hover:bg-gray-50 text-white font-medium py-2 px-4 rounded-md transition-colors"
+            className="w-full bg-black hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
             onClick={handleSignOut}
           >
             Sign Out
           </button>
           
           <LinkFinancialInstitutionButton
-            className="w-full bg-black hover:bg-gray-50 text-white font-medium py-2 px-4 rounded-md transition-colors"
+            className="w-full bg-black hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
           />
         </div>
       </div>

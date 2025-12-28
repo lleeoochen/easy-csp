@@ -10,5 +10,8 @@ export default defineConfig({
     watch: {
       usePolling: true,
     }
+  },
+  optimizeDeps: {
+    include: ['@easy-csp/shared-types']
   }
 })

@@ -1,77 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
-import { v4 as uuidv4 } from "uuid";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { TransactionsTab } from "../components/TransactionsTab";
-import type { Transaction } from "../components/TransactionsTab";
-import { mockBudgetData } from "../mocks/budgetData";
+import type { Transaction } from "@easy-csp/shared-types";
 
-// Define interface for API transaction data
-interface APITransaction {
-  id?: string;
-  date?: string;
-  name?: string;
-  amount?: number | string;
-  category?: string;
-  [key: string]: unknown;
-}
-
-// Create a budgetCategories object from the mock budget data
-const createBudgetCategoriesFromMock = () => {
-  const result: {
-    fixedCosts: { name: string; subCategories: Array<{ id: string; name: string }> };
-    investments: { name: string; subCategories: Array<{ id: string; name: string }> };
-    savings: { name: string; subCategories: Array<{ id: string; name: string }> };
-    guiltFree: { name: string; subCategories: Array<{ id: string; name: string }> };
-  } = {
-    fixedCosts: { name: "", subCategories: [] },
-    investments: { name: "", subCategories: [] },
-    savings: { name: "", subCategories: [] },
-    guiltFree: { name: "", subCategories: [] }
-  };
-
-  // Use categories from mock budget data
-  Object.keys(mockBudgetData).forEach((key) => {
-    const categoryKey = key as keyof typeof mockBudgetData;
-    const category = mockBudgetData[categoryKey];
-
-    result[categoryKey] = {
-      name: category.name,
-      subCategories: category.subCategories.map(sub => ({
-        id: sub.id,
-        name: sub.name
-      }))
-    };
-  });
-
-  return result;
-};
 
 const TransactionsPage = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const functions = getFunctions();
-  const budgetCategories = createBudgetCategoriesFromMock();
 
   const getPlaidTransactions = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const getTransactionsFunction = httpsCallable<unknown, APITransaction[]>(functions, "listTransactions");
+      const getTransactionsFunction = httpsCallable<unknown, Transaction[]>(functions, "listTransactions");
       const result = await getTransactionsFunction();
-
-      // Convert the API response to our Transaction type
-      const convertedTransactions: Transaction[] = result.data.map((item: APITransaction) => ({
-        id: item.id || uuidv4(),
-        date: item.date || new Date().toISOString().split("T")[0],
-        description: item.name || "Unknown",
-        amount: typeof item.amount === "number" ? item.amount : parseFloat(String(item.amount)) || 0,
-        // Default to fixedCosts and first subcategory, will need proper categorization
-        category: "fixedCosts",
-        subCategory: budgetCategories.fixedCosts.subCategories[0]?.id || ""
-      }));
-
-      setTransactions(convertedTransactions);
+      setTransactions(result.data);
     } catch (error) {
       console.error("Error fetching transactions:", error);
       setError(error instanceof Error ? error : new Error("Unknown error occurred"));
@@ -84,16 +29,6 @@ const TransactionsPage = () => {
     // Load transactions when the component mounts
     getPlaidTransactions();
   }, [getPlaidTransactions]);
-
-  const handleAddTransaction = useCallback((transaction: Omit<Transaction, "id">) => {
-    setTransactions(prev => [
-      {
-        ...transaction,
-        id: uuidv4()
-      },
-      ...prev
-    ]);
-  }, []);
 
   const handleDeleteTransaction = useCallback((id: string) => {
     setTransactions(prev => prev.filter(transaction => transaction.id !== id));
@@ -138,9 +73,7 @@ const TransactionsPage = () => {
       </button>
       <TransactionsTab
         transactions={transactions}
-        onAddTransaction={handleAddTransaction}
         onDeleteTransaction={handleDeleteTransaction}
-        budgetCategories={budgetCategories}
       />
     </div>
   );

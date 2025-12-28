@@ -72,9 +72,9 @@ export function CategorySection({
   };
 
   return (
-    <div className="bg-card border-2 border-cardBorder drop-shadow-xl/20 rounded-lg overflow-hidden">
+    <div className="bg-card border border-gray-200 rounded-lg overflow-hidden">
       {/* Category Header */}
-      <div className="p-4 border-b bg-muted/30">
+      <div className="p-4 bg-amber-100 px-6 py-4">
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
             <div className="flex items-center gap-2">
@@ -106,7 +106,7 @@ export function CategorySection({
       </div>
 
       {/* SubCategories */}
-      <div className="divide-y">
+      <div>
         {category.subCategories.map((subCategory) => (
           <div key={subCategory.id} className="p-3 flex items-center justify-between active:bg-accent/50">
             <div className="flex-1 min-w-0">
@@ -130,7 +130,7 @@ export function CategorySection({
       </div>
 
       {/* Add SubCategory Button */}
-      <div className="p-3 border-t bg-muted/10">
+      <div className="p-3 border-cardBorder bg-muted/10">
         <Button
           variant="ghost"
           size="sm"

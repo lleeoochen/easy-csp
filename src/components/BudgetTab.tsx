@@ -44,11 +44,11 @@ export function BudgetTab({
     <div className="space-y-4 p-4 pb-24">
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-card border-2 border-cardBorder drop-shadow-xl/20 rounded-lg p-3">
+        <div className="bg-amber-100 px-6 py-4 border-b border-gray-200 rounded-lg p-3">
           <div className="text-xs text-muted-foreground">Budgeted</div>
           <div className="text-lg font-bold mt-0.5">${totalBudgeted.toLocaleString()}</div>
         </div>
-        <div className="bg-card border-2 border-cardBorder drop-shadow-xl/20 rounded-lg p-3">
+        <div className="bg-amber-100 px-6 py-4 border-b border-gray-200 rounded-lg p-3">
           <div className="text-xs text-muted-foreground">Spent</div>
           <div className="text-lg font-bold mt-0.5">${totalSpent.toLocaleString()}</div>
           <div className="text-xs text-muted-foreground">
