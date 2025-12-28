@@ -1,12 +1,14 @@
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import BudgetPage from "./pages/BudgetPage";
+import GoalsPage from "./pages/GoalsPage";
+import TransactionsPage from "./pages/TransactionsPage";
+import SettingsPage from "./pages/SettingsPage";
+import { DollarSign, Target, BarChart3, Settings } from "lucide-react";
 import { initializeApp } from "firebase/app";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
-import { getAuth, signOut } from "firebase/auth";
-
-import { useAuthState } from './hooks/useAuthState';
-import LinkFinancialInstitutionButton from './components/LinkFinancialInstitutionButton';
-import TransactionsPage from './pages/TransactionsPage';
-import SignInPage from './pages/SignInPage';
+import SignInPage from "./pages/SignInPage";
+import { useAuthState } from "./hooks/useAuthState";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBERcnPQeqTU4VrJryfWAiqaFe4BPxDRXQ",
@@ -42,37 +44,56 @@ function App() {
 
   return (
     <div className="app-container">
-      <h1>Easy CSP</h1>
-      <div className="auth-status">
-        {signedIn ? "Signed in ✅" : "Not signed in"}
-      </div>
-
       {signedIn ? (
-        <>
-          <div className="link-section">
-            <LinkFinancialInstitutionButton />
+        <Router>
+          <div className="flex flex-col min-h-screen">
+            <main className="flex-1 pb-16">
+              <Routes>
+                <Route path="/easy-csp/transactions" element={<TransactionsPage />} />
+                <Route path="/easy-csp/csp" element={<BudgetPage />} />
+                <Route path="/easy-csp/goals" element={<GoalsPage />} />
+                <Route path="/easy-csp/settings" element={<SettingsPage />} />
+              </Routes>
+            </main>
+
+            {/* Bottom Navigation */}
+            <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-border z-10">
+              <div className="container max-w-md mx-auto">
+                <div className="flex justify-around items-center">
+                  <Link
+                    to="/easy-csp/transactions"
+                    className="flex flex-col items-center py-2 px-4 text-muted-foreground hover:text-foreground"
+                  >
+                    <DollarSign className="w-6 h-6" />
+                    <span className="text-xs mt-1">Transactions</span>
+                  </Link>
+                  <Link
+                    to="/easy-csp/csp"
+                    className="flex flex-col items-center py-2 px-4 text-muted-foreground hover:text-foreground"
+                  >
+                    <BarChart3 className="w-6 h-6" />
+                    <span className="text-xs mt-1">CSP</span>
+                  </Link>
+                  <Link
+                    to="/easy-csp/goals"
+                    className="flex flex-col items-center py-2 px-4 text-muted-foreground hover:text-foreground"
+                  >
+                    <Target className="w-6 h-6" />
+                    <span className="text-xs mt-1">Goals</span>
+                  </Link>
+                  <Link
+                    to="/easy-csp/settings"
+                    className="flex flex-col items-center py-2 px-4 text-muted-foreground hover:text-foreground"
+                  >
+                    <Settings className="w-6 h-6" />
+                    <span className="text-xs mt-1">Settings</span>
+                  </Link>
+                </div>
+              </div>
+            </nav>
           </div>
 
-          <div className="transactions-section">
-            <TransactionsPage />
-          </div>
-
-          <div className="sign-out-section">
-            <button
-              className="sign-out-button"
-              onClick={() => {
-                const auth = getAuth();
-                signOut(auth).then(() => {
-                  console.log('User signed out successfully');
-                }).catch((error) => {
-                  console.error('Sign out error:', error);
-                });
-              }}
-            >
-              Sign Out
-            </button>
-          </div>
-        </>
+        </Router>
       ) : (
         <SignInPage />
       )}
@@ -80,4 +101,4 @@ function App() {
   )
 }
 
-export default App
+export default App;

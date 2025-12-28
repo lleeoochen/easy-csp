@@ -13,12 +13,22 @@
     "deploy": "gh-pages -d build"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/uuid": "^10.0.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "firebase": "^10.0.0",
     "firebaseui": "^6.1.0",
+    "lucide-react": "^0.562.0",
     "plaid": "^40.0.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-plaid-link": "^4.1.1"
+    "react-plaid-link": "^4.1.1",
+    "react-router-dom": "^7.11.0",
+    "react-select": "^5.10.2",
+    "tailwind-merge": "^3.4.0",
+    "tailwindcss": "^4.1.18",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
