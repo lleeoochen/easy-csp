@@ -5,15 +5,16 @@
   "type": "module",
   "homepage": "https://lleeoochen.github.io/easy-csp",
   "scripts": {
+    "preinstall": "if [ -d ../easy-csp-shared-types ]; then npm pack ../easy-csp-shared-types; fi",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build"
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
-    "@easy-csp/shared-types": "file:../easy-csp-shared-types",
+    "@easy-csp/shared-types": "file:easy-csp-shared-types-1.0.0.tgz",
     "@tailwindcss/vite": "^4.1.18",
     "@types/uuid": "^10.0.0",
     "class-variance-authority": "^0.7.1",

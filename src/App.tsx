@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { HashRouter as Router, Routes, Route, Link } from "react-router-dom";
 import BudgetPage from "./pages/BudgetPage";
 import GoalsPage from "./pages/GoalsPage";
 import TransactionsPage from "./pages/TransactionsPage";
@@ -50,11 +50,11 @@ function App() {
           <div className="flex flex-col min-h-screen">
             <main className="flex-1 pb-16">
               <Routes>
-                <Route path="/easy-csp/transactions" element={<TransactionsPage />} />
-                <Route path="/easy-csp/institutions" element={<FinancialInstitutionsPage />} />
-                <Route path="/easy-csp/csp" element={<BudgetPage />} />
-                <Route path="/easy-csp/goals" element={<GoalsPage />} />
-                <Route path="/easy-csp/settings" element={<SettingsPage />} />
+                <Route path="/transactions" element={<TransactionsPage />} />
+                <Route path="/institutions" element={<FinancialInstitutionsPage />} />
+                <Route path="/csp" element={<BudgetPage />} />
+                <Route path="/goals" element={<GoalsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
               </Routes>
             </main>
 
@@ -63,35 +63,35 @@ function App() {
               <div className="container max-w-md mx-auto">
                 <div className="flex justify-around items-center">
                   <Link
-                    to="/easy-csp/transactions"
+                    to="/transactions"
                     className="flex flex-col items-center py-2 px-2 text-muted-foreground hover:text-foreground"
                   >
                     <DollarSign className="w-5 h-5" />
                     <span className="text-xs mt-1">Transactions</span>
                   </Link>
                   <Link
-                    to="/easy-csp/institutions"
+                    to="/institutions"
                     className="flex flex-col items-center py-2 px-2 text-muted-foreground hover:text-foreground"
                   >
                     <Building2 className="w-5 h-5" />
                     <span className="text-xs mt-1">Accounts</span>
                   </Link>
                   <Link
-                    to="/easy-csp/csp"
+                    to="/csp"
                     className="flex flex-col items-center py-2 px-2 text-muted-foreground hover:text-foreground"
                   >
                     <BarChart3 className="w-5 h-5" />
                     <span className="text-xs mt-1">CSP</span>
                   </Link>
                   <Link
-                    to="/easy-csp/goals"
+                    to="/goals"
                     className="flex flex-col items-center py-2 px-2 text-muted-foreground hover:text-foreground"
                   >
                     <Target className="w-5 h-5" />
                     <span className="text-xs mt-1">Goals</span>
                   </Link>
                   <Link
-                    to="/easy-csp/settings"
+                    to="/settings"
                     className="flex flex-col items-center py-2 px-2 text-muted-foreground hover:text-foreground"
                   >
                     <Settings className="w-5 h-5" />
