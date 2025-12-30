@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
-import { getFunctions, httpsCallable } from "firebase/functions";
-import type { FinancialInstitution } from "@easy-csp/shared-types";
+import { useCallback, useEffect } from "react";
 import { AccountType, FinancialInstitutionStatus } from "@easy-csp/shared-types";
+import { fetchFinancialInstitutions } from "../../redux/thunks/financialInstitutionThunk";
+import { useAppDispatch, useAppSelector } from "../../hooks/useRedux";
 
 // Helper function to get account type display name
 const getAccountTypeDisplay = (accountType: AccountType): string => {
@@ -63,33 +63,20 @@ const formatDate = (date: Date): string => {
 };
 
 const FinancialInstitutionsPage = () => {
-  const [institutions, setInstitutions] = useState<FinancialInstitution[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const functions = getFunctions();
+  const dispatch = useAppDispatch();
+  const financialInstitutionState = useAppSelector(state => state.financialInstitution);
+  const institutions = financialInstitutionState.institutions;
+  const loading = financialInstitutionState.isLoading;
+  const errorMessage = financialInstitutionState.errorMessage;
 
-  const fetchFinancialInstitutions = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const listFinancialInstitutionsFunction = httpsCallable<unknown, FinancialInstitution[]>(
-        functions,
-        "listFinancialInstitutions"
-      );
-      const result = await listFinancialInstitutionsFunction();
-      console.log(result.data);
-      setInstitutions(result.data);
-    } catch (error) {
-      console.error("Error fetching financial institutions:", error);
-      setError(error instanceof Error ? error : new Error("Unknown error occurred"));
-    } finally {
-      setLoading(false);
-    }
-  }, [functions]);
+  const dispatchFetchFinancialInstitutions = useCallback(async () => {
+    dispatch(fetchFinancialInstitutions());
+  }, [dispatch]);
 
   useEffect(() => {
-    fetchFinancialInstitutions();
-  }, [fetchFinancialInstitutions]);
+    // Load financial institutions when the component mounts
+    dispatchFetchFinancialInstitutions();
+  }, [dispatchFetchFinancialInstitutions]);
 
   if (loading) {
     return (
@@ -102,14 +89,14 @@ const FinancialInstitutionsPage = () => {
     );
   }
 
-  if (error) {
+  if (errorMessage) {
     return (
       <div className="container max-w-4xl mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4">Financial Institutions</h1>
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-600">Error loading institutions: {error.message}</p>
+          <p className="text-red-600">Error loading institutions: {errorMessage}</p>
           <button
-            onClick={fetchFinancialInstitutions}
+            onClick={dispatchFetchFinancialInstitutions}
             className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
           >
             Try Again
@@ -124,7 +111,7 @@ const FinancialInstitutionsPage = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Financial Institutions</h1>
         <button
-          onClick={fetchFinancialInstitutions}
+          onClick={dispatchFetchFinancialInstitutions}
           className="px-4 py-2 bg-primary-100 text-primary-700 rounded hover:bg-primary-200 text-sm"
         >
           Refresh

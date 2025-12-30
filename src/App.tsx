@@ -1,9 +1,9 @@
 import { HashRouter as Router, Routes, Route, Link } from "react-router-dom";
-import BudgetPage from "./pages/BudgetPage";
+import BudgetPage from "./pages/budgets/BudgetPage";
 import GoalsPage from "./pages/GoalsPage";
-import TransactionsPage from "./pages/TransactionsPage";
+import TransactionsPage from "./pages/transactions/TransactionsPage";
 import SettingsPage from "./pages/SettingsPage";
-import FinancialInstitutionsPage from "./pages/FinancialInstitutionsPage";
+import FinancialInstitutionsPage from "./pages/financialInstitutions/FinancialInstitutionsPage";
 import { DollarSign, Target, BarChart3, Settings, Building2 } from "lucide-react";
 import { initializeApp } from "firebase/app";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
