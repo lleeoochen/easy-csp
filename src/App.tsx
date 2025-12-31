@@ -1,5 +1,5 @@
 import { HashRouter as Router, Routes, Route, Link } from "react-router-dom";
-import BudgetPage from "./pages/budgets/BudgetPage";
+import ConsciousSpendingPlanPage from "./pages/consciousSpendingPlan/ConsciousSpendingPlanPage";
 import GoalsPage from "./pages/GoalsPage";
 import TransactionsPage from "./pages/transactions/TransactionsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -52,7 +52,7 @@ function App() {
               <Routes>
                 <Route path="/transactions" element={<TransactionsPage />} />
                 <Route path="/institutions" element={<FinancialInstitutionsPage />} />
-                <Route path="/csp" element={<BudgetPage />} />
+                <Route path="/csp" element={<ConsciousSpendingPlanPage />} />
                 <Route path="/goals" element={<GoalsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Routes>

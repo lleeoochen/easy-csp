@@ -1,14 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { transactionSlice } from "./slices/transactionSlice";
 import { financialInstitutionSlice } from "./slices/financialInstitutionSlice";
-import { budgetSlice } from "./slices/budgetSlice";
+import { consciousSpendingPlanSlice } from "./slices/consciousSpendingPlanSlice";
 import { goalsSlice } from "./slices/goalsSlice";
 
 const store = configureStore({
   reducer: {
     transaction: transactionSlice.reducer,
     financialInstitution: financialInstitutionSlice.reducer,
-    budget: budgetSlice.reducer,
+    consciousSpendingPlan: consciousSpendingPlanSlice.reducer,
     goals: goalsSlice.reducer
   }
 });

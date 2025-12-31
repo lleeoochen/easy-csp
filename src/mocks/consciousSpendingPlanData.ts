@@ -1,6 +1,6 @@
 import { CSPCategory, type ConsciousSpendingPlan } from "@easy-csp/shared-types";
 
-export const mockBudgetData: ConsciousSpendingPlan = {
+export const mockConsciousSpendingPlanData: ConsciousSpendingPlan = {
   income: [
     {
       category: CSPCategory.Income,

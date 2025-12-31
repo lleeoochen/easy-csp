@@ -1,27 +1,25 @@
 import { useCallback, useEffect, useState } from "react";
-import { CategorySectionList } from "./CategorySectionList";
-import { fetchBudget } from "../../redux/thunks/budgetThunk";
+import { CSPBucketCardList } from "./CSPBucketCardList";
+import { fetchConsciousSpendingPlan } from "../../redux/thunks/consciousSpendingPlanThunk";
 import { fetchTransactionsByDateRange } from "../../redux/thunks/transactionThunk";
 import { useAppDispatch, useAppSelector } from "../../hooks/useRedux";
 import { MonthSelector } from "../../components/MonthSelector";
 import { getCurrentMonthYear, getMonthBoundaries } from "../../utils/dateUtils";
 
-const BudgetPage = () => {
+const ConsciousSpendingPlanPage = () => {
   const dispatch = useAppDispatch();
-  const budgetState = useAppSelector(state => state.budget);
-  const transactionState = useAppSelector(state => state.transaction);
-  const budget = budgetState.consciousSpendingPlan;
-  const loading = budgetState.isLoading;
-  const errorMessage = budgetState.errorMessage;
-  const transactions = transactionState.transactions;
+  const consciousSpendingPlanState = useAppSelector(state => state.consciousSpendingPlan);
+  const consciousSpendingPlan = consciousSpendingPlanState.consciousSpendingPlan;
+  const loading = consciousSpendingPlanState.isLoading;
+  const errorMessage = consciousSpendingPlanState.errorMessage;
 
   // Initialize with current month
   const { month: currentMonth, year: currentYear } = getCurrentMonthYear();
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [selectedYear, setSelectedYear] = useState(currentYear);
 
-  const dispatchFetchBudget = useCallback(async () => {
-    dispatch(fetchBudget());
+  const dispatchFetchConsciousSpendingPlan = useCallback(async () => {
+    dispatch(fetchConsciousSpendingPlan());
   }, [dispatch]);
 
   const handleMonthSelect = useCallback((year: number, month: number) => {
@@ -30,9 +28,9 @@ const BudgetPage = () => {
   }, []);
 
   useEffect(() => {
-    // Load budget when the component mounts
-    dispatchFetchBudget();
-  }, [dispatchFetchBudget]);
+    // Load consciousSpendingPlan when the component mounts
+    dispatchFetchConsciousSpendingPlan();
+  }, [dispatchFetchConsciousSpendingPlan]);
 
   useEffect(() => {
     // Fetch transactions for selected month
@@ -43,9 +41,9 @@ const BudgetPage = () => {
   if (loading) {
     return (
       <div className="container max-w-md mx-auto">
-        <h1 className="text-2xl font-bold px-4 pt-4">Conscious Spending Plan</h1>
+        <h1 className="text-2xl text-center font-bold px-4 pt-4">Conscious Spending Plan</h1>
         <div className="p-8 text-center">
-          <div className="animate-pulse">Loading budget...</div>
+          <div className="animate-pulse">Loading consciousSpendingPlan...</div>
         </div>
       </div>
     );
@@ -54,11 +52,11 @@ const BudgetPage = () => {
   if (errorMessage) {
     return (
       <div className="container max-w-md mx-auto">
-        <h1 className="text-2xl font-bold px-4 pt-4">Conscious Spending Plan</h1>
+        <h1 className="text-2xl text-center font-bold px-4 pt-4">Conscious Spending Plan</h1>
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg mx-4">
-          <p className="text-red-600">Error loading budget: {errorMessage}</p>
+          <p className="text-red-600">Error loading consciousSpendingPlan: {errorMessage}</p>
           <button
-            onClick={dispatchFetchBudget}
+            onClick={dispatchFetchConsciousSpendingPlan}
             className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
           >
             Try Again
@@ -68,12 +66,12 @@ const BudgetPage = () => {
     );
   }
 
-  if (!budget) {
+  if (!consciousSpendingPlan) {
     return (
       <div className="container max-w-md mx-auto">
-        <h1 className="text-2xl font-bold px-4 pt-4">Conscious Spending Plan</h1>
+        <h1 className="text-2xl text-center font-bold px-4 pt-4">Conscious Spending Plan</h1>
         <div className="p-8 text-center">
-          <p className="text-gray-600">No budget data available.</p>
+          <p className="text-gray-600">No consciousSpendingPlan data available.</p>
         </div>
       </div>
     );
@@ -81,7 +79,7 @@ const BudgetPage = () => {
 
   return (
     <div className="container max-w-md mx-auto">
-      <h1 className="text-2xl font-bold px-4 pt-4">Conscious Spending Plan</h1>
+      <h1 className="text-2xl text-center font-bold px-4 pt-4">Conscious Spending Plan</h1>
 
       {/* Month Selector */}
       <MonthSelector
@@ -91,12 +89,9 @@ const BudgetPage = () => {
         className="mb-4"
       />
 
-      <CategorySectionList
-        consciousSpendingPlan={budget}
-        transactions={transactions}
-      />
+      <CSPBucketCardList />
     </div>
   );
 };
 
-export default BudgetPage;
+export default ConsciousSpendingPlanPage;

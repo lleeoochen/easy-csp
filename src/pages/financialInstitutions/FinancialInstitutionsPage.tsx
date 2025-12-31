@@ -1,7 +1,8 @@
 import { useCallback, useEffect } from "react";
-import { AccountType, FinancialInstitutionStatus } from "@easy-csp/shared-types";
+import { AccountType } from "@easy-csp/shared-types";
 import { fetchFinancialInstitutions } from "../../redux/thunks/financialInstitutionThunk";
 import { useAppDispatch, useAppSelector } from "../../hooks/useRedux";
+import { getFinancialInstitutionStatusDisplay } from "../../utils/statusUtils";
 
 // Helper function to get account type display name
 const getAccountTypeDisplay = (accountType: AccountType): string => {
@@ -20,22 +21,6 @@ const getAccountTypeDisplay = (accountType: AccountType): string => {
       return 'Other';
     default:
       return 'Unknown';
-  }
-};
-
-// Helper function to get status display name and color
-const getStatusDisplay = (status: FinancialInstitutionStatus) => {
-  switch (status) {
-    case FinancialInstitutionStatus.Active:
-      return { text: 'Active', color: 'text-green-600 bg-green-50' };
-    case FinancialInstitutionStatus.Inactive:
-      return { text: 'Inactive', color: 'text-gray-600 bg-gray-50' };
-    case FinancialInstitutionStatus.AwaitSync:
-      return { text: 'Awaiting Sync', color: 'text-yellow-600 bg-yellow-50' };
-    case FinancialInstitutionStatus.SyncFailed:
-      return { text: 'Sync Failed', color: 'text-red-600 bg-red-50' };
-    default:
-      return { text: 'Unknown', color: 'text-gray-600 bg-gray-50' };
   }
 };
 
@@ -81,7 +66,7 @@ const FinancialInstitutionsPage = () => {
   if (loading) {
     return (
       <div className="container max-w-4xl mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Financial Institutions</h1>
+        <h1 className="text-2xl text-center font-bold mb-4">Financial Institutions</h1>
         <div className="p-8 text-center">
           <div className="animate-pulse">Loading institutions...</div>
         </div>
@@ -92,7 +77,7 @@ const FinancialInstitutionsPage = () => {
   if (errorMessage) {
     return (
       <div className="container max-w-4xl mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Financial Institutions</h1>
+        <h1 className="text-2xl text-center font-bold mb-4">Financial Institutions</h1>
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-600">Error loading institutions: {errorMessage}</p>
           <button
@@ -108,15 +93,7 @@ const FinancialInstitutionsPage = () => {
 
   return (
     <div className="container max-w-4xl mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Financial Institutions</h1>
-        <button
-          onClick={dispatchFetchFinancialInstitutions}
-          className="px-4 py-2 bg-primary-100 text-primary-700 rounded hover:bg-primary-200 text-sm"
-        >
-          Refresh
-        </button>
-      </div>
+      <h1 className="text-2xl text-center font-bold mb-6">Financial Institutions</h1>
 
       {institutions.length === 0 ? (
         <div className="text-center py-8">
@@ -126,7 +103,7 @@ const FinancialInstitutionsPage = () => {
       ) : (
         <div className="space-y-6">
           {institutions.map((institution, index) => {
-            const statusDisplay = getStatusDisplay(institution.status);
+            const statusDisplay = getFinancialInstitutionStatusDisplay(institution.status);
             return (
               <div key={`${institution.institutionId}-${index}`} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 {/* Institution Header */}

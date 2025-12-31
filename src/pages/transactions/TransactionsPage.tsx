@@ -22,7 +22,7 @@ const TransactionsPage = () => {
   if (loading) {
     return (
       <div className="container max-w-md mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Transactions</h1>
+        <h1 className="text-2xl text-center font-bold mb-4">Transactions</h1>
         <div className="p-8 text-center">
           <div className="animate-pulse">Loading transactions...</div>
         </div>
@@ -33,7 +33,7 @@ const TransactionsPage = () => {
   if (errorMessage) {
     return (
       <div className="container max-w-md mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Transactions</h1>
+        <h1 className="text-2xl text-center font-bold mb-4">Transactions</h1>
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-600">Error loading transactions: {errorMessage}</p>
           <button
@@ -49,13 +49,7 @@ const TransactionsPage = () => {
 
   return (
     <div className="container max-w-md mx-auto">
-      <h1 className="text-2xl font-bold px-4 pt-4 pb-2">Transactions</h1>
-      <button
-        onClick={dispatchFetchTransactions}
-        className="mx-4 mb-2 px-3 py-1 bg-primary-100 text-primary-700 rounded text-sm"
-      >
-        Refresh
-      </button>
+      <h1 className="text-2xl text-center font-bold px-4 pt-4 pb-2">Transactions</h1>
       <TransactionsList
         transactions={transactions}
       />

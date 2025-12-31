@@ -1,4 +1,5 @@
 import type { Transaction } from "@easy-csp/shared-types";
+import { Card } from "../../components/common/card";
 
 interface TransactionsListProps {
   transactions: Transaction[];
@@ -11,13 +12,8 @@ export function TransactionsList({
     <div className="space-y-4 p-4 pb-24">
       {/* Summary */}
       {transactions.length > 0 && (
-        <div className="bg-card border rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div className="font-medium">Total</div>
-            <div className="text-xl font-bold">
-              ${transactions.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
-            </div>
-          </div>
+        <div className="text-md text-right">
+          Total: ${transactions.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
         </div>
       )}
       {/* Transactions List */}
@@ -31,16 +27,16 @@ export function TransactionsList({
           </div>
         ) : (
           transactions.map((transaction) => (
-            <div
+            <Card
               key={transaction.id}
-              className="bg-card border-2 border-cardBorder drop-shadow-xl/20 rounded-lg p-4 active:bg-accent/50 transition-colors"
+              className="p-4 active:bg-accent/50 transition-colors"
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                   <div className="min-w-0 flex-1">
                     <div className="font-medium truncate">{transaction.name}</div>
                     <div className="text-xs text-muted-foreground mt-0.5">
-                      {new Date(transaction.date).toLocaleDateString("en-US", {
+                      {new Date(transaction.datetime).toLocaleDateString("en-US", {
                         month: "short",
                         day: "numeric"
                       })}
@@ -53,7 +49,7 @@ export function TransactionsList({
                   </div>
                 </div>
               </div>
-            </div>
+            </Card>
           ))
         )}
       </div>

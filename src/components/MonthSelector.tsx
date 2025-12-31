@@ -19,7 +19,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
 
   return (
     <div className={`px-4 py-2 ${className}`}>
-      <div className="flex flex-row-reverse overflow-x-auto space-x-2 scrollbar-hide">
+      <div className="flex flex-row-reverse overflow-x-auto py-4 space-x-2 scrollbar-hide">
         {recentMonths.map(({ year, month, displayName, key }) => {
           const isSelected = year === selectedYear && month === selectedMonth;
           const isCurrent = year === currentYear && month === currentMonth;
@@ -31,7 +31,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
               className={`
                 shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
                 ${isSelected
-                  ? 'bg-blue-500 text-white shadow-md'
+                  ? 'bg-amber-500 text-white shadow-md'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }
                 ${isCurrent && !isSelected ? 'ring-2 ring-blue-300' : ''}

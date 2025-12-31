@@ -14,6 +14,7 @@ import {
 } from "./common/dialog";
 import { Label } from "./common/label";
 import { Textarea } from "./common/textarea";
+import { Card } from "./common/card";
 
 export interface Goal {
   id: string;
@@ -224,7 +225,7 @@ export function GoalsTab({
             const isComplete = goal.currentAmount >= goal.targetAmount;
 
             return (
-              <div key={goal.id} className="bg-card border-2 border-cardBorder drop-shadow-xl/20 rounded-lg p-4">
+              <Card key={goal.id} className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-start gap-3 flex-1">
                     <div className={`w-3 h-3 rounded-full mt-1 ${goal.color}`} />
@@ -250,7 +251,7 @@ export function GoalsTab({
                 <div className="space-y-2 mb-3">
                   <Progress
                     value={Math.min(percentage, 100)}
-                    className="h-3"
+                    className=" bg-gray-300"
                   />
                   <div className="flex justify-between text-sm">
                     <span className={isComplete ? "text-green-600 font-medium" : "text-muted-foreground"}>
@@ -288,7 +289,7 @@ export function GoalsTab({
                   <Plus className="size-3.5 mr-1" />
                   Add Progress
                 </Button>
-              </div>
+              </Card>
             );
           })
         )}

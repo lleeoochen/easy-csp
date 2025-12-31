@@ -45,7 +45,7 @@ const GoalsPage = () => {
   if (loading) {
     return (
       <div className="container max-w-md mx-auto">
-        <h1 className="text-2xl font-bold px-4 pt-4">Savings Goals</h1>
+        <h1 className="text-2xl text-center font-bold px-4 pt-4">Savings Goals</h1>
         <div className="p-8 text-center">
           <div className="animate-pulse">Loading goals...</div>
         </div>
@@ -56,7 +56,7 @@ const GoalsPage = () => {
   if (errorMessage) {
     return (
       <div className="container max-w-md mx-auto">
-        <h1 className="text-2xl font-bold px-4 pt-4">Savings Goals</h1>
+        <h1 className="text-2xl text-center font-bold px-4 pt-4">Savings Goals</h1>
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg mx-4">
           <p className="text-red-600">Error loading goals: {errorMessage}</p>
           <button
@@ -72,7 +72,7 @@ const GoalsPage = () => {
 
   return (
     <div className="container max-w-md mx-auto">
-      <h1 className="text-2xl font-bold px-4 pt-4">Savings Goals</h1>
+      <h1 className="text-2xl text-center font-bold px-4 pt-4">Savings Goals</h1>
       <GoalsTab
         goals={goals}
         onAddGoal={handleAddGoal}
