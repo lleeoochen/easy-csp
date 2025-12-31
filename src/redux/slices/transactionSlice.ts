@@ -1,6 +1,6 @@
 import type { Transaction } from "@easy-csp/shared-types";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { fetchTransactions } from "../thunks/transactionThunk";
+import { fetchTransactions, fetchTransactionsByDateRange } from "../thunks/transactionThunk";
 
 type TransactionSlice = {
   isLoading: boolean;
@@ -31,6 +31,23 @@ export const transactionSlice = createSlice({
       state.errorMessage = "";
     });
     builder.addCase(fetchTransactions.rejected, (state, action) => {
+      state.isLoading = false;
+      state.transactions = [];
+      state.errorMessage = action.error.message;
+    });
+
+    // Handle date range filtering thunk
+    builder.addCase(fetchTransactionsByDateRange.fulfilled, (state, action: PayloadAction<Transaction[]>) => {
+      state.isLoading = false;
+      state.transactions = action.payload;
+      state.errorMessage = "";
+    });
+    builder.addCase(fetchTransactionsByDateRange.pending, (state) => {
+      state.isLoading = true;
+      state.transactions = [];
+      state.errorMessage = "";
+    });
+    builder.addCase(fetchTransactionsByDateRange.rejected, (state, action) => {
       state.isLoading = false;
       state.transactions = [];
       state.errorMessage = action.error.message;

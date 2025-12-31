@@ -1,14 +1,30 @@
 import { Progress } from "../../components/common/progress";
-import type { CSPBucket, CSPBudget } from "@easy-csp/shared-types";
+import type { CSPBucket, CSPCategoryBudget } from "@easy-csp/shared-types";
+import { useAppSelector } from "../../hooks/useRedux";
 
 interface CategorySectionProps {
   cspBucket: CSPBucket;
-  cspBudgets: CSPBudget[];
+  cspBudgets: CSPCategoryBudget[];
 }
 
 export function CategorySection({ cspBucket, cspBudgets }: CategorySectionProps) {
+  const transactionState = useAppSelector(state => state.transaction);
+
+  // Helper function to calculate spending for a specific category
+  const calculateCategorySpending = (category: string): number => {
+    return transactionState.transactions
+      .filter(transaction => transaction.category === category && !transaction.hidden)
+      .reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0);
+  };
+
+  // Calculate spending for each category and total for section
+  const categorySpending = cspBudgets.reduce((acc, budget) => {
+    acc[budget.category] = calculateCategorySpending(budget.category);
+    return acc;
+  }, {} as Record<string, number>);
+
   const totalBudgeted = cspBudgets.reduce((sum, sub) => sum + sub.amount, 0);
-  const totalSpent = 0;
+  const totalSpent = Object.values(categorySpending).reduce((sum, spent) => sum + spent, 0);
   const percentage = totalBudgeted > 0 ? (totalSpent / totalBudgeted) * 100 : 0;
   const isOverBudget = totalSpent > totalBudgeted;
 
@@ -49,7 +65,7 @@ export function CategorySection({ cspBucket, cspBudgets }: CategorySectionProps)
             <div className="flex-1 min-w-0">
               <div className="font-medium text-sm truncate">{budget.category}</div>
               <div className="text-xs text-muted-foreground mt-0.5">
-                ${0} / ${budget.amount.toLocaleString()}
+                ${categorySpending[budget.category]?.toLocaleString() || '0'} / ${budget.amount.toLocaleString()}
               </div>
             </div>
           </div>

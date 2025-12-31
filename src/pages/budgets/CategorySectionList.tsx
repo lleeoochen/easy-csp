@@ -1,12 +1,14 @@
-import { CSPBucket, type ConsciousSpendingPlan } from "@easy-csp/shared-types";
+import { CSPBucket, type ConsciousSpendingPlan, type Transaction } from "@easy-csp/shared-types";
 import { CategorySection } from "./CategorySection";
 
 interface CategorySectionListProps {
   consciousSpendingPlan: ConsciousSpendingPlan;
+  transactions?: Transaction[];
 }
 
 export function CategorySectionList({
-  consciousSpendingPlan
+  consciousSpendingPlan,
+  transactions = []
 }: CategorySectionListProps) {
   const totalBudgeted = Object.values(consciousSpendingPlan).reduce(
     (sum, cspBudgets) =>
@@ -14,7 +16,14 @@ export function CategorySectionList({
     0
   );
 
-  const totalSpent = 0;
+  // Calculate total spent from transactions
+  const totalSpent = transactions.reduce((sum, transaction) => {
+    // Only include non-hidden transactions with positive amounts (expenses)
+    if (!transaction.hidden && transaction.amount > 0) {
+      return sum + transaction.amount;
+    }
+    return sum;
+  }, 0);
 
   return (
     <div className="space-y-4 p-4 pb-24">

@@ -15,7 +15,8 @@ const initialState: BudgetSlice = {
     fixedCost: [],
     guildFreeSpending: [],
     investment: [],
-    savings: []
+    savings: [],
+    ignored: []
   },
   errorMessage: ""
 };
