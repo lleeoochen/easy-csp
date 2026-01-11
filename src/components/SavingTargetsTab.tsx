@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Target } from "lucide-react";
 import { Progress } from "./common/progress";
 import { Button } from "./common/button";
@@ -13,88 +13,83 @@ import {
   DialogFooter,
 } from "./common/dialog";
 import { Label } from "./common/label";
-import { Textarea } from "./common/textarea";
 import { Card } from "./common/card";
+import { useAppDispatch, useAppSelector } from "../hooks/useRedux";
+import { fetchFinancialInstitutions } from "../redux/thunks/financialInstitutionThunk";
+import type { UI_SavingTargetAndBalance } from "../types/uiTypes";
+import type { ThunkProps_AddSavingTarget, ThunkProps_UpdateSavingTarget } from "../redux/thunks/savingTargetsThunk";
 
-export interface Goal {
-  id: string;
-  name: string;
-  description: string;
-  targetAmount: number;
-  currentAmount: number;
-  deadline: string;
-  color: string;
-}
-
-interface GoalsTabProps {
-  goals: Goal[];
-  onAddGoal: (goal: Omit<Goal, "id">) => void;
-  onUpdateGoal: (id: string, goal: Omit<Goal, "id">) => void;
-  onDeleteGoal: (id: string) => void;
+interface SavingTargetsTabProps {
+  savingTargets: UI_SavingTargetAndBalance[];
+  onAddSavingTarget: (savingTargetData: ThunkProps_AddSavingTarget) => void;
+  onUpdateSavingTarget: (savingTargetData: ThunkProps_UpdateSavingTarget) => void;
+  onDeleteSavingTarget: (id: string) => void;
   onUpdateProgress: (id: string, amount: number) => void;
 }
 
-const GOAL_COLORS = [
-  "bg-blue-500",
-  "bg-green-500",
-  "bg-purple-500",
-  "bg-orange-500",
-  "bg-pink-500",
-  "bg-teal-500",
-  "bg-indigo-500",
-  "bg-red-500",
-];
-
-export function GoalsTab({
-  goals,
-  onAddGoal,
-  onUpdateGoal,
-  onDeleteGoal,
+export function SavingTargetsTab({
+  savingTargets,
+  onAddSavingTarget,
+  onUpdateSavingTarget,
+  onDeleteSavingTarget,
   onUpdateProgress,
-}: GoalsTabProps) {
+}: SavingTargetsTabProps) {
+  const dispatch = useAppDispatch();
+  const financialInstitutionState = useAppSelector(state => state.financialInstitution);
+  const institutions = financialInstitutionState.institutions;
+
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [progressId, setProgressId] = useState<string | null>(null);
   const [progressAmount, setProgressAmount] = useState(0);
   const [formData, setFormData] = useState({
     name: "",
-    description: "",
     targetAmount: 0,
-    currentAmount: 0,
-    deadline: "",
-    color: GOAL_COLORS[0],
+    selectedAccount: "",
   });
 
+  useEffect(() => {
+    // Load financial institutions for account selection
+    dispatch(fetchFinancialInstitutions());
+  }, [dispatch]);
+
+  // Create account options for the selector
+  const accountOptions = institutions.flatMap((institution, index) =>
+    institution.accounts.map(account => ({
+      value: `${index}|${account.accountId}`,
+      label: `${institution.institutionName} - ${account.accountName}`,
+      institutionIndex: index,
+      accountId: account.accountId,
+    }))
+  );
+
   const handleAdd = () => {
-    if (formData.name && formData.targetAmount > 0) {
-      onAddGoal(formData);
+    if (formData.name && formData.targetAmount > 0 && formData.selectedAccount) {
+      onAddSavingTarget(formData);
       setFormData({
         name: "",
-        description: "",
         targetAmount: 0,
-        currentAmount: 0,
-        deadline: "",
-        color: GOAL_COLORS[0],
+        selectedAccount: "",
       });
       setIsAddOpen(false);
     }
   };
 
-  const handleEdit = (goal: Goal) => {
-    setEditingId(goal.id);
+  const handleEdit = (savingTarget: UI_SavingTargetAndBalance) => {
+    setEditingId(savingTarget.id);
     setFormData({
-      name: goal.name,
-      description: goal.description,
-      targetAmount: goal.targetAmount,
-      currentAmount: goal.currentAmount,
-      deadline: goal.deadline,
-      color: goal.color,
+      name: savingTarget.name,
+      targetAmount: savingTarget.targetAmount,
+      selectedAccount: "", // Would need to derive this from saving target data
     });
   };
 
   const handleUpdate = () => {
-    if (editingId && formData.name && formData.targetAmount > 0) {
-      onUpdateGoal(editingId, formData);
+    if (editingId && formData.name && formData.targetAmount > 0 && formData.selectedAccount) {
+      onUpdateSavingTarget({
+        id: editingId,
+        savingTargetData: formData
+      });
       setEditingId(null);
     }
   };
@@ -107,15 +102,6 @@ export function GoalsTab({
     }
   };
 
-  const calculateDaysRemaining = (deadline: string) => {
-    if (!deadline) return null;
-    const today = new Date();
-    const target = new Date(deadline);
-    const diffTime = target.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
   return (
     <div className="space-y-4 p-4 pb-24">
       {/* Header */}
@@ -124,32 +110,22 @@ export function GoalsTab({
           <DialogTrigger>
             <div className="flex items-center">
               <Plus className="size-4 mr-2" />
-              <span>Add Goal</span>
+              <span>Add Saving Target</span>
             </div>
           </DialogTrigger>
           <DialogContent className="w-[calc(100%-2rem)] max-w-md">
             <DialogHeader>
-              <DialogTitle>Create New Goal</DialogTitle>
+              <DialogTitle>Create New Saving Target</DialogTitle>
               <DialogDescription>Set a new savings target</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Goal Name</Label>
+                <Label htmlFor="name">Saving Target Name</Label>
                 <Input
                   id="name"
                   placeholder="e.g., Emergency Fund"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description (optional)</Label>
-                <Textarea
-                  id="description"
-                  placeholder="What is this goal for?"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  rows={2}
                 />
               </div>
               <div className="space-y-2">
@@ -165,75 +141,54 @@ export function GoalsTab({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="current">Current Amount</Label>
-                <Input
-                  id="current"
-                  type="number"
-                  placeholder="0"
-                  value={formData.currentAmount || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, currentAmount: Number(e.target.value) })
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="deadline">Target Date (optional)</Label>
-                <Input
-                  id="deadline"
-                  type="date"
-                  value={formData.deadline}
-                  onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Color</Label>
-                <div className="flex gap-2 flex-wrap">
-                  {GOAL_COLORS.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      className={`w-8 h-8 rounded-full ${color} ${
-                        formData.color === color ? "ring-2 ring-offset-2 ring-foreground" : ""
-                      }`}
-                      onClick={() => setFormData({ ...formData, color })}
-                    />
+                <Label htmlFor="account">Select Account</Label>
+                <select
+                  id="account"
+                  value={formData.selectedAccount}
+                  onChange={(e) => setFormData({ ...formData, selectedAccount: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Choose an account...</option>
+                  {accountOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
                   ))}
-                </div>
+                </select>
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleAdd} className="w-full">Create Goal</Button>
+              <Button onClick={handleAdd} className="w-full">Create Saving Target</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Goals List */}
+      {/* Saving Targets List */}
       <div className="space-y-3">
-        {goals.length === 0 ? (
+        {savingTargets.length === 0 ? (
           <div className="text-center py-16 bg-card border rounded-lg">
             <Target className="size-12 mx-auto text-muted-foreground mb-3" />
-            <p className="text-muted-foreground">No goals yet</p>
+            <p className="text-muted-foreground">No saving targets yet</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Create your first savings goal
+              Create your first savings target
             </p>
           </div>
         ) : (
-          goals.map((goal) => {
-            const percentage = (goal.currentAmount / goal.targetAmount) * 100;
-            const daysRemaining = calculateDaysRemaining(goal.deadline);
-            const isComplete = goal.currentAmount >= goal.targetAmount;
+          savingTargets.map((savingTarget) => {
+            const percentage = (savingTarget.currentAmount / savingTarget.targetAmount) * 100;
+            const isComplete = savingTarget.currentAmount >= savingTarget.targetAmount;
 
             return (
-              <Card key={goal.id} className="p-4">
+              <Card key={savingTarget.id} className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-start gap-3 flex-1">
-                    <div className={`w-3 h-3 rounded-full mt-1 ${goal.color}`} />
+                    <div className="w-3 h-3 rounded-full mt-1 bg-blue-500" />
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold truncate">{goal.name}</h3>
-                      {goal.description && (
+                      <h3 className="font-semibold truncate">{savingTarget.name}</h3>
+                      {savingTarget.accountInfo && (
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {goal.description}
+                          {savingTarget.accountInfo.institutionName} - {savingTarget.accountInfo.accountName}
                         </p>
                       )}
                     </div>
@@ -242,7 +197,7 @@ export function GoalsTab({
                     variant="ghost"
                     size="sm"
                     className="h-8 w-8 p-0"
-                    onClick={() => handleEdit(goal)}
+                    onClick={() => handleEdit(savingTarget)}
                   >
                     <Edit2 className="size-3.5" />
                   </Button>
@@ -258,22 +213,15 @@ export function GoalsTab({
                       {percentage.toFixed(0)}% complete
                     </span>
                     <span className="font-medium">
-                      ${goal.currentAmount.toLocaleString()} / ${goal.targetAmount.toLocaleString()}
+                      ${savingTarget.currentAmount.toLocaleString()} / ${savingTarget.targetAmount.toLocaleString()}
                     </span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
                   <div>
-                    ${(goal.targetAmount - goal.currentAmount).toLocaleString()} remaining
+                    ${(savingTarget.targetAmount - savingTarget.currentAmount).toLocaleString()} remaining
                   </div>
-                  {daysRemaining !== null && (
-                    <div className={daysRemaining < 0 ? "text-destructive" : ""}>
-                      {daysRemaining < 0
-                        ? `${Math.abs(daysRemaining)} days overdue`
-                        : `${daysRemaining} days left`}
-                    </div>
-                  )}
                 </div>
 
                 <Button
@@ -281,7 +229,7 @@ export function GoalsTab({
                   size="sm"
                   className="w-full"
                   onClick={() => {
-                    setProgressId(goal.id);
+                    setProgressId(savingTarget.id);
                     setProgressAmount(0);
                   }}
                   disabled={isComplete}
@@ -299,25 +247,16 @@ export function GoalsTab({
       <Dialog open={editingId !== null} onOpenChange={(open) => !open && setEditingId(null)}>
         <DialogContent className="w-[calc(100%-2rem)] max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Goal</DialogTitle>
-            <DialogDescription>Update your goal details</DialogDescription>
+            <DialogTitle>Edit Saving Target</DialogTitle>
+            <DialogDescription>Update your saving target details</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-name">Goal Name</Label>
+              <Label htmlFor="edit-name">Saving Target Name</Label>
               <Input
                 id="edit-name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-description">Description</Label>
-              <Textarea
-                id="edit-description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                rows={2}
               />
             </div>
             <div className="space-y-2">
@@ -332,39 +271,20 @@ export function GoalsTab({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-current">Current Amount</Label>
-              <Input
-                id="edit-current"
-                type="number"
-                value={formData.currentAmount}
-                onChange={(e) =>
-                  setFormData({ ...formData, currentAmount: Number(e.target.value) })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-deadline">Target Date</Label>
-              <Input
-                id="edit-deadline"
-                type="date"
-                value={formData.deadline}
-                onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Color</Label>
-              <div className="flex gap-2 flex-wrap">
-                {GOAL_COLORS.map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={`w-8 h-8 rounded-full ${color} ${
-                      formData.color === color ? "ring-2 ring-offset-2 ring-foreground" : ""
-                    }`}
-                    onClick={() => setFormData({ ...formData, color })}
-                  />
+              <Label htmlFor="edit-account">Select Account</Label>
+              <select
+                id="edit-account"
+                value={formData.selectedAccount}
+                onChange={(e) => setFormData({ ...formData, selectedAccount: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Choose an account...</option>
+                {accountOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
                 ))}
-              </div>
+              </select>
             </div>
           </div>
           <DialogFooter className="flex gap-2">
@@ -372,7 +292,7 @@ export function GoalsTab({
               variant="destructive"
               onClick={() => {
                 if (editingId) {
-                  onDeleteGoal(editingId);
+                  onDeleteSavingTarget(editingId);
                   setEditingId(null);
                 }
               }}
@@ -393,7 +313,7 @@ export function GoalsTab({
         <DialogContent className="w-[calc(100%-2rem)] max-w-md">
           <DialogHeader>
             <DialogTitle>Add Progress</DialogTitle>
-            <DialogDescription>How much did you save towards this goal?</DialogDescription>
+            <DialogDescription>How much did you save towards this target?</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">

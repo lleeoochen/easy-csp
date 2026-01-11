@@ -1,6 +1,6 @@
 import { HashRouter as Router, Routes, Route, Link } from "react-router-dom";
 import ConsciousSpendingPlanPage from "./pages/consciousSpendingPlan/ConsciousSpendingPlanPage";
-import GoalsPage from "./pages/GoalsPage";
+import SavingTargetsPage from "./pages/SavingTargetsPage";
 import TransactionsPage from "./pages/transactions/TransactionsPage";
 import SettingsPage from "./pages/SettingsPage";
 import FinancialInstitutionsPage from "./pages/financialInstitutions/FinancialInstitutionsPage";
@@ -27,8 +27,10 @@ const firestore = getFirestore(app);
 const functions = getFunctions(app);
 
 // Connect to emulators
-connectFirestoreEmulator(firestore, "localhost", 8080);
-connectFunctionsEmulator(functions, "localhost", 5001);
+if (window.location.hostname === "localhost") {
+  connectFirestoreEmulator(firestore, "localhost", 8080);
+  connectFunctionsEmulator(functions, "localhost", 5001);
+}
 
 function App() {
   // Use our custom auth state hook
@@ -53,7 +55,7 @@ function App() {
                 <Route path="/transactions" element={<TransactionsPage />} />
                 <Route path="/institutions" element={<FinancialInstitutionsPage />} />
                 <Route path="/csp" element={<ConsciousSpendingPlanPage />} />
-                <Route path="/goals" element={<GoalsPage />} />
+                <Route path="/goals" element={<SavingTargetsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
               </Routes>
             </main>

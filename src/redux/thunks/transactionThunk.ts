@@ -1,8 +1,15 @@
 import type { Transaction, ListTransactionsRequest } from "@easy-csp/shared-types";
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getFunctions, httpsCallable } from "firebase/functions";
+import type { RootState } from "../store";
 
-export const fetchTransactions = createAsyncThunk(
+export type ThunkProps_FetchTransactionsByDateRange = ListTransactionsRequest;
+
+export const fetchTransactions = createAsyncThunk<
+  Transaction[],
+  void,
+  { state: RootState }
+>(
   'transactions/fetch',
   async () => {
     const functions = getFunctions();
@@ -12,7 +19,11 @@ export const fetchTransactions = createAsyncThunk(
   },
 );
 
-export const fetchTransactionsByDateRange = createAsyncThunk(
+export const fetchTransactionsByDateRange = createAsyncThunk<
+  Transaction[],
+  ThunkProps_FetchTransactionsByDateRange,
+  { state: RootState }
+>(
   'transactions/fetchByDateRange',
   async (request: ListTransactionsRequest) => {
     const functions = getFunctions();
