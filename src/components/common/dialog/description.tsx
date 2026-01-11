@@ -9,7 +9,7 @@ export const DialogDescription = React.forwardRef<HTMLParagraphElement, DialogDe
   ({ className, ...props }, ref) => (
     <p
       ref={ref}
-      className={cn("text-sm text-muted-foreground", className)}
+      className={cn("text-md text-muted-foreground", className)}
       {...props}
     />
   )

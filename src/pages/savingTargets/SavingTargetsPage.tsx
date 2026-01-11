@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from "react";
-import { SavingTargetsTab } from "../components/SavingTargetsTab";
+import { SavingTargetsContent } from "./SavingTargetsContent";
 import {
   fetchSavingTargets,
   addSavingTarget,
@@ -8,8 +8,8 @@ import {
   updateSavingTargetProgress,
   type ThunkProps_AddSavingTarget,
   type ThunkProps_UpdateSavingTarget
-} from "../redux/thunks/savingTargetsThunk";
-import { useAppDispatch, useAppSelector } from "../hooks/useRedux";
+} from "../../redux/thunks/savingTargetsThunk";
+import { useAppDispatch, useAppSelector } from "../../hooks/useRedux";
 
 const SavingTargetsPage = () => {
   const dispatch = useAppDispatch();
@@ -74,7 +74,7 @@ const SavingTargetsPage = () => {
   return (
     <div className="container max-w-md mx-auto">
       <h1 className="text-2xl text-center font-bold px-4 pt-4">Saving Targets</h1>
-      <SavingTargetsTab
+      <SavingTargetsContent
         savingTargets={savingTargets}
         onAddSavingTarget={handleAddSavingTarget}
         onUpdateSavingTarget={handleUpdateSavingTarget}

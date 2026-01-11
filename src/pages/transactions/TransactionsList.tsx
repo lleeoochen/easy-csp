@@ -21,7 +21,7 @@ export function TransactionsList({
         {transactions.length === 0 ? (
           <div className="text-center py-16 bg-card border rounded-lg">
             <p className="text-muted-foreground">No transactions yet</p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-md text-muted-foreground mt-1">
               Tap "Add Transaction" to start
             </p>
           </div>

@@ -1,7 +1,7 @@
 import { Progress } from "../../components/common/progress";
 import type { CSPCategoryBudget } from "@easy-csp/shared-types";
 import { useAppSelector } from "../../hooks/useRedux";
-import { Card } from "../../components/common/card";
+import { Card, CardHeader } from "../../components/common/card";
 import { camelCaseToSentence } from "../../utils/stringUtils";
 import { formatCurrency } from "../../utils/financialUtils";
 
@@ -33,39 +33,33 @@ export function CSPBucketCard({ cspBucket, cspBudgets }: CSPBucketCardProps) {
 
   return (
     <Card className="flex-1">
-      {/* Category Header */}
-      <div className="flex items-start justify-between px-6 py-4 bg-amber-100">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">{camelCaseToSentence(cspBucket)}</h3>
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="font-medium">
-            {formatCurrency(totalSpent)}
-          </div>
-          <div className="text-xs text-gray-400">
-            / {formatCurrency(totalBudgeted)}
-          </div>
-        </div>
-      </div>
-      <div className="px-6 pb-4 bg-amber-100">
-        <Progress value={Math.min(percentage, 100)} className="h-2" />
-      </div>
-      {/* SubCategories */}
-      <div className="px-6 py-4">
-        {cspBudgets.map((budget) => (
-          categorySpending[budget.category]
-          ? (
-            <div key={budget.category} className="flex justify-between items-center active:bg-accent/50">
-              <div className="font-medium text-sm truncate">{camelCaseToSentence(budget.category)}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">
-                {formatCurrency(categorySpending[budget.category])} / {formatCurrency(budget.amount)}
-              </div>
+      <CardHeader className="flex flex-col gap-3 px-6 py-4">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold">{camelCaseToSentence(cspBucket)}</h3>
             </div>
-          ) : (
-            undefined
-          )
+          </div>
+          <div className="text-right">
+            <div className="text-lg font-semibold">
+              {formatCurrency(totalSpent)}
+            </div>
+          </div>
+        </div>
+        <Progress value={Math.min(percentage, 100)} hintText={formatCurrency(totalBudgeted)} activeColorClass="bg-green-200" />
+      </CardHeader>
+      {/* SubCategories */}
+      <div className="px-6 py-4 flex flex-col gap-5">
+        {cspBudgets.map((budget) => (
+          <div key={budget.category} className="flex justify-between items-center active:bg-accent/50">
+            <div className="grow shrink basis-1/2 font-medium text-md truncate">{camelCaseToSentence(budget.category)}</div>
+            <Progress
+              className="bg-gray-200 grow shrink basis-1/2"
+              value={Math.min(categorySpending[budget.category] / budget.amount * 100, 100)}
+              hintText={formatCurrency(budget.amount)}
+              activeColorClass="bg-cardHeader"
+            />
+          </div>
         ))}
       </div>
     </Card>

@@ -3,6 +3,7 @@ import { AccountType } from "@easy-csp/shared-types";
 import { fetchFinancialInstitutions } from "../../redux/thunks/financialInstitutionThunk";
 import { useAppDispatch, useAppSelector } from "../../hooks/useRedux";
 import { getFinancialInstitutionStatusDisplay } from "../../utils/statusUtils";
+import { Card, CardHeader } from "../../components/common/card";
 
 // Helper function to get account type display name
 const getAccountTypeDisplay = (accountType: AccountType): string => {
@@ -98,22 +99,22 @@ const FinancialInstitutionsPage = () => {
       {institutions.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-600 mb-4">No financial institutions connected yet.</p>
-          <p className="text-sm text-gray-500">Connect your bank accounts to get started.</p>
+          <p className="text-md text-gray-500">Connect your bank accounts to get started.</p>
         </div>
       ) : (
         <div className="space-y-6">
           {institutions.map((institution, index) => {
             const statusDisplay = getFinancialInstitutionStatusDisplay(institution.status);
             return (
-              <div key={`${institution.institutionId}-${index}`} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+              <Card key={`${institution.institutionId}-${index}`}>
                 {/* Institution Header */}
-                <div className="bg-amber-100 px-6 py-4 border-b border-gray-200">
+                <CardHeader className="px-6 py-4">
                   <div className="flex justify-between items-start">
                     <div>
                       <h2 className="text-lg font-semibold text-gray-900">
                         {institution.institutionName}
                       </h2>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <p className="text-md text-gray-600 mt-1">
                         Last synced: {formatDate(institution.lastSyncTimestamp)}
                       </p>
                     </div>
@@ -121,12 +122,12 @@ const FinancialInstitutionsPage = () => {
                       {statusDisplay.text}
                     </span>
                   </div>
-                </div>
+                </CardHeader>
 
                 {/* Accounts List */}
                 <div className="p-2">
                   {institution.accounts.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No accounts found for this institution.</p>
+                    <p className="text-gray-500 text-md">No accounts found for this institution.</p>
                   ) : (
                     <div className="space-y-3">
                       {institution.accounts.map((account, accountIndex) => (
@@ -136,7 +137,7 @@ const FinancialInstitutionsPage = () => {
                         >
                           <div>
                             <h4 className="font-medium text-gray-900">{account.accountName}</h4>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-md text-gray-600">
                               {getAccountTypeDisplay(account.accountType)}
                             </p>
                           </div>
@@ -153,7 +154,7 @@ const FinancialInstitutionsPage = () => {
                     </div>
                   )}
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>

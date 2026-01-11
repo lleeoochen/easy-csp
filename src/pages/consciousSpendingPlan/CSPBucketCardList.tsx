@@ -52,16 +52,16 @@ export function CSPBucketCardList() {
   return (
     <div className="space-y-4 p-4 pb-24">
       {/* Summary Cards */}
-      <div className="flex gap-3">
-        <Card className="flex-1 px-6 py-4 p-3 text-center">
+      <div className="gap-3 hidden">
+        <Card className="flex-1 px-6 py-4 p-3 text-center bg-cardHeader">
           <div className="text-md font-medium">Total Income</div>
           <div className={`text-2xl font-medium`}>{formatCurrency(totalIncome)}</div>
-          <div className="text-md text-gray-400 font-medium">{formatCurrency(totalIncomeTarget)}</div>
+          <div className="text-md font-medium">{formatCurrency(totalIncomeTarget)}</div>
         </Card>
-        <Card className="flex-1 px-6 py-4 p-3 text-center">
+        <Card className="flex-1 px-6 py-4 p-3 text-center bg-cardHeader">
           <div className="text-md font-medium">Total Spending</div>
           <div className={`text-2xl font-medium`}>{formatCurrency(totalSpending)}</div>
-          <div className="text-md text-gray-400 font-medium">{formatCurrency(totalSpendingTarget)}</div>
+          <div className="text-md font-medium">{formatCurrency(totalSpendingTarget)}</div>
         </Card>
       </div>
 

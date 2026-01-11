@@ -29,9 +29,9 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
               key={key}
               onClick={() => onMonthSelect(year, month)}
               className={`
-                shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
+                shrink-0 px-4 py-2 rounded-full text-md font-medium transition-all duration-200
                 ${isSelected
-                  ? 'bg-amber-500 text-white shadow-md'
+                  ? 'bg-cardHeader shadow-md'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }
                 ${isCurrent && !isSelected ? 'ring-2 ring-blue-300' : ''}

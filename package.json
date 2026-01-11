@@ -7,7 +7,7 @@
   "scripts": {
     "clean": "rm -rf node_modules/@easy-csp/ && rm -f package-lock.json && rm -f easy-csp-shared-types-1.0.0.tgz",
     "preinstall": "if [ -d ../easy-csp-shared-types ]; then npm pack ../easy-csp-shared-types; fi",
-    "dev": "vite",
+    "serve": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",

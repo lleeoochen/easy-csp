@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit2, Trash2, Target } from "lucide-react";
-import { Progress } from "./common/progress";
-import { Button } from "./common/button";
-import { Input } from "./common/input";
+import { Progress } from "../../components/common/progress";
+import { Button } from "../../components/common/button";
+import { Input } from "../../components/common/input";
 import {
   Dialog,
   DialogContent,
@@ -11,15 +11,15 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-} from "./common/dialog";
-import { Label } from "./common/label";
-import { Card } from "./common/card";
-import { useAppDispatch, useAppSelector } from "../hooks/useRedux";
-import { fetchFinancialInstitutions } from "../redux/thunks/financialInstitutionThunk";
-import type { UI_SavingTargetAndBalance } from "../types/uiTypes";
-import type { ThunkProps_AddSavingTarget, ThunkProps_UpdateSavingTarget } from "../redux/thunks/savingTargetsThunk";
+} from "../../components/common/dialog";
+import { Label } from "../../components/common/label";
+import { Card } from "../../components/common/card";
+import { useAppDispatch, useAppSelector } from "../../hooks/useRedux";
+import { fetchFinancialInstitutions } from "../../redux/thunks/financialInstitutionThunk";
+import type { UI_SavingTargetAndBalance } from "../../types/uiTypes";
+import type { ThunkProps_AddSavingTarget, ThunkProps_UpdateSavingTarget } from "../../redux/thunks/savingTargetsThunk";
 
-interface SavingTargetsTabProps {
+interface SavingTargetsContentProps {
   savingTargets: UI_SavingTargetAndBalance[];
   onAddSavingTarget: (savingTargetData: ThunkProps_AddSavingTarget) => void;
   onUpdateSavingTarget: (savingTargetData: ThunkProps_UpdateSavingTarget) => void;
@@ -27,13 +27,13 @@ interface SavingTargetsTabProps {
   onUpdateProgress: (id: string, amount: number) => void;
 }
 
-export function SavingTargetsTab({
+export function SavingTargetsContent({
   savingTargets,
   onAddSavingTarget,
   onUpdateSavingTarget,
   onDeleteSavingTarget,
   onUpdateProgress,
-}: SavingTargetsTabProps) {
+}: SavingTargetsContentProps) {
   const dispatch = useAppDispatch();
   const financialInstitutionState = useAppSelector(state => state.financialInstitution);
   const institutions = financialInstitutionState.institutions;
@@ -170,7 +170,7 @@ export function SavingTargetsTab({
           <div className="text-center py-16 bg-card border rounded-lg">
             <Target className="size-12 mx-auto text-muted-foreground mb-3" />
             <p className="text-muted-foreground">No saving targets yet</p>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-md text-muted-foreground mt-1">
               Create your first savings target
             </p>
           </div>
@@ -208,7 +208,7 @@ export function SavingTargetsTab({
                     value={Math.min(percentage, 100)}
                     className=" bg-gray-300"
                   />
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-md">
                     <span className={isComplete ? "text-green-600 font-medium" : "text-muted-foreground"}>
                       {percentage.toFixed(0)}% complete
                     </span>

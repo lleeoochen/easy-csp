@@ -35,7 +35,7 @@ const SettingsPage = () => {
 
           <div className="space-y-2">
             <div>
-              <label className="text-sm font-medium text-gray-600">Name:</label>
+              <label className="text-md font-medium text-gray-600">Name:</label>
               <p className="text-gray-900">
                 {user?.displayName || user?.email || 'Anonymous User'}
               </p>
@@ -43,7 +43,7 @@ const SettingsPage = () => {
 
             {user?.email && (
               <div>
-                <label className="text-sm font-medium text-gray-600">Email:</label>
+                <label className="text-md font-medium text-gray-600">Email:</label>
                 <p className="text-gray-900">{user.email}</p>
               </div>
             )}
@@ -60,7 +60,7 @@ const SettingsPage = () => {
           >
             Sign Out
           </button>
-          
+
           <LinkFinancialInstitutionButton
             className="w-full bg-black hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
           />

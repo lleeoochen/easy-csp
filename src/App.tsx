@@ -1,6 +1,6 @@
 import { HashRouter as Router, Routes, Route, Link } from "react-router-dom";
 import ConsciousSpendingPlanPage from "./pages/consciousSpendingPlan/ConsciousSpendingPlanPage";
-import SavingTargetsPage from "./pages/SavingTargetsPage";
+import SavingTargetsPage from "./pages/savingTargets/SavingTargetsPage";
 import TransactionsPage from "./pages/transactions/TransactionsPage";
 import SettingsPage from "./pages/SettingsPage";
 import FinancialInstitutionsPage from "./pages/financialInstitutions/FinancialInstitutionsPage";
@@ -46,7 +46,7 @@ function App() {
   }
 
   return (
-    <div className="app-container">
+    <div className="app-container bg-background">
       {signedIn ? (
         <Router>
           <div className="flex flex-col min-h-screen">
