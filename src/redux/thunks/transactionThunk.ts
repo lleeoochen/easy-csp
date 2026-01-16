@@ -1,7 +1,7 @@
 import type { Transaction, ListTransactionsRequest } from "@easy-csp/shared-types";
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import { getFunctions, httpsCallable } from "firebase/functions";
 import type { RootState } from "../store";
+import { TransactionsService } from "../../services/transactionsService";
 
 export type ThunkProps_FetchTransactionsByDateRange = ListTransactionsRequest;
 
@@ -12,10 +12,12 @@ export const fetchTransactions = createAsyncThunk<
 >(
   'transactions/fetch',
   async () => {
-    const functions = getFunctions();
-    const getTransactionsFunction = httpsCallable<unknown, Transaction[]>(functions, "listTransactions");
-    const result = await getTransactionsFunction();
-    return result.data;
+    try {
+      return await TransactionsService.listTransactions();
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+      throw error;
+    }
   },
 );
 
@@ -26,11 +28,11 @@ export const fetchTransactionsByDateRange = createAsyncThunk<
 >(
   'transactions/fetchByDateRange',
   async (request: ListTransactionsRequest) => {
-    const functions = getFunctions();
-    const getTransactionsFunction = httpsCallable<ListTransactionsRequest, Transaction[]>(
-      functions, "listTransactions"
-    );
-    const result = await getTransactionsFunction(request);
-    return result.data;
+    try {
+      return await TransactionsService.listTransactions(request);
+    } catch (error) {
+      console.error('Error fetching transactions by date range:', error);
+      throw error;
+    }
   },
 );

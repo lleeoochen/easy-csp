@@ -36,7 +36,7 @@ export function SavingTargetsContent({
 }: SavingTargetsContentProps) {
   const dispatch = useAppDispatch();
   const financialInstitutionState = useAppSelector(state => state.financialInstitution);
-  const institutions = financialInstitutionState.institutions;
+  const institutions = financialInstitutionState.fetchFinancialInstitutions.institutions;
 
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);

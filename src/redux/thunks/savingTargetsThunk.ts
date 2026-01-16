@@ -1,18 +1,7 @@
 import type { UI_SavingTargetAndBalance } from "../../types/uiTypes";
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { getFunctions, httpsCallable } from "firebase/functions";
-import type { SavingTarget as BackendSavingTarget } from "@easy-csp/shared-types";
 import type { RootState } from "../store";
-
-// Extended interface from backend that includes balance information
-interface SavingTargetWithBalance extends BackendSavingTarget {
-  id: string;
-  currentBalance: number;
-  accountInfo: {
-    institutionName: string;
-    accountName: string;
-  } | null;
-}
+import { SavingTargetsService, type SavingTargetWithBalance } from "../../services/savingTargetsService";
 
 export type ThunkProps_AddSavingTarget = {
   name: string;
@@ -56,17 +45,13 @@ export const fetchSavingTargets = createAsyncThunk<
 >(
   'savingTargets/fetch',
   async () => {
-    const functions = getFunctions();
-    const listSavingTargets = httpsCallable(functions, 'listSavingTargets');
-
     try {
-      const result = await listSavingTargets({});
-      const response = result.data as { success: boolean; savingTargets?: SavingTargetWithBalance[] };
+      const response = await SavingTargetsService.listSavingTargets();
 
       if (response.success && response.savingTargets) {
         return response.savingTargets.map(savingTargetToSavingTarget);
       } else {
-        throw new Error('Failed to fetch saving targets');
+        throw new Error(response.message || 'Failed to fetch saving targets');
       }
     } catch (error) {
       console.error('Error fetching saving targets:', error);
@@ -82,11 +67,8 @@ export const addSavingTarget = createAsyncThunk<
 >(
   'savingTargets/add',
   async (savingTargetData, { getState }) => {
-    const functions = getFunctions();
-    const addSavingTarget = httpsCallable(functions, 'addSavingTarget');
-
     try {
-      const institutions = getState().financialInstitution.institutions;
+      const institutions = getState().financialInstitution.fetchFinancialInstitutions.institutions;
 
       const [institutionIndexStr, accountId] = parseSelectedAccount(savingTargetData.selectedAccount);
       const institutionIndex = parseInt(institutionIndexStr);
@@ -96,14 +78,12 @@ export const addSavingTarget = createAsyncThunk<
         throw new Error('Invalid institution selected');
       }
 
-      const result = await addSavingTarget({
-        name: savingTargetData.name,
-        targetAmount: savingTargetData.targetAmount,
-        financialInstitutionId: institution.institutionId,
-        accountId: accountId,
-      });
-
-      const response = result.data as { success: boolean; savingTarget?: BackendSavingTarget & { id: string } };
+      const response = await SavingTargetsService.addSavingTarget(
+        savingTargetData.name,
+        savingTargetData.targetAmount,
+        institution.institutionId,
+        accountId
+      );
 
       if (response.success && response.savingTarget) {
         // Convert to SavingTarget format for the UI
@@ -118,7 +98,7 @@ export const addSavingTarget = createAsyncThunk<
           },
         };
       } else {
-        throw new Error('Failed to add saving target');
+        throw new Error(response.message || 'Failed to add saving target');
       }
     } catch (error) {
       console.error('Error adding saving target:', error);
@@ -135,11 +115,9 @@ export const updateSavingTarget = createAsyncThunk<
   'savingTargets/update',
   async (params: ThunkProps_UpdateSavingTarget, { getState }) => {
     const { id, savingTargetData } = params;
-    const functions = getFunctions();
-    const updateSavingTarget = httpsCallable(functions, 'updateSavingTarget');
 
     try {
-      const institutions = getState().financialInstitution.institutions;
+      const institutions = getState().financialInstitution.fetchFinancialInstitutions.institutions;
 
       const [institutionIndexStr, accountId] = parseSelectedAccount(savingTargetData.selectedAccount);
       const institutionIndex = parseInt(institutionIndexStr);
@@ -149,17 +127,12 @@ export const updateSavingTarget = createAsyncThunk<
         throw new Error('Invalid institution selected');
       }
 
-      const result = await updateSavingTarget({
-        id,
-        updates: {
-          name: savingTargetData.name,
-          targetAmount: savingTargetData.targetAmount,
-          financialInstitutionId: institution.institutionId,
-          accountId: accountId,
-        },
+      const response = await SavingTargetsService.updateSavingTarget(id, {
+        name: savingTargetData.name,
+        targetAmount: savingTargetData.targetAmount,
+        financialInstitutionId: institution.institutionId,
+        accountId: accountId,
       });
-
-      const response = result.data as { success: boolean; savingTarget?: BackendSavingTarget & { id: string } };
 
       if (response.success && response.savingTarget) {
         return {
@@ -173,7 +146,7 @@ export const updateSavingTarget = createAsyncThunk<
           },
         } as UI_SavingTargetAndBalance;
       } else {
-        throw new Error('Failed to update saving target');
+        throw new Error(response.message || 'Failed to update saving target');
       }
     } catch (error) {
       console.error('Error updating saving target:', error);
@@ -189,17 +162,13 @@ export const deleteSavingTarget = createAsyncThunk<
 >(
   'savingTargets/delete',
   async (id: string) => {
-    const functions = getFunctions();
-    const removeSavingTarget = httpsCallable(functions, 'removeSavingTarget');
-
     try {
-      const result = await removeSavingTarget({ id });
-      const response = result.data as { success: boolean };
+      const response = await SavingTargetsService.removeSavingTarget(id);
 
       if (response.success) {
         return id; // Return the deleted saving target's ID
       } else {
-        throw new Error('Failed to delete saving target');
+        throw new Error(response.message || 'Failed to delete saving target');
       }
     } catch (error) {
       console.error('Error deleting saving target:', error);

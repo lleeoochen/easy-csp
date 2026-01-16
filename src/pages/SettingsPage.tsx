@@ -23,7 +23,7 @@ const SettingsPage = () => {
 
   return (
     <div className="container max-w-md mx-auto">
-      <h1 className="text-2xl text-center font-bold px-4 pt-4 mb-6">Settings</h1>
+      <h1 className="text-lg text-center font-bold px-4 pt-4 mb-6">Settings</h1>
 
       <div className="px-4 space-y-6">
         {/* User Information Section */}

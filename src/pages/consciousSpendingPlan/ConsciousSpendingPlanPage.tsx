@@ -69,7 +69,7 @@ const ConsciousSpendingPlanPage = () => {
   if (!consciousSpendingPlan) {
     return (
       <div className="container max-w-md mx-auto">
-        <h1 className="text-2xl text-center font-bold px-4 pt-4">Conscious Spending Plan</h1>
+        <h1 className="text-lg text-center font-bold px-4 pt-4">Conscious Spending Plan</h1>
         <div className="p-8 text-center">
           <p className="text-gray-600">No consciousSpendingPlan data available.</p>
         </div>
@@ -79,7 +79,7 @@ const ConsciousSpendingPlanPage = () => {
 
   return (
     <div className="container max-w-md mx-auto">
-      <h1 className="text-2xl text-center font-bold px-4 pt-4">Conscious Spending Plan</h1>
+      <h1 className="text-lg text-center font-bold px-4 pt-4">Conscious Spending Plan</h1>
 
       {/* Month Selector */}
       <MonthSelector

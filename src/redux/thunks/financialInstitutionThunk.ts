@@ -1,7 +1,7 @@
 import type { FinancialInstitution } from "@easy-csp/shared-types";
 import { createAsyncThunk } from "@reduxjs/toolkit"
-import { getFunctions, httpsCallable } from "firebase/functions";
 import type { RootState } from "../store";
+import { FinancialInstitutionsService } from "../../services/financialInstitutionsService";
 
 export const fetchFinancialInstitutions = createAsyncThunk<
   FinancialInstitution[],
@@ -10,9 +10,27 @@ export const fetchFinancialInstitutions = createAsyncThunk<
 >(
   'financialInstitutions/fetch',
   async () => {
-    const functions = getFunctions();
-    const listFinancialInstitutionsFunction = httpsCallable<unknown, FinancialInstitution[]>(functions, "listFinancialInstitutions");
-    const result = await listFinancialInstitutionsFunction();
-    return result.data;
+    try {
+      return await FinancialInstitutionsService.listFinancialInstitutions();
+    } catch (error) {
+      console.error('Error fetching financial institutions:', error);
+      throw error;
+    }
+  },
+);
+
+export const refreshFinancialInstitutions = createAsyncThunk<
+  void,
+  void,
+  { state: RootState }
+>(
+  'financialInstitutions/refresh',
+  async () => {
+    try {
+      await FinancialInstitutionsService.refreshFinancialInstitutions();
+    } catch (error) {
+      console.error('Error fetching financial institutions:', error);
+      throw error;
+    }
   },
 );

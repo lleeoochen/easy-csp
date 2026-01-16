@@ -46,7 +46,7 @@ const SavingTargetsPage = () => {
   if (loading) {
     return (
       <div className="container max-w-md mx-auto">
-        <h1 className="text-2xl text-center font-bold px-4 pt-4">Saving Targets</h1>
+        <h1 className="text-lg text-center font-bold px-4 pt-4">Saving Targets</h1>
         <div className="p-8 text-center">
           <div className="animate-pulse">Loading saving targets...</div>
         </div>
@@ -57,7 +57,7 @@ const SavingTargetsPage = () => {
   if (errorMessage) {
     return (
       <div className="container max-w-md mx-auto">
-        <h1 className="text-2xl text-center font-bold px-4 pt-4">Saving Targets</h1>
+        <h1 className="text-lg text-center font-bold px-4 pt-4">Saving Targets</h1>
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg mx-4">
           <p className="text-red-600">Error loading saving targets: {errorMessage}</p>
           <button
@@ -73,7 +73,7 @@ const SavingTargetsPage = () => {
 
   return (
     <div className="container max-w-md mx-auto">
-      <h1 className="text-2xl text-center font-bold px-4 pt-4">Saving Targets</h1>
+      <h1 className="text-lg text-center font-bold px-4 pt-4">Saving Targets</h1>
       <SavingTargetsContent
         savingTargets={savingTargets}
         onAddSavingTarget={handleAddSavingTarget}

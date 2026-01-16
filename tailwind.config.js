@@ -8,7 +8,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#59bad1',
+        background: '#4abce3',
         'btn-background': colors.white,
         card: colors.white,
         cardHeader: '#96d7b3'

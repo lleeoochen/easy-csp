@@ -50,7 +50,7 @@ export function CSPBucketCardList() {
   });
 
   return (
-    <div className="space-y-4 p-4 pb-24">
+    <div className="p-2">
       {/* Summary Cards */}
       <div className="gap-3 hidden">
         <Card className="flex-1 px-6 py-4 p-3 text-center bg-cardHeader">
@@ -66,7 +66,7 @@ export function CSPBucketCardList() {
       </div>
 
       {/* Category Sections */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         {spendingBuckets.map(([cspBucket, cspBudgets]) => (
           <CSPBucketCard
             key={cspBucket}
