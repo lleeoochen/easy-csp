@@ -1,7 +1,8 @@
 import type { UI_SavingTargetAndBalance } from "../../types/uiTypes";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import type { RootState } from "../store";
-import { SavingTargetsService, type SavingTargetWithBalance } from "../../services/savingTargetsService";
+import { SavingTargetsService } from "../../services/savingTargetsService";
+import { parseAccountOptionValue } from "../../utils/accountUtils";
 
 export type ThunkProps_AddSavingTarget = {
   name: string;
@@ -21,22 +22,6 @@ export type ThunkProps_UpdateSavingTargetProgress = {
   amount: number;
 };
 
-// Helper function to convert SavingTargetWithBalance to SavingTarget
-const savingTargetToSavingTarget = (savingTarget: SavingTargetWithBalance): UI_SavingTargetAndBalance => {
-  return {
-    id: savingTarget.id,
-    name: savingTarget.name,
-    targetAmount: savingTarget.targetAmount,
-    currentAmount: savingTarget.currentBalance,
-    accountInfo: savingTarget.accountInfo,
-  };
-};
-
-// Helper function to parse selected account string
-const parseSelectedAccount = (selectedAccount: string): [string, string] => {
-  const [institutionIndex, accountId] = selectedAccount.split('|');
-  return [institutionIndex, accountId];
-};
 
 export const fetchSavingTargets = createAsyncThunk<
   UI_SavingTargetAndBalance[],
@@ -49,7 +34,7 @@ export const fetchSavingTargets = createAsyncThunk<
       const response = await SavingTargetsService.listSavingTargets();
 
       if (response.success && response.savingTargets) {
-        return response.savingTargets.map(savingTargetToSavingTarget);
+        return response.savingTargets;
       } else {
         throw new Error(response.message || 'Failed to fetch saving targets');
       }
@@ -69,10 +54,9 @@ export const addSavingTarget = createAsyncThunk<
   async (savingTargetData, { getState }) => {
     try {
       const institutions = getState().financialInstitution.fetchFinancialInstitutions.institutions;
-
-      const [institutionIndexStr, accountId] = parseSelectedAccount(savingTargetData.selectedAccount);
-      const institutionIndex = parseInt(institutionIndexStr);
-      const institution = institutions[institutionIndex];
+      const { institutionId, accountId } = parseAccountOptionValue(savingTargetData.selectedAccount);
+      const institution = institutions.find(inst => inst.institutionId === institutionId);
+      const account = institution.accounts.find(inst => inst.accountId === accountId);
 
       if (!institution) {
         throw new Error('Invalid institution selected');
@@ -88,14 +72,10 @@ export const addSavingTarget = createAsyncThunk<
       if (response.success && response.savingTarget) {
         // Convert to SavingTarget format for the UI
         return {
-          id: response.savingTarget.id,
-          name: response.savingTarget.name,
-          targetAmount: response.savingTarget.targetAmount,
-          currentAmount: 0, // Will be updated on next fetch
-          accountInfo: {
-            institutionName: institution.institutionName,
-            accountName: institution.accounts.find(acc => acc.accountId === accountId)?.accountName || 'Unknown',
-          },
+          ...response.savingTarget,
+          institutionName: institution.institutionName,
+          accountName: account.accountName,
+          currentAmount: account.balance
         };
       } else {
         throw new Error(response.message || 'Failed to add saving target');
@@ -118,12 +98,11 @@ export const updateSavingTarget = createAsyncThunk<
 
     try {
       const institutions = getState().financialInstitution.fetchFinancialInstitutions.institutions;
+      const { institutionId, accountId } = parseAccountOptionValue(savingTargetData.selectedAccount);
+      const institution = institutions.find(inst => inst.institutionId === institutionId);
+      const account = institution.accounts.find(inst => inst.accountId === accountId);
 
-      const [institutionIndexStr, accountId] = parseSelectedAccount(savingTargetData.selectedAccount);
-      const institutionIndex = parseInt(institutionIndexStr);
-      const institution = institutions[institutionIndex];
-
-      if (!institution) {
+      if (!institution || !account) {
         throw new Error('Invalid institution selected');
       }
 
@@ -136,15 +115,11 @@ export const updateSavingTarget = createAsyncThunk<
 
       if (response.success && response.savingTarget) {
         return {
-          id: response.savingTarget.id,
-          name: response.savingTarget.name,
-          targetAmount: response.savingTarget.targetAmount,
-          currentAmount: 0, // Will be updated on next fetch
-          accountInfo: {
-            institutionName: institution.institutionName,
-            accountName: institution.accounts.find(acc => acc.accountId === accountId)?.accountName || 'Unknown',
-          },
-        } as UI_SavingTargetAndBalance;
+          ...response.savingTarget,
+          institutionName: institution.institutionName,
+          accountName: account.accountName,
+          currentAmount: account.balance
+        };
       } else {
         throw new Error(response.message || 'Failed to update saving target');
       }
@@ -174,20 +149,5 @@ export const deleteSavingTarget = createAsyncThunk<
       console.error('Error deleting saving target:', error);
       throw error;
     }
-  },
-);
-
-export const updateSavingTargetProgress = createAsyncThunk<
-  string,
-  ThunkProps_UpdateSavingTargetProgress,
-  { state: RootState }
->(
-  'savingTargets/updateProgress',
-  async (params: ThunkProps_UpdateSavingTargetProgress, { dispatch }) => {
-    const { id } = params;
-    // For now, just refresh the saving targets since we're tracking real account balances
-    // In a complete implementation, this might update account balances or add transactions
-    dispatch(fetchSavingTargets());
-    return id;
   },
 );

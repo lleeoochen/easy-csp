@@ -2,6 +2,7 @@ import { useCallback, useEffect } from "react";
 import { TransactionsList } from "./TransactionsList";
 import { fetchTransactions } from "../../redux/thunks/transactionThunk";
 import { useAppDispatch, useAppSelector } from "../../hooks/useRedux";
+import { Page } from "../../components/Page";
 
 const TransactionsPage = () => {
   const dispatch = useAppDispatch();
@@ -21,19 +22,17 @@ const TransactionsPage = () => {
 
   if (loading) {
     return (
-      <div className="container max-w-md mx-auto p-4">
-        <h1 className="text-lg text-center font-bold mb-4">Transactions</h1>
+      <Page title="Transactions">
         <div className="p-8 text-center">
           <div className="animate-pulse">Loading transactions...</div>
         </div>
-      </div>
+      </Page>
     );
   }
 
   if (errorMessage) {
     return (
-      <div className="container max-w-md mx-auto p-4">
-        <h1 className="text-lg text-center font-bold mb-4">Transactions</h1>
+      <Page title="Transactions">
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-600">Error loading transactions: {errorMessage}</p>
           <button
@@ -43,17 +42,16 @@ const TransactionsPage = () => {
             Try Again
           </button>
         </div>
-      </div>
+      </Page>
     );
   }
 
   return (
-    <div className="container max-w-md mx-auto">
-      <h1 className="text-lg text-center font-bold px-4 pt-4 pb-2">Transactions</h1>
+    <Page title="Transactions">
       <TransactionsList
         transactions={transactions}
       />
-    </div>
+    </Page>
   );
 };
 

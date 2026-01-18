@@ -5,6 +5,7 @@ import { fetchTransactionsByDateRange } from "../../redux/thunks/transactionThun
 import { useAppDispatch, useAppSelector } from "../../hooks/useRedux";
 import { MonthSelector } from "../../components/MonthSelector";
 import { getCurrentMonthYear, getMonthBoundaries } from "../../utils/dateUtils";
+import { Page } from "../../components/Page";
 
 const ConsciousSpendingPlanPage = () => {
   const dispatch = useAppDispatch();
@@ -40,19 +41,17 @@ const ConsciousSpendingPlanPage = () => {
 
   if (loading) {
     return (
-      <div className="container max-w-md mx-auto">
-        <h1 className="text-2xl text-center font-bold px-4 pt-4">Conscious Spending Plan</h1>
+      <Page title="Conscious Spending Plan">
         <div className="p-8 text-center">
           <div className="animate-pulse">Loading consciousSpendingPlan...</div>
         </div>
-      </div>
+      </Page>
     );
   }
 
   if (errorMessage) {
     return (
-      <div className="container max-w-md mx-auto">
-        <h1 className="text-2xl text-center font-bold px-4 pt-4">Conscious Spending Plan</h1>
+      <Page title="Conscious Spending Plan">
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg mx-4">
           <p className="text-red-600">Error loading consciousSpendingPlan: {errorMessage}</p>
           <button
@@ -62,25 +61,22 @@ const ConsciousSpendingPlanPage = () => {
             Try Again
           </button>
         </div>
-      </div>
+      </Page>
     );
   }
 
   if (!consciousSpendingPlan) {
     return (
-      <div className="container max-w-md mx-auto">
-        <h1 className="text-lg text-center font-bold px-4 pt-4">Conscious Spending Plan</h1>
+      <Page title="Conscious Spending Plan">
         <div className="p-8 text-center">
           <p className="text-gray-600">No consciousSpendingPlan data available.</p>
         </div>
-      </div>
+      </Page>
     );
   }
 
   return (
-    <div className="container max-w-md mx-auto">
-      <h1 className="text-lg text-center font-bold px-4 pt-4">Conscious Spending Plan</h1>
-
+    <Page title="Conscious Spending Plan">
       {/* Month Selector */}
       <MonthSelector
         selectedMonth={selectedMonth}
@@ -88,9 +84,8 @@ const ConsciousSpendingPlanPage = () => {
         onMonthSelect={handleMonthSelect}
         className="mb-4"
       />
-
       <CSPBucketCardList />
-    </div>
+    </Page>
   );
 };
 

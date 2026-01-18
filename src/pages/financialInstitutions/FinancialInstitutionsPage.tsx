@@ -5,6 +5,9 @@ import { useAppDispatch, useAppSelector } from "../../hooks/useRedux";
 import { getFinancialInstitutionStatusDisplay } from "../../utils/statusUtils";
 import { Card, CardHeader } from "../../components/common/card";
 import { Button } from "../../components/common/button";
+import { Page } from "../../components/Page";
+import { RefreshCwIcon } from "lucide-react";
+import moment from "moment";
 
 // Helper function to get account type display name
 const getAccountTypeDisplay = (accountType: AccountType): string => {
@@ -34,21 +37,6 @@ const formatCurrency = (amount: number): string => {
   }).format(amount);
 };
 
-// Helper function to format date
-const formatDate = (date: Date): string => {
-  try {
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return 'Unknown';
-  }
-};
-
 const FinancialInstitutionsPage = () => {
   const dispatch = useAppDispatch();
   const financialInstitutionState = useAppSelector(state => state.financialInstitution);
@@ -65,19 +53,17 @@ const FinancialInstitutionsPage = () => {
 
   if (isLoading) {
     return (
-      <div className="container max-w-4xl mx-auto p-4">
-        <h1 className="text-lg text-center font-bold mb-4">Financial Institutions</h1>
+      <Page title="Financial Institutions">
         <div className="p-8 text-center">
           <div className="animate-pulse">Loading institutions...</div>
         </div>
-      </div>
+      </Page>
     );
   }
 
   if (errorMessage) {
     return (
-      <div className="container max-w-4xl mx-auto p-4">
-        <h1 className="text-lg text-center font-bold mb-4">Financial Institutions</h1>
+      <Page title="Financial Institutions">
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-600">Error loading institutions: {errorMessage}</p>
           <button
@@ -87,14 +73,12 @@ const FinancialInstitutionsPage = () => {
             Try Again
           </button>
         </div>
-      </div>
+      </Page>
     );
   }
 
   return (
-    <div className="container max-w-4xl mx-auto p-4">
-      <h1 className="text-lg text-center font-bold mb-6">Financial Institutions</h1>
-
+    <Page title="Financial Institutions">
       {institutions.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-600 mb-4">No financial institutions connected yet.</p>
@@ -102,20 +86,26 @@ const FinancialInstitutionsPage = () => {
         </div>
       ) : (
         <div className="flex flex-col gap-3 justify-center">
-          <Button onClick={() => dispatch(refreshFinancialInstitutions())} variant="default" className="bg-white hover:bg-white/70 active:bg-gray-300">Sync Accounts</Button>
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-white hover:bg-white/70 active:bg-gray-300 ml-auto"
+            onClick={() => dispatch(refreshFinancialInstitutions())}>
+            <RefreshCwIcon />
+          </Button>
           {institutions.map((institution, index) => {
             const statusDisplay = getFinancialInstitutionStatusDisplay(institution.status);
             return (
               <Card key={`${institution.institutionId}-${index}`}>
                 {/* Institution Header */}
-                <CardHeader className="px-6 py-4">
+                <CardHeader className="p-4">
                   <div className="flex justify-between items-start">
                     <div>
                       <h2 className="text-lg font-semibold text-gray-900">
                         {institution.institutionName}
                       </h2>
-                      <p className="text-md text-gray-600 mt-1">
-                        Last synced: {formatDate(institution.lastSyncTimestamp)}
+                      <p className="text-sm text-gray-600 mt-1">
+                        Last synced: {moment(new Date(institution.lastSyncTimestamp)).fromNow()}
                       </p>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusDisplay.color}`}>
@@ -125,15 +115,15 @@ const FinancialInstitutionsPage = () => {
                 </CardHeader>
 
                 {/* Accounts List */}
-                <div className="p-2">
+                <div className="py-4 px-4">
                   {institution.accounts.length === 0 ? (
                     <p className="text-gray-500 text-md">No accounts found for this institution.</p>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="flex flex-col gap-4">
                       {institution.accounts.map((account, accountIndex) => (
                         <div
                           key={`${account.accountId}-${accountIndex}`}
-                          className="flex justify-between items-center p-4 bg-gray-50 rounded-lg"
+                          className="flex justify-between items-center bg-gray-50 rounded-lg"
                         >
                           <div>
                             <h4 className="font-medium text-gray-900">{account.accountName}</h4>
@@ -159,7 +149,7 @@ const FinancialInstitutionsPage = () => {
           })}
         </div>
       )}
-    </div>
+    </Page>
   );
 };
 

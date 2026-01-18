@@ -16,16 +16,9 @@ import {
   FINANCIAL_INSTITUTIONS_COLLECTION,
 } from "@easy-csp/shared-types";
 import type { SavingTarget, FinancialInstitution } from "@easy-csp/shared-types";
+import type { UI_SavingTargetAndBalance } from "../types/uiTypes";
 
 // Extended SavingTarget interface with current balance information
-export interface SavingTargetWithBalance extends SavingTarget {
-  id: string;
-  currentBalance: number;
-  accountInfo: {
-    institutionName: string;
-    accountName: string;
-  } | null;
-}
 
 export class SavingTargetsService {
   private static getAuthenticatedUserId(): string {
@@ -180,7 +173,7 @@ export class SavingTargetsService {
    */
   public static async listSavingTargets(): Promise<{
     success: boolean;
-    savingTargets?: SavingTargetWithBalance[];
+    savingTargets?: UI_SavingTargetAndBalance[];
     message?: string
   }> {
     try {
@@ -207,24 +200,23 @@ export class SavingTargetsService {
       }));
 
       // Process saving targets with balance information
-      const savingTargetsWithBalance: SavingTargetWithBalance[] = savingTargetsSnapshot.docs.map((doc) => {
+      const savingTargetsWithBalance: UI_SavingTargetAndBalance[] = savingTargetsSnapshot.docs.map((doc) => {
         const savingTarget = doc.data() as SavingTarget;
-        let currentBalance = 0;
-        let accountInfo: { institutionName: string; accountName: string } | null = null;
+        let currentAmount = 0;
+        let institutionName = '';
+        let accountName = '';
 
         // Calculate current balance from tracked account
         if (savingTarget.financialInstitutionId && savingTarget.accountId) {
-          const institution = financialInstitutions.find((fi) => fi.id === savingTarget.financialInstitutionId);
+          const institution = financialInstitutions.find((fi) => fi.institutionId === savingTarget.financialInstitutionId);
 
           if (institution) {
             const account = institution.accounts.find((acc) => acc.accountId === savingTarget.accountId);
 
             if (account) {
-              currentBalance = account.balance;
-              accountInfo = {
-                institutionName: institution.institutionName,
-                accountName: account.accountName,
-              };
+              currentAmount = account.balance;
+              institutionName = institution.institutionName;
+              accountName = account.accountName;
             }
           }
         }
@@ -232,8 +224,9 @@ export class SavingTargetsService {
         return {
           ...savingTarget,
           id: doc.id,
-          currentBalance,
-          accountInfo,
+          currentAmount,
+          institutionName,
+          accountName
         };
       });
 

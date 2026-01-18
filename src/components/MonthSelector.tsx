@@ -18,8 +18,8 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
   const { month: currentMonth, year: currentYear } = getCurrentMonthYear();
 
   return (
-    <div className={`px-4 py-2 ${className}`}>
-      <div className="flex flex-row-reverse overflow-x-auto py-4 space-x-2 scrollbar-hide">
+    <div className={`${className}`}>
+      <div className="flex flex-row-reverse gap-2 overflow-x-auto py-1.5 scrollbar-hide rounded-full">
         {recentMonths.map(({ year, month, displayName, key }) => {
           const isSelected = year === selectedYear && month === selectedMonth;
           const isCurrent = year === currentYear && month === currentMonth;
@@ -29,7 +29,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
               key={key}
               onClick={() => onMonthSelect(year, month)}
               className={`
-                shrink-0 px-4 py-2 rounded-full text-md font-medium transition-all duration-200
+                shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
                 ${isSelected
                   ? 'bg-cardHeader shadow-md'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -42,15 +42,6 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
             </button>
           );
         })}
-      </div>
-
-      {/* Scroll indicator for mobile */}
-      <div className="flex justify-center mt-2">
-        <div className="flex space-x-1">
-          <div className="w-2 h-1 bg-gray-300 rounded-full opacity-60"></div>
-          <div className="w-2 h-1 bg-gray-300 rounded-full opacity-60"></div>
-          <div className="w-2 h-1 bg-gray-300 rounded-full opacity-60"></div>
-        </div>
       </div>
     </div>
   );

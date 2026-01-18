@@ -34,7 +34,6 @@ export const CSPBudgetRow = ({ budget, categorySpending }: CSPBudgetRowProps) =>
               ? formatCurrency(amountLeft) + " left"
               : formatCurrency(Math.abs(amountLeft)) + " over"
           }
-          
         </div>
       </div>
     </div>

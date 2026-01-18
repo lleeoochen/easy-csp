@@ -51,20 +51,8 @@ function App() {
         <Tabs
           paths={[
             {
-              path: "/transactions",
-              name: "Transactions",
-              icon: DollarSign,
-              element: <TransactionsPage />
-            },
-            {
-              path: "/institutions",
-              name: "Institutions",
-              icon: Building2,
-              element: <FinancialInstitutionsPage />
-            },
-            {
-              path: "/consciousSpendingPlan",
-              name: "CSP",
+              path: "/",
+              name: "Spending",
               icon: BarChart3,
               element: <ConsciousSpendingPlanPage />
             },
@@ -73,6 +61,18 @@ function App() {
               name: "Savings",
               icon: Target,
               element: <SavingTargetsPage />
+            },
+            {
+              path: "/institutions",
+              name: "Institutions",
+              icon: Building2,
+              element: <FinancialInstitutionsPage />
+            },
+            {
+              path: "/transactions",
+              name: "Transactions",
+              icon: DollarSign,
+              element: <TransactionsPage />
             },
             {
               path: "/settings",

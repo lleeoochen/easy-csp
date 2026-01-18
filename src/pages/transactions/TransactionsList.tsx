@@ -9,7 +9,7 @@ export function TransactionsList({
   transactions,
 }: TransactionsListProps) {
   return (
-    <div className="space-y-4 p-4 pb-24">
+    <div className="space-y-4">
       {/* Summary */}
       {transactions.length > 0 && (
         <div className="text-md text-right">

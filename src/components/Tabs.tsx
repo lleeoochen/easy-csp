@@ -44,7 +44,6 @@ export const TabMenuItem = ({ path, icon, name }: TabMenuItemProps) => {
 }
 
 export const Tabs = ({ paths }: TabsProps) => {
-  
   return (
     <Router>
       <div className="flex flex-col min-h-screen">
@@ -52,7 +51,7 @@ export const Tabs = ({ paths }: TabsProps) => {
           <Routes>
             {
               paths.map(({ path, element }) => {
-                return <Route path={path} element={element} />;
+                return <Route key={path} path={path} element={element} />;
               })
             }
           </Routes>
@@ -62,7 +61,9 @@ export const Tabs = ({ paths }: TabsProps) => {
         <nav className="fixed flex bottom-5 left-5 right-5 bg-white/20 z-10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/30">
           {
             paths.map(path => (
-              <TabMenuItem {...path} />
+              <div key={path.path}>
+                <TabMenuItem {...path} />
+              </div>
             ))
           }
         </nav>

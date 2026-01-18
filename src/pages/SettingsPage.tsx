@@ -3,6 +3,7 @@ import { useAuthState } from "../hooks/useAuthState";
 import { User } from "lucide-react";
 import LinkFinancialInstitutionButton from "../components/LinkFinancialInstitutionButton";
 import { Card } from "../components/common/card";
+import { Page } from "../components/Page";
 
 const SettingsPage = () => {
   const { signedIn } = useAuthState();
@@ -22,10 +23,8 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="container max-w-md mx-auto">
-      <h1 className="text-lg text-center font-bold px-4 pt-4 mb-6">Settings</h1>
-
-      <div className="px-4 space-y-6">
+    <Page title="Settings">
+      <div className="space-y-2">
         {/* User Information Section */}
         <Card className="p-4">
           <h2 className="text-lg font-semibold mb-3 flex items-center">
@@ -66,7 +65,7 @@ const SettingsPage = () => {
           />
         </Card>
       </div>
-    </div>
+    </Page>
   );
 };
 

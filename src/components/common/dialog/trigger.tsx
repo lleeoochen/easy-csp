@@ -1,7 +1,8 @@
 import * as React from "react";
 import { useDialog } from "./context";
+import { Button, type ButtonProps } from "../button";
 
-export interface DialogTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface DialogTriggerProps extends ButtonProps {
   children: React.ReactNode;
 }
 
@@ -12,8 +13,8 @@ export const DialogTrigger: React.FC<DialogTriggerProps> = ({
   const { setOpen } = useDialog();
 
   return (
-    <button type="button" onClick={() => setOpen(true)} {...props}>
+    <Button onClick={() => setOpen(true)} {...props}>
       {children}
-    </button>
+    </Button>
   );
 };

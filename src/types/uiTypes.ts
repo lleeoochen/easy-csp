@@ -1,13 +1,11 @@
 // Dedicated file for UI-specific type definitions
 // All UI types should begin with UI_ prefix
 
-export interface UI_SavingTargetAndBalance {
+import type { SavingTarget } from "@easy-csp/shared-types";
+
+export interface UI_SavingTargetAndBalance extends SavingTarget {
   id: string;
-  name: string;
-  targetAmount: number;
   currentAmount: number;
-  accountInfo?: {
-    institutionName: string;
-    accountName: string;
-  } | null;
+  institutionName?: string;
+  accountName?: string;
 }
