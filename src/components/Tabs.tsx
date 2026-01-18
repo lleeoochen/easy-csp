@@ -47,7 +47,7 @@ export const Tabs = ({ paths }: TabsProps) => {
   return (
     <Router>
       <div className="flex flex-col min-h-screen">
-        <main className="flex-1 pb-16">
+        <main className="flex-1 pb-16 w-full">
           <Routes>
             {
               paths.map(({ path, element }) => {
@@ -58,7 +58,7 @@ export const Tabs = ({ paths }: TabsProps) => {
         </main>
 
         {/* Bottom Navigation */}
-        <nav className="fixed flex bottom-5 left-5 right-5 bg-white/20 z-10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/30">
+        <nav className="fixed flex bottom-5 left-5 right-5 bg-white/20 z-10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/30 w-fit mx-auto">
           {
             paths.map(path => (
               <div key={path.path}>

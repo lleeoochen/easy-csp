@@ -4,6 +4,15 @@ import { useAppSelector } from "../../hooks/useRedux";
 import { formatCurrency } from "../../utils/financialUtils";
 import { Card } from "../../components/common/card";
 
+const CSP_BUCKET_ORDER: CSPBucket[] = [
+  CSPBucket.Income,
+  CSPBucket.FixedCost,
+  CSPBucket.Savings,
+  CSPBucket.Investment,
+  CSPBucket.GuildFreeSpending,
+  CSPBucket.Ignored,
+];
+
 export function CSPBucketCardList() {
   const consciousSpendingPlanState = useAppSelector(state => state.consciousSpendingPlan);
   const transactionState = useAppSelector(state => state.transaction);
@@ -17,12 +26,20 @@ export function CSPBucketCardList() {
       return total + categoryBudgets.reduce((subtotal, categoryBudget) => subtotal + categoryBudget.amount, 0);
     }, 0);
 
-  const spendingBuckets = Object
+  const consciousSpendingPlanSortedEntries = Object
     .entries(consciousSpendingPlan)
+    .sort((a, b) => {
+        // Find the index of each item in the custom order array
+        const indexA = CSP_BUCKET_ORDER.indexOf(a[0] as CSPBucket);
+        const indexB = CSP_BUCKET_ORDER.indexOf(b[0] as CSPBucket);
+        // Sort based on the indices
+        return indexA - indexB;
+    });
+
+  const spendingBuckets = consciousSpendingPlanSortedEntries
     .filter(([bucket]) => bucket !== CSPBucket.Income && bucket !== CSPBucket.Ignored);
 
-  const totalSpendingTarget = Object
-    .entries(consciousSpendingPlan)
+  const totalSpendingTarget = consciousSpendingPlanSortedEntries
     .filter(([bucket]) => bucket !== CSPBucket.Income && bucket !== CSPBucket.Ignored)
     .reduce((total, entry) => {
       const [, categoryBudgets] = entry;

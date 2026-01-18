@@ -14,9 +14,11 @@ import { getAuth } from "firebase/auth";
 import {
   SAVING_TARGETS_COLLECTION,
   FINANCIAL_INSTITUTIONS_COLLECTION,
+  CSPBucket,
 } from "@easy-csp/shared-types";
 import type { SavingTarget, FinancialInstitution } from "@easy-csp/shared-types";
 import type { UI_SavingTargetAndBalance } from "../types/uiTypes";
+import { ConsciousSpendingPlanService } from "./consciousSpendingPlanService";
 
 // Extended SavingTarget interface with current balance information
 
@@ -56,6 +58,18 @@ export class SavingTargetsService {
         collection(firestore, SAVING_TARGETS_COLLECTION),
         savingTarget
       );
+
+      // Add CSP budget under savings bucket with category set to document ID
+      try {
+        await ConsciousSpendingPlanService.addCSPItem(
+          CSPBucket.Savings,
+          docRef.id,
+          0
+        );
+      } catch (cspError) {
+        console.error("Error adding CSP budget item:", cspError);
+        // Continue execution even if CSP fails - the saving target was created successfully
+      }
 
       return {
         success: true,
@@ -151,6 +165,17 @@ export class SavingTargetsService {
           success: false,
           message: "Unauthorized access to saving target",
         };
+      }
+
+      // Remove CSP budget item with matching category before deleting the saving target
+      try {
+        await ConsciousSpendingPlanService.deleteCSPItem(
+          CSPBucket.Savings,
+          id
+        );
+      } catch (cspError) {
+        console.error("Error removing CSP budget item:", cspError);
+        // Continue execution even if CSP fails - we still want to delete the saving target
       }
 
       // Delete the document

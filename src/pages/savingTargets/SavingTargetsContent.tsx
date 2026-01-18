@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Plus, Edit2, Target } from "lucide-react";
 import { Progress } from "../../components/common/progress";
 import { Button } from "../../components/common/button";
-import { Card } from "../../components/common/card";
+import { Card, CardHeader } from "../../components/common/card";
 import { useAppDispatch } from "../../hooks/useRedux";
 import { fetchFinancialInstitutions } from "../../redux/thunks/financialInstitutionThunk";
 import type { UI_SavingTargetAndBalance } from "../../types/uiTypes";
@@ -70,17 +70,10 @@ export function SavingTargetsContent({
             const percentage = (savingTarget.currentAmount / savingTarget.targetAmount) * 100;
 
             return (
-              <Card key={savingTarget.id} className="p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-start gap-3 flex-1">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold truncate">{savingTarget.name}</h3>
-                      {savingTarget && (
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {savingTarget.institutionName} - {savingTarget.accountName}
-                        </p>
-                      )}
-                    </div>
+              <Card key={savingTarget.id}>
+                <CardHeader className="flex items-start justify-between px-4 py-2">
+                  <div className="flex items-start gap-3 flex-1 m-auto">
+                    <div className="font-semibold truncate">{savingTarget.name}</div>
                   </div>
                   <Button
                     variant="ghost"
@@ -90,9 +83,14 @@ export function SavingTargetsContent({
                   >
                     <Edit2 className="size-3.5" />
                   </Button>
-                </div>
+                </CardHeader>
 
-                <div className="space-y-2 mb-3">
+                <div className="space-y-2 p-4">
+                  {savingTarget && (
+                    <p className="text-sm text-muted-foreground">
+                      {savingTarget.institutionName} - {savingTarget.accountName}
+                    </p>
+                  )}
                   <Progress
                     value={Math.min(percentage, 100)}
                     className="bg-gray-200"

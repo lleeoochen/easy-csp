@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks/useRedux";
 import { MonthSelector } from "../../components/MonthSelector";
 import { getCurrentMonthYear, getMonthBoundaries } from "../../utils/dateUtils";
 import { Page } from "../../components/Page";
+import { fetchSavingTargets } from "../../redux/thunks/savingTargetsThunk";
 
 const ConsciousSpendingPlanPage = () => {
   const dispatch = useAppDispatch();
@@ -31,7 +32,8 @@ const ConsciousSpendingPlanPage = () => {
   useEffect(() => {
     // Load consciousSpendingPlan when the component mounts
     dispatchFetchConsciousSpendingPlan();
-  }, [dispatchFetchConsciousSpendingPlan]);
+    dispatch(fetchSavingTargets());
+  }, [dispatch, dispatchFetchConsciousSpendingPlan]);
 
   useEffect(() => {
     // Fetch transactions for selected month
