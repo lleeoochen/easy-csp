@@ -11,18 +11,17 @@ import {
   DialogFooter,
 } from "../../components/common/dialog";
 import { Label } from "../../components/common/label";
-import { useAppSelector } from "../../hooks/useRedux";
+import { AccountSelector } from "../../components/common/AccountSelector";
 import type { UI_SavingTargetAndBalance } from "../../types/uiTypes";
-import type { ThunkProps_AddSavingTarget, ThunkProps_UpdateSavingTarget } from "../../redux/thunks/savingTargetsThunk";
-import { generateAccountOptions, getAccountOptionValueForSavingTarget } from "../../utils/accountUtils";
+import { getAccountOptionValueForSavingTarget } from "../../utils/accountUtils";
 
 interface SavingTargetDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode: "add" | "edit";
   existingSavingTarget?: UI_SavingTargetAndBalance;
-  onAdd: (savingTargetData: ThunkProps_AddSavingTarget) => void;
-  onUpdate: (savingTargetData: ThunkProps_UpdateSavingTarget) => void;
+  onAdd: (data: { name: string; targetAmount: number; selectedAccount: string }) => void;
+  onUpdate: (data: { id: string; name: string; targetAmount: number; selectedAccount: string }) => void;
   onDelete?: (id: string) => void;
 }
 
@@ -41,12 +40,6 @@ export function SavingTargetDialog({
   onUpdate,
   onDelete,
 }: SavingTargetDialogProps) {
-  const financialInstitutionState = useAppSelector(state => state.financialInstitution);
-  const institutions = financialInstitutionState.fetchFinancialInstitutions.institutions;
-
-  // Generate account options
-  const accountOptions = generateAccountOptions(institutions);
-
   // Calculate initial form data based on mode and existing target
   const initialFormData = useMemo(() => {
     if (mode === "edit" && existingSavingTarget) {
@@ -75,7 +68,7 @@ export function SavingTargetDialog({
       } else if (mode === "edit" && existingSavingTarget) {
         onUpdate({
           id: existingSavingTarget.id,
-          savingTargetData: formData
+          ...formData,
         });
       }
 
@@ -135,28 +128,20 @@ export function SavingTargetDialog({
 
           <div className="space-y-2">
             <Label htmlFor="account">Select Account</Label>
-            <select
+            <AccountSelector
               id="account"
               value={formData.selectedAccount}
-              onChange={(e) => setFormData({ ...formData, selectedAccount: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Choose an account...</option>
-              {accountOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => setFormData({ ...formData, selectedAccount: value })}
+            />
           </div>
         </div>
 
         <DialogFooter className={mode === "edit" ? "flex gap-2" : ""}>
           {mode === "edit" && onDelete && (
             <Button
-              variant="destructive"
+              variant="secondary"
+              className="flex items-center"
               onClick={handleDelete}
-              className="flex-1"
             >
               <Trash2 className="size-4 mr-2" />
               Delete
@@ -164,12 +149,11 @@ export function SavingTargetDialog({
           )}
 
           <Button
-            variant="default"
+            variant="primary"
             onClick={handleSubmit}
             disabled={!isFormValid}
-            className={mode === "edit" ? "flex-1" : "w-full"}
           >
-            {mode === "add" ? "Create" : "Save"}
+            {mode === "add" ? "Create target" : "Save changes"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -8,7 +8,7 @@ type PageProps = {
 export const Page = ({ children, title }: PageProps) => {
   return (
     <div className="container w-full md:w-96 p-4 pb-8 m-auto">
-      <h1 className="text-lg text-center font-bold pb-4">{ title }</h1>
+      <h1 className="text-xl text-center py-5">{ title }</h1>
       { children }
     </div>
   );

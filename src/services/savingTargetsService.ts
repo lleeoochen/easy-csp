@@ -64,7 +64,8 @@ export class SavingTargetsService {
         await ConsciousSpendingPlanService.addCSPItem(
           CSPBucket.Savings,
           docRef.id,
-          0
+          0,
+          true
         );
       } catch (cspError) {
         console.error("Error adding CSP budget item:", cspError);

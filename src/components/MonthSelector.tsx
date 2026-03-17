@@ -1,5 +1,5 @@
 import React from 'react';
-import { getRecentMonths, getCurrentMonthYear } from '../utils/dateUtils';
+import { getRecentMonths } from '../utils/dateUtils';
 
 interface MonthSelectorProps {
   selectedMonth: number;
@@ -15,14 +15,12 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
   className = ""
 }) => {
   const recentMonths = getRecentMonths(12);
-  const { month: currentMonth, year: currentYear } = getCurrentMonthYear();
 
   return (
     <div className={`${className}`}>
       <div className="flex flex-row-reverse gap-2 overflow-x-auto py-1.5 scrollbar-hide rounded-full">
         {recentMonths.map(({ year, month, displayName, key }) => {
           const isSelected = year === selectedYear && month === selectedMonth;
-          const isCurrent = year === currentYear && month === currentMonth;
 
           return (
             <button
@@ -31,10 +29,9 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
               className={`
                 shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
                 ${isSelected
-                  ? 'bg-cardHeader shadow-md'
+                  ? 'bg-primary-bg text-white shadow-md'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }
-                ${isCurrent && !isSelected ? 'ring-2 ring-blue-300' : ''}
                 whitespace-nowrap min-w-fit
               `}
             >

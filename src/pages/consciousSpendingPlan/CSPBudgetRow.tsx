@@ -1,73 +1,55 @@
-import { useState } from "react";
-import { Progress } from "../../components/common/progress";
+import { useEffect } from "react";
 import type { CSPCategoryBudget, CSPBucket } from "@easy-csp/shared-types";
-import { camelCaseToSentence } from "../../utils/stringUtils";
-import { formatCurrency } from "../../utils/financialUtils";
-import { cn } from "../../components/common/utils";
-import { useAppSelector } from "../../hooks/useRedux";
-import { CSPBudgetEditDialog } from "./CSPBudgetEditDialog";
+import { CSPBudgetActionMenu } from "./CSPBudgetActionMenu";
+import { useBudgetFromSavingTarget, useRegularBudget } from "../../hooks/useCSPBudgetRow";
+import { useTransactions } from "../../hooks/api/useTransactions";
+import { getMonthBoundaries } from "../../utils/dateUtils";
+
 
 interface CSPBudgetRowProps {
   budget: CSPCategoryBudget;
-  categorySpending: Record<string, number>
-  isSavingsBucket: boolean;
   bucket: CSPBucket;
+  onDataChange: (category: string, spending: number, budget: number) => void;
+  currentMonthString: string;
 }
 
-export const CSPBudgetRow = ({ budget, categorySpending, isSavingsBucket, bucket }: CSPBudgetRowProps) => {
-  const savingTargets = useAppSelector(state => state.savingTargets.savingTargets);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+export const CSPBudgetRow = ({ budget, bucket, onDataChange, currentMonthString }: CSPBudgetRowProps) => {
+  const [year, month] = currentMonthString.split('-').map(Number);
+  const { startDate, endDate } = getMonthBoundaries(year, month - 1);
+  const { data: transactionPages } = useTransactions({ startDate, endDate });
+  const transactions = transactionPages?.pages.flatMap(p => p.transactions ?? []) ?? [];
 
-  let categoryName = budget.category;
-  if (isSavingsBucket) {
-    const savingTargetsMap = new Map<string, string>(
-      savingTargets.map(savingTarget => [savingTarget.id, savingTarget.name])
-    );
-    categoryName = savingTargetsMap.get(budget.category);
-  }
+  const {
+    getCategoryName,
+    getAmount
+  } = useRegularBudget(budget.category, transactions);
 
-  const spendingAmount = categorySpending[budget.category];
+  const {
+    getCategoryName: getCategoryNameFromSavingTarget,
+    getAmount: getAmountFromSavingTarget
+  } = useBudgetFromSavingTarget(budget.category, transactions);
+
+  const categoryName = budget.isTrackingSavingTarget ? getCategoryNameFromSavingTarget() : getCategoryName();
+  const actualAmount = budget.isTrackingSavingTarget ? getAmountFromSavingTarget() : getAmount();
   const budgetAmount = budget.amount;
-  const amountLeft = budgetAmount - spendingAmount;
-  const isOverBudget = spendingAmount > budgetAmount;
+  const amountLeft = budgetAmount - actualAmount;
+  const isOverBudget = budget.isTrackingSavingTarget ? false : actualAmount > budgetAmount;
 
-  const handleRowClick = () => {
-    setIsEditDialogOpen(true);
-  };
+  // Report data changes to parent
+  useEffect(() => {
+    onDataChange(budget.category, actualAmount, budgetAmount);
+  }, [onDataChange, budget.category, actualAmount, budgetAmount]);
 
   return (
-    <div className="px-4 py-2">
-      <div
-        key={budget.category}
-        className="flex justify-between items-center active:bg-accent/50 cursor-pointer hover:bg-accent/20"
-        onClick={handleRowClick}
-      >
-        <div className="grow shrink basis-2/3 font-medium text-md truncate">{camelCaseToSentence(categoryName)}</div>
-        <Progress
-          className="bg-gray-200 grow shrink basis-1/3"
-          value={Math.min(spendingAmount / budgetAmount * 100, 100)}
-          activeColorClass={cn("bg-cardHeader", { "bg-red-400": isOverBudget })} />
-      </div>
-      <div className="flex justify-between">
-        <div className="text-gray-400 text-sm">
-          Budget: {formatCurrency(budgetAmount)}
-        </div>
-        <div className={cn("text-gray-400 text-sm", { "text-red-400": isOverBudget })}>
-          {
-            amountLeft >= 0
-              ? formatCurrency(amountLeft) + " left"
-              : formatCurrency(Math.abs(amountLeft)) + " over"
-          }
-        </div>
-      </div>
-
-      <CSPBudgetEditDialog
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        budget={budget}
-        bucket={bucket}
-        categoryName={categoryName}
-      />
-    </div>
+    <CSPBudgetActionMenu
+      budget={budget}
+      bucket={bucket}
+      categoryName={categoryName}
+      actualAmount={actualAmount}
+      budgetAmount={budgetAmount}
+      amountLeft={amountLeft}
+      isOverBudget={isOverBudget}
+      currentMonth={currentMonthString}
+    />
   );
 }

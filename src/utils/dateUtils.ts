@@ -63,7 +63,12 @@ export function getRecentMonths(monthsCount: number = 12): Array<{
   displayName: string;
   key: string;
 }> {
-  const months = [];
+  const months: Array<{
+    year: number;
+    month: number;
+    displayName: string;
+    key: string;
+  }> = [];
   const now = new Date();
 
   for (let i = 0; i < monthsCount; i++) {

@@ -1,15 +1,17 @@
 import ConsciousSpendingPlanPage from "./pages/consciousSpendingPlan/ConsciousSpendingPlanPage";
 import SavingTargetsPage from "./pages/savingTargets/SavingTargetsPage";
 import TransactionsPage from "./pages/transactions/TransactionsPage";
+import RulesPage from "./pages/rules/RulesPage";
 import SettingsPage from "./pages/SettingsPage";
 import FinancialInstitutionsPage from "./pages/financialInstitutions/FinancialInstitutionsPage";
-import { DollarSign, Target, BarChart3, Settings, Building2 } from "lucide-react";
+import { DollarSign, Target, BarChart3, Settings, Building2, Filter } from "lucide-react";
 import { initializeApp } from "firebase/app";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
 import SignInPage from "./pages/SignInPage";
 import { useAuthState } from "./hooks/useAuthState";
 import { Tabs } from "./components/Tabs";
+import { isDevEnvironment } from "./utils/envUtils";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBERcnPQeqTU4VrJryfWAiqaFe4BPxDRXQ",
@@ -27,13 +29,12 @@ const firestore = getFirestore(app);
 const functions = getFunctions(app);
 
 // Connect to emulators
-if (window.location.hostname === "localhost") {
+if (isDevEnvironment) {
   connectFirestoreEmulator(firestore, "localhost", 8080);
   connectFunctionsEmulator(functions, "localhost", 5001);
 }
 
 function App() {
-  // Use our custom auth state hook
   const { signedIn, loading } = useAuthState();
 
   if (loading) {
@@ -73,6 +74,12 @@ function App() {
               name: "Transactions",
               icon: DollarSign,
               element: <TransactionsPage />
+            },
+            {
+              path: "/rules",
+              name: "Rules",
+              icon: Filter,
+              element: <RulesPage />
             },
             {
               path: "/settings",

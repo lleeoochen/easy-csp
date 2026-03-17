@@ -8,12 +8,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#4abce3',
+        'background': '#2b91ba',
         'btn-background': colors.white,
-        card: colors.white,
-        cardHeader: '#96d7b3',
-        primary: '#96d7b3',
-        secondary: colors.black
+        'card': colors.white,
+        'primary-bg': '#2e6d9c',
+        'primary-fg': colors.white,
+        'secondary-bg': colors.gray['300'],
+        'secondary-fg': colors.black,
       }
     }
   },

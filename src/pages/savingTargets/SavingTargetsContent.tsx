@@ -1,19 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Edit2, Target } from "lucide-react";
 import { Progress } from "../../components/common/progress";
 import { Button } from "../../components/common/button";
-import { Card, CardHeader } from "../../components/common/card";
-import { useAppDispatch } from "../../hooks/useRedux";
-import { fetchFinancialInstitutions } from "../../redux/thunks/financialInstitutionThunk";
+import { Card, CardContent, CardHeader } from "../../components/common/card";
 import type { UI_SavingTargetAndBalance } from "../../types/uiTypes";
-import type { ThunkProps_AddSavingTarget, ThunkProps_UpdateSavingTarget } from "../../redux/thunks/savingTargetsThunk";
 import { formatCurrency } from "../../utils/financialUtils";
 import { SavingTargetDialog } from "./SavingTargetDialog";
 
 interface SavingTargetsContentProps {
   savingTargets: UI_SavingTargetAndBalance[];
-  onAddSavingTarget: (savingTargetData: ThunkProps_AddSavingTarget) => void;
-  onUpdateSavingTarget: (savingTargetData: ThunkProps_UpdateSavingTarget) => void;
+  onAddSavingTarget: (data: { name: string; targetAmount: number; selectedAccount: string }) => void;
+  onUpdateSavingTarget: (data: { id: string; name: string; targetAmount: number; selectedAccount: string }) => void;
   onDeleteSavingTarget: (id: string) => void;
 }
 
@@ -23,15 +20,8 @@ export function SavingTargetsContent({
   onUpdateSavingTarget,
   onDeleteSavingTarget,
 }: SavingTargetsContentProps) {
-  const dispatch = useAppDispatch();
-
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingSavingTarget, setEditingSavingTarget] = useState<UI_SavingTargetAndBalance | undefined>(undefined);
-
-  useEffect(() => {
-    // Load financial institutions for account selection
-    dispatch(fetchFinancialInstitutions());
-  }, [dispatch]);
 
   const handleEdit = (savingTarget: UI_SavingTargetAndBalance) => {
     setEditingSavingTarget(savingTarget);
@@ -46,8 +36,7 @@ export function SavingTargetsContent({
       {/* Header */}
       <div className="flex items-center justify-between">
         <Button
-          variant="default"
-          size="sm"
+          variant="primary"
           className="bg-white hover:bg-white/70 active:bg-gray-300 ml-auto"
           onClick={() => setIsAddDialogOpen(true)}
         >
@@ -61,7 +50,7 @@ export function SavingTargetsContent({
           <div className="text-center py-16 bg-card border rounded-lg">
             <Target className="size-12 mx-auto text-muted-foreground mb-3" />
             <p className="text-muted-foreground">No saving targets yet</p>
-            <p className="text-md text-muted-foreground mt-1">
+            <p className="text-muted-foreground mt-1">
               Create your first savings target
             </p>
           </div>
@@ -71,21 +60,20 @@ export function SavingTargetsContent({
 
             return (
               <Card key={savingTarget.id}>
-                <CardHeader className="flex items-start justify-between px-4 py-2">
+                <CardHeader className="flex items-start justify-between">
                   <div className="flex items-start gap-3 flex-1 m-auto">
                     <div className="font-semibold truncate">{savingTarget.name}</div>
                   </div>
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
+                    variant="secondary"
+                    className="h-8 w-8 p-0 flex"
                     onClick={() => handleEdit(savingTarget)}
                   >
-                    <Edit2 className="size-3.5" />
+                    <Edit2 className="size-3.5 m-auto" />
                   </Button>
                 </CardHeader>
 
-                <div className="space-y-2 p-4">
+                <CardContent className="space-y-2 p-4">
                   {savingTarget && (
                     <p className="text-sm text-muted-foreground">
                       {savingTarget.institutionName} - {savingTarget.accountName}
@@ -94,7 +82,7 @@ export function SavingTargetsContent({
                   <Progress
                     value={Math.min(percentage, 100)}
                     className="bg-gray-200"
-                    activeColorClass="bg-cardHeader"
+                    activeColorClass="bg-primary-bg"
                   />
                   <div className="flex justify-between">
                     <div className={"text-gray-800 text-sm font-bold"}>
@@ -104,7 +92,7 @@ export function SavingTargetsContent({
                       Target: {formatCurrency(savingTarget.targetAmount)}
                     </div>
                   </div>
-                </div>
+                </CardContent>
               </Card>
             );
           })

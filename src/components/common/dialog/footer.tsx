@@ -11,6 +11,7 @@ export const DialogFooter: React.FC<DialogFooterProps> = ({
 }) => (
   <div
     className={cn(
+      "flex flex-row justify-end gap-2",
       className
     )}
     {...props}

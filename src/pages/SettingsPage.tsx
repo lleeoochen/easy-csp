@@ -1,9 +1,9 @@
 import { getAuth, signOut } from "firebase/auth";
 import { useAuthState } from "../hooks/useAuthState";
 import { User } from "lucide-react";
-import LinkFinancialInstitutionButton from "../components/LinkFinancialInstitutionButton";
-import { Card } from "../components/common/card";
+import { Card, CardContent, CardHeader } from "../components/common/card";
 import { Page } from "../components/Page";
+import { Button } from "../components/common/button";
 
 const SettingsPage = () => {
   const { signedIn } = useAuthState();
@@ -24,17 +24,16 @@ const SettingsPage = () => {
 
   return (
     <Page title="Settings">
-      <div className="space-y-2">
+      <div className="space-y-4">
         {/* User Information Section */}
-        <Card className="p-4">
-          <h2 className="text-lg font-semibold mb-3 flex items-center">
+        <Card>
+          <CardHeader className="text-lg flex items-center">
             <User className="w-5 h-5 mr-2" />
             User Information
-          </h2>
-
-          <div className="space-y-2">
+          </CardHeader>
+          <CardContent className="space-y-2">
             <div>
-              <label className="text-md font-medium text-gray-600">Name:</label>
+              <label className="font-medium text-gray-600">Name:</label>
               <p className="text-gray-900">
                 {user?.displayName || user?.email || 'Anonymous User'}
               </p>
@@ -42,27 +41,17 @@ const SettingsPage = () => {
 
             {user?.email && (
               <div>
-                <label className="text-md font-medium text-gray-600">Email:</label>
+                <label className="font-medium text-gray-600">Email:</label>
                 <p className="text-gray-900">{user.email}</p>
               </div>
             )}
-          </div>
-        </Card>
-
-        {/* Actions Section */}
-        <Card className="p-4 flex flex-col space-y-2">
-          <h2 className="text-lg font-semibold mb-3">Account Actions</h2>
-
-          <button
-            className="w-full bg-black hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
-            onClick={handleSignOut}
-          >
-            Sign Out
-          </button>
-
-          <LinkFinancialInstitutionButton
-            className="w-full bg-black hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
-          />
+            <Button
+              variant="primary"
+              onClick={handleSignOut}
+            >
+              Sign Out
+            </Button>
+          </CardContent>
         </Card>
       </div>
     </Page>

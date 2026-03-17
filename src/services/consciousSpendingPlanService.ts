@@ -94,7 +94,13 @@ export class ConsciousSpendingPlanService {
         };
       }
 
-      bucketItems[itemIndex] = { category, amount };
+      console.log(bucketItems[itemIndex]);
+
+      bucketItems[itemIndex] = {
+        ...bucketItems[itemIndex],
+        category,
+        amount,
+      };
 
       const updatedCSP = {
         ...currentCSP,
@@ -123,7 +129,9 @@ export class ConsciousSpendingPlanService {
   public static async addCSPItem(
     bucket: CSPBucket,
     category: string,
-    amount: number
+    amount: number,
+    isTrackingSavingTarget?: boolean,
+    name?: string
   ): Promise<{
     success: boolean;
     csp?: ConsciousSpendingPlan;
@@ -157,7 +165,12 @@ export class ConsciousSpendingPlanService {
       }
 
       // Add the new item
-      bucketItems.push({ category, amount });
+      bucketItems.push({
+        category,
+        amount,
+        ...(isTrackingSavingTarget !== undefined ? { isTrackingSavingTarget } : {}),
+        ...(name ? { name } : {})
+      });
 
       const updatedCSP = {
         ...currentCSP,

@@ -1,18 +1,21 @@
 import * as React from "react";
 import { cn } from "./utils";
-import { buttonVariants } from "./button-variants";
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
-  size?: "default" | "sm" | "lg" | "icon";
-}
+export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant: "primary" | "secondary" | "icon";
+};
+
+const variantClassNames: Record<ButtonProps["variant"], string> = {
+  primary: "bg-primary-bg text-primary-fg",
+  secondary: "bg-secondary-bg text-secondary-fg",
+  icon: "bg-secondary-bg text-secondary-fg px-3 py-1"
+};
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, ...props }, ref) => {
+  ({ className, variant, ...props }, ref) => {
     return (
       <button
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn("rounded-lg px-4 py-2", className, variantClassNames[variant])}
         ref={ref}
         {...props}
       />

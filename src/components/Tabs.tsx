@@ -19,7 +19,7 @@ type TabMenuItemProps = {
   icon: ComponentType<LucideProps>
 };
 
-export const TabMenuItem = ({ path, icon, name }: TabMenuItemProps) => {
+export const TabMenuItem = ({ path, icon }: TabMenuItemProps) => {
   const IconElement = icon;
   const location = useLocation();
   const isActive = location.pathname === path;
@@ -37,8 +37,8 @@ export const TabMenuItem = ({ path, icon, name }: TabMenuItemProps) => {
         )
       }
     >
-      <IconElement className="w-5 h-5" strokeWidth={strokeWidth}/>
-      <span className="text-xs mt-1">{ name }</span>
+      <IconElement className="w-6 h-6" strokeWidth={strokeWidth}/>
+      {/* <span className="text-xs mt-1">{ name }</span> */}
     </Link>
   );
 }
@@ -58,7 +58,7 @@ export const Tabs = ({ paths }: TabsProps) => {
         </main>
 
         {/* Bottom Navigation */}
-        <nav className="fixed flex bottom-5 left-5 right-5 bg-white/20 z-10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/30 w-fit mx-auto">
+        <nav className="fixed flex bottom-5 left-0 right-0 bg-white/20 z-10 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/30 w-fit mx-auto mb-[env(safe-area-inset-bottom)]">
           {
             paths.map(path => (
               <div key={path.path}>

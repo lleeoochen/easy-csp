@@ -5,6 +5,7 @@ import {
   where,
   getDocs,
   updateDoc,
+  deleteDoc,
   doc
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
@@ -18,69 +19,66 @@ export class FinancialInstitutionsService {
   private static getAuthenticatedUserId(): string {
     const auth = getAuth();
     const uid = auth.currentUser?.uid;
-    if (!uid) {
-      throw new Error("User not authenticated");
-    }
+    if (!uid) throw new Error("User not authenticated");
     return uid;
   }
 
-  /**
-   * Lists financial institutions for the user from Firestore
-   */
   public static async listFinancialInstitutions(): Promise<FinancialInstitution[]> {
     try {
       const uid = this.getAuthenticatedUserId();
       const firestore = getFirestore();
-
-      const financialInstitutionsQuery = query(
-        collection(firestore, FINANCIAL_INSTITUTIONS_COLLECTION),
-        where("uid", "==", uid)
+      const snapshot = await getDocs(
+        query(collection(firestore, FINANCIAL_INSTITUTIONS_COLLECTION), where("uid", "==", uid))
       );
-
-      const snapshot = await getDocs(financialInstitutionsQuery);
-
-      const financialInstitutions: FinancialInstitution[] = [];
-      snapshot.forEach((doc) => {
-        const data = doc.data() as FinancialInstitution;
-        financialInstitutions.push(data);
-      });
-
-      return financialInstitutions;
+      return snapshot.docs.map((d) => ({ ...(d.data() as FinancialInstitution), docId: d.id }));
     } catch (error) {
       console.error("Error listing financial institutions:", error);
       throw error;
     }
   }
 
-  /**
-   * Updates all user's financial institutions status to awaitSync
-   */
+  /** Sets all institutions to AwaitSync to trigger a full refresh */
   public static async refreshFinancialInstitutions(): Promise<void> {
     try {
       const uid = this.getAuthenticatedUserId();
       const firestore = getFirestore();
-
-      const financialInstitutionsQuery = query(
-        collection(firestore, FINANCIAL_INSTITUTIONS_COLLECTION),
-        where("uid", "==", uid)
+      const snapshot = await getDocs(
+        query(collection(firestore, FINANCIAL_INSTITUTIONS_COLLECTION), where("uid", "==", uid))
       );
-
-      const snapshot = await getDocs(financialInstitutionsQuery);
-
-      // Update all financial institutions status to awaitSync
-      const updatePromises = snapshot.docs.map((docSnapshot) => {
-        const docRef = doc(firestore, FINANCIAL_INSTITUTIONS_COLLECTION, docSnapshot.id);
-        return updateDoc(docRef, {
-          status: FinancialInstitutionStatus.AwaitSync
-        });
-      });
-
-      await Promise.all(updatePromises);
-
-      console.log(`Updated ${updatePromises.length} financial institutions to awaitSync status`);
+      await Promise.all(
+        snapshot.docs.map((d) =>
+          updateDoc(doc(firestore, FINANCIAL_INSTITUTIONS_COLLECTION, d.id), {
+            status: FinancialInstitutionStatus.AwaitSync,
+          })
+        )
+      );
     } catch (error) {
-      console.error("Error updating financial institutions status:", error);
+      console.error("Error refreshing financial institutions:", error);
       throw error;
     }
+  }
+
+  /** Retries sync for a single institution by setting it back to AwaitSync */
+  public static async retrySyncInstitution(docId: string): Promise<void> {
+    const firestore = getFirestore();
+    await updateDoc(doc(firestore, FINANCIAL_INSTITUTIONS_COLLECTION, docId), {
+      status: FinancialInstitutionStatus.AwaitSync,
+      plaidErrorCode: null,
+    });
+  }
+
+  /** Removes an institution document from Firestore */
+  public static async removeInstitution(docId: string): Promise<void> {
+    const firestore = getFirestore();
+    await deleteDoc(doc(firestore, FINANCIAL_INSTITUTIONS_COLLECTION, docId));
+  }
+
+  /** Sets institution back to AwaitSync after a successful reconnect via Plaid Link update mode */
+  public static async markInstitutionForResync(docId: string): Promise<void> {
+    const firestore = getFirestore();
+    await updateDoc(doc(firestore, FINANCIAL_INSTITUTIONS_COLLECTION, docId), {
+      status: FinancialInstitutionStatus.AwaitSync,
+      plaidErrorCode: null,
+    });
   }
 }

@@ -10,8 +10,7 @@ import {
 import { Label } from "../../components/common/label";
 import { Input } from "../../components/common/input";
 import { Button } from "../../components/common/button";
-import { useAppDispatch } from "../../hooks/useRedux";
-import { updateCSPItem } from "../../redux/thunks/consciousSpendingPlanThunk";
+import { useUpdateCSPItem } from "../../hooks/api/useCSP";
 import type { CSPCategoryBudget, CSPBucket } from "@easy-csp/shared-types";
 import { camelCaseToSentence } from "../../utils/stringUtils";
 
@@ -30,7 +29,7 @@ export function CSPBudgetEditDialog({
   bucket,
   categoryName
 }: CSPBudgetEditDialogProps) {
-  const dispatch = useAppDispatch();
+  const updateCSPItem = useUpdateCSPItem();
   const [amount, setAmount] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -51,12 +50,11 @@ export function CSPBudgetEditDialog({
 
     setIsLoading(true);
     try {
-      await dispatch(updateCSPItem({
+      await updateCSPItem.mutateAsync({
         bucket,
         category: budget.category,
-        amount: numericAmount
-      })).unwrap();
-
+        amount: numericAmount,
+      });
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to update budget:", error);
@@ -100,13 +98,14 @@ export function CSPBudgetEditDialog({
           <DialogFooter className="flex gap-2 justify-end">
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               onClick={handleClose}
               disabled={isLoading}
             >
               Cancel
             </Button>
             <Button
+              variant="primary"
               type="submit"
               disabled={!amount || isLoading}
             >

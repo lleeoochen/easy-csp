@@ -9,7 +9,7 @@ export const DialogTitle = React.forwardRef<HTMLHeadingElement, DialogTitleProps
   ({ className, ...props }, ref) => (
     <h2
       ref={ref}
-      className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+      className={cn("text-lg leading-none tracking-tight", className)}
       {...props}
     />
   )

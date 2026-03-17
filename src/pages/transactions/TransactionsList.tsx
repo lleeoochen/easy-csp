@@ -1,60 +1,72 @@
+import { useMemo } from "react";
 import type { Transaction } from "@easy-csp/shared-types";
-import { Card } from "../../components/common/card";
-import { camelCaseToSentence } from "../../utils/stringUtils";
+import { Card, CardContent, CardHeader } from "../../components/common/card";
+import { TransactionRow } from "./TransactionRow";
 
-interface TransactionsListProps {
+type TransactionsListProps =  {
   transactions: Transaction[];
-}
+  handleTransactionClick(transaction: Transaction): void;
+};
 
-export function TransactionsList({
-  transactions,
-}: TransactionsListProps) {
+export function TransactionsList({ transactions, handleTransactionClick }: TransactionsListProps) {
+  // Group transactions by month
+  const groupedTransactions = useMemo(() => {
+    const groups: { [monthYear: string]: Transaction[] } = {};
+
+    transactions.forEach((transaction) => {
+      const date = new Date(transaction.datetime);
+      const monthYear = date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long"
+      });
+
+      if (!groups[monthYear]) {
+        groups[monthYear] = [];
+      }
+      groups[monthYear].push(transaction);
+    });
+
+    // Convert to array and sort by date (newest first)
+    return Object.entries(groups)
+      .map(([monthYear, transactions]) => ({
+        monthYear,
+        transactions: transactions.sort((a, b) => b.datetime - a.datetime)
+      }))
+      .sort((a, b) => {
+        // Sort groups by the first transaction's date (newest first)
+        const aFirstDate = a.transactions[0]?.datetime || 0;
+        const bFirstDate = b.transactions[0]?.datetime || 0;
+        return bFirstDate - aFirstDate;
+      });
+  }, [transactions]);
+
   return (
-    <div className="space-y-4">
-      {/* Summary */}
-      {transactions.length > 0 && (
-        <div className="text-md text-right">
-          Total: ${transactions.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
-        </div>
-      )}
-      {/* Transactions List */}
-      <div className="flex flex-col gap-1">
-        {transactions.length === 0 ? (
-          <div className="text-center py-16 bg-card border rounded-lg">
-            <p className="text-muted-foreground">No transactions yet</p>
-            <p className="text-md text-muted-foreground mt-1">
-              Tap "Add Transaction" to start
-            </p>
-          </div>
-        ) : (
-          transactions.map((transaction) => (
+    <div className="flex flex-col relative gap-4">
+      {
+        groupedTransactions.flatMap(({ monthYear, transactions }) => {
+          return (
             <Card
-              key={transaction.id}
-              className="px-4 py-2 active:bg-accent/50 transition-colors"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3 flex-1 min-w-0">
-                  <div className="min-w-0 flex-1">
-                    <div className="text-md truncate">{transaction.name}</div>
-                    <div className="text-sm text-gray-400 truncate">{camelCaseToSentence(transaction.category)}</div>
-                  </div>
-                </div>
-                <div className="flex flex-col items-end">
-                  <div className="text-md font-bold">
-                    ${transaction.amount.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-gray-400 text-muted-foreground">
-                    {new Date(transaction.datetime).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric"
-                    })}
-                  </div>
-                </div>
-              </div>
+              key={`month-${monthYear}`}
+              className="sticky top-0 z-10">
+              <CardHeader>
+                <div className="text-lg">{monthYear}</div>
+              </CardHeader>
+              <CardContent className="px-0! py-0! divide-y divide-gray-200">
+                {
+                  transactions.map((transaction) => (
+                    <div key={transaction.id} className="px-4 py-1.5">
+                      <TransactionRow
+                        transaction={transaction}
+                        onClick={handleTransactionClick}
+                      />
+                    </div>
+                  ))
+                }
+              </CardContent>
             </Card>
-          ))
-        )}
-      </div>
+          );
+        })
+      }
     </div>
   );
 }
