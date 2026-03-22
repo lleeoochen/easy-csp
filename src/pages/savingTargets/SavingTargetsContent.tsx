@@ -45,59 +45,65 @@ export function SavingTargetsContent({
       </div>
 
       {/* Saving Targets List */}
-      <div className="space-y-3 mt-3">
-        {savingTargets.length === 0 ? (
-          <div className="text-center py-16 bg-card border rounded-lg">
-            <Target className="size-12 mx-auto text-muted-foreground mb-3" />
-            <p className="text-muted-foreground">No saving targets yet</p>
-            <p className="text-muted-foreground mt-1">
-              Create your first savings target
-            </p>
-          </div>
-        ) : (
-          savingTargets.map((savingTarget) => {
-            const percentage = (savingTarget.currentAmount / savingTarget.targetAmount) * 100;
+      <Card className="mt-3">
+        <CardHeader>
+          Saving Funds
+        </CardHeader>
+        <CardContent className=" p-0! divide-y divide-gray-200">
+          {savingTargets.length === 0 ? (
+            <div className="text-center py-16 bg-card border rounded-lg">
+              <Target className="size-12 mx-auto text-muted-foreground mb-3" />
+              <p className="text-muted-foreground">No saving targets yet</p>
+              <p className="text-muted-foreground mt-1">
+                Create your first savings target
+              </p>
+            </div>
+          ) : (
+            savingTargets.map((savingTarget) => {
+              const percentage = (savingTarget.currentAmount / savingTarget.targetAmount) * 100;
 
-            return (
-              <Card key={savingTarget.id}>
-                <CardHeader className="flex items-start justify-between">
-                  <div className="flex items-start gap-3 flex-1 m-auto">
-                    <div className="font-semibold truncate">{savingTarget.name}</div>
-                  </div>
-                  <Button
-                    variant="secondary"
-                    className="h-8 w-8 p-0 flex"
-                    onClick={() => handleEdit(savingTarget)}
-                  >
-                    <Edit2 className="size-3.5 m-auto" />
-                  </Button>
-                </CardHeader>
-
-                <CardContent className="space-y-2 p-4">
-                  {savingTarget && (
-                    <p className="text-sm text-muted-foreground">
-                      {savingTarget.institutionName} - {savingTarget.accountName}
-                    </p>
-                  )}
-                  <Progress
-                    value={Math.min(percentage, 100)}
-                    className="bg-gray-200"
-                    activeColorClass="bg-primary-bg"
-                  />
-                  <div className="flex justify-between">
-                    <div className={"text-gray-800 text-sm font-bold"}>
-                      {formatCurrency(savingTarget.currentAmount)}
+              return (
+                <div key={savingTarget.id}>
+                  <div className="space-y-2 p-4">
+                    <div className="flex gap-5">
+                      <div className="flex flex-col items-start flex-1 m-auto truncate">
+                        <div className="font-semibold">{savingTarget.name}</div>
+                        {savingTarget && (
+                          <p className="text-sm text-gray-400 text-muted-foreground">
+                            {savingTarget.institutionName} - {savingTarget.accountName}
+                          </p>
+                        )}
+                      </div>
+                      <Button
+                        variant="secondary"
+                        className="h-8 w-8 p-0 flex"
+                        onClick={() => handleEdit(savingTarget)}
+                      >
+                        <Edit2 className="size-3.5 m-auto" />
+                      </Button>
                     </div>
-                    <div className="text-gray-400 text-sm">
-                      Target: {formatCurrency(savingTarget.targetAmount)}
+                    <div className="space-y-2">
+                      <Progress
+                        value={Math.min(percentage, 100)}
+                        className="bg-gray-200"
+                        activeColorClass="bg-primary-bg"
+                      />
+                      <div className="flex justify-between">
+                        <div className={"text-gray-800 text-sm font-bold"}>
+                          {formatCurrency(savingTarget.currentAmount)}
+                        </div>
+                        <div className="text-gray-400 text-sm">
+                          Target: {formatCurrency(savingTarget.targetAmount)}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })
-        )}
-      </div>
+                </div>
+              );
+            })
+          )}
+        </CardContent>
+      </Card>
 
       {/* Add Dialog */}
       <SavingTargetDialog

@@ -55,37 +55,43 @@ function App() {
               path: "/",
               name: "Spending",
               icon: BarChart3,
-              element: <ConsciousSpendingPlanPage />
+              element: <ConsciousSpendingPlanPage />,
+              showInNav: true
             },
             {
               path: "/savingTargets",
               name: "Savings",
               icon: Target,
-              element: <SavingTargetsPage />
+              element: <SavingTargetsPage />,
+              showInNav: true
             },
             {
               path: "/institutions",
               name: "Institutions",
               icon: Building2,
-              element: <FinancialInstitutionsPage />
+              element: <FinancialInstitutionsPage />,
+              showInNav: false
             },
             {
               path: "/transactions",
               name: "Transactions",
               icon: DollarSign,
-              element: <TransactionsPage />
+              element: <TransactionsPage />,
+              showInNav: true
             },
             {
               path: "/rules",
               name: "Rules",
               icon: Filter,
-              element: <RulesPage />
+              element: <RulesPage />,
+              showInNav: false
             },
             {
               path: "/settings",
               name: "Settings",
               icon: Settings,
-              element: <SettingsPage />
+              element: <SettingsPage />,
+              showInNav: true
             },
           ]}
         />

@@ -72,7 +72,7 @@ export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString, showA
           </div >
         ))}
         {showAddRow && cspBucket !== CSPBucket.Savings && (
-          <div className="px-4 py-4">
+          <div className="p-2">
             <AddCategoryRow bucket={cspBucket} />
           </div>
         )}

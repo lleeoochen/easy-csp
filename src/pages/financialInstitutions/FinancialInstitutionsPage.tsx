@@ -4,6 +4,7 @@ import { useFinancialInstitutions, useRefreshFinancialInstitutions, useRetrySync
 import { getFinancialInstitutionStatusDisplay, getPlaidErrorMessage } from "../../utils/statusUtils";
 import { Card, CardContent, CardHeader } from "../../components/common/card";
 import { Button } from "../../components/common/button";
+import { BackButton } from "../../components/common/BackButton";
 import { Page } from "../../components/Page";
 import { RefreshCwIcon, AlertTriangleIcon } from "lucide-react";
 import moment from "moment";
@@ -37,7 +38,7 @@ const InstitutionErrorBanner = ({ institution }: { institution: FinancialInstitu
   const docId = institution.docId!;
 
   return (
-    <div className="flex items-start gap-2 mt-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+    <div className="flex items-start gap-2 mt-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 pb-2">
       <AlertTriangleIcon className="w-4 h-4 mt-0.5 shrink-0" />
       <div className="flex-1">
         <p>{message}</p>
@@ -98,16 +99,19 @@ const FinancialInstitutionsPage = () => {
         </div>
       ) : (
         <div className="flex flex-col gap-3 justify-center">
-          <div className="flex gap-2">
-            <Button
-              variant="primary"
-              className="bg-white hover:bg-white/70 active:bg-gray-300 ml-auto"
-              onClick={() => refresh()}
-              disabled={isRefreshing}
-            >
-              <RefreshCwIcon />
-            </Button>
-            <LinkFinancialInstitutionButton />
+          <div className="flex justify-between">
+            <BackButton to="/settings" />
+            <div className="flex gap-2">
+              <Button
+                variant="primary"
+                className="bg-white hover:bg-white/70 active:bg-gray-300 ml-auto"
+                onClick={() => refresh()}
+                disabled={isRefreshing}
+              >
+                <RefreshCwIcon />
+              </Button>
+              <LinkFinancialInstitutionButton />
+            </div>
           </div>
           {institutions.map((institution, index) => {
             const statusDisplay = getFinancialInstitutionStatusDisplay(institution.status);
@@ -127,9 +131,7 @@ const FinancialInstitutionsPage = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="py-2 px-4">
-                  <div className="pb-2">
                   <InstitutionErrorBanner institution={institution} />
-                  </div>
                   {institution.accounts.length === 0 ? (
                     <p className="text-gray-500 text-md">No accounts found for this institution.</p>
                   ) : (

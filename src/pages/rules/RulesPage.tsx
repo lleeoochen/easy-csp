@@ -4,7 +4,7 @@ import { useRules } from "../../hooks/api/useRules";
 import { RulesList } from "./RulesList";
 import { RuleEditDialog } from "./RuleEditDialog";
 import { Button } from "../../components/common/button";
-import { Plus } from "lucide-react";
+import { BackButton } from "../../components/common/BackButton";
 import type { RuleTransformation } from "@easy-csp/shared-types";
 
 const RulesPage = () => {
@@ -31,11 +31,9 @@ const RulesPage = () => {
     <Page title="Transaction Rules">
       <div className="space-y-4">
         <div className="flex justify-between items-center">
-          <p className="text-sm text-muted-foreground">
-            Create rules to automatically categorize and manage your transactions
-          </p>
+          <BackButton to="/settings" />
           <Button variant="primary" onClick={handleAddRule} className="flex items-center gap-2">
-            <Plus />
+            Add Rule
           </Button>
         </div>
 

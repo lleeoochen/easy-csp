@@ -15,6 +15,10 @@ export default {
         'primary-fg': colors.white,
         'secondary-bg': colors.gray['300'],
         'secondary-fg': colors.black,
+        'tabs-bar-bg': '#1c5b89cc',
+        'tabs-bar-fg': colors.white,
+        'tabs-bar-active-bg': colors.white,
+        'tabs-bar-active-fg': '#2e6d9c',
       },
       width: {
         'fill': 'fill-available',
