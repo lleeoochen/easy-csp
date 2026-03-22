@@ -8,7 +8,8 @@ import { getAuth } from "firebase/auth";
 import {
   CONSCIOUS_SPENDING_PLANS_COLLECTION,
   type ConsciousSpendingPlan,
-  CSPBucket
+  CSPBucket,
+  PROTECTED_CSP_CATEGORIES,
 } from "@easy-csp/shared-types";
 
 export class ConsciousSpendingPlanService {
@@ -205,6 +206,10 @@ export class ConsciousSpendingPlanService {
     message?: string
   }> {
     try {
+      if (PROTECTED_CSP_CATEGORIES.has(category)) {
+        return { success: false, message: "This category cannot be deleted." };
+      }
+
       const uid = this.getAuthenticatedUserId();
       const firestore = getFirestore();
       const docRef = doc(firestore, CONSCIOUS_SPENDING_PLANS_COLLECTION, uid);

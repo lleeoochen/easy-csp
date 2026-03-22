@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { SavingTargetsService } from '../../services/savingTargetsService';
 import { useFinancialInstitutions } from './useFinancialInstitutions';
 import { parseAccountOptionValue } from '../../utils/accountUtils';
+import { removeItemFromCache } from './cacheUtils';
 
 export const SAVING_TARGETS_QUERY_KEY = ['savingTargets'];
 
@@ -81,6 +82,8 @@ export const useDeleteSavingTarget = () => {
       const result = await SavingTargetsService.removeSavingTarget(id);
       if (!result.success) throw new Error(result.message ?? 'Failed to delete saving target');
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: SAVING_TARGETS_QUERY_KEY }),
+    onSuccess: (_data, id) => {
+      removeItemFromCache(queryClient, SAVING_TARGETS_QUERY_KEY, id);
+    },
   });
 };

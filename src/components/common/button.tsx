@@ -6,7 +6,7 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variantClassNames: Record<ButtonProps["variant"], string> = {
-  primary: "bg-primary-bg text-primary-fg",
+  primary: "bg-primary-bg text-primary-fg shadow-2xl",
   secondary: "bg-secondary-bg text-secondary-fg",
   icon: "bg-secondary-bg text-secondary-fg px-3 py-1"
 };

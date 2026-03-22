@@ -1,40 +1,45 @@
+import { useCategoryNameMap, useCSP } from "./api/useCSP";
 import { useMemo } from "react";
 import type { CSPCategoryBudget } from "@easy-csp/shared-types";
-import { camelCaseToSentence } from "../utils/stringUtils";
-import { useSavingTargets } from "./api/useSavingTargets";
-import { useCSP } from "./api/useCSP";
 
 /**
  * Returns a flat dictionary of categoryId → display name,
  * derived from the user's CSP document and saving targets.
- * No longer uses the static CSPCategory enum.
  */
 export const useCategoryMap = (): Record<string, string> => {
-  const { data: csp } = useCSP();
-  const { data: savingTargets = [] } = useSavingTargets();
-
-  return useMemo(() => {
-    const map: Record<string, string> = {};
-
-    if (csp) {
-      for (const items of Object.values(csp)) {
-        for (const item of items as CSPCategoryBudget[]) {
-          map[item.category] = item.name ?? camelCaseToSentence(item.category);
-        }
-      }
-    }
-
-    for (const target of savingTargets) {
-      map[target.id] = target.name;
-    }
-
-    return map;
-  }, [csp, savingTargets]);
+  const map = useCategoryNameMap();
+  return Object.fromEntries(map);
 };
 
 /**
- * Returns true if the given categoryId belongs to a saving target.
- * Requires the set of known CSP category IDs (from the CSP document) to distinguish.
+ * Returns the set of category IDs that are tracking a saving target.
+ * Prefer this over isSavingTargetCategory — it reads directly from CSP data.
  */
-export const isSavingTargetCategory = (categoryId: string, cspCategoryIds: Set<string>): boolean =>
-  !cspCategoryIds.has(categoryId);
+export const useSavingTargetCategoryIds = (): ReadonlySet<string> => {
+  const { data: csp } = useCSP();
+  return useMemo(() => {
+    const ids = new Set<string>();
+    if (!csp) return ids;
+    for (const items of Object.values(csp)) {
+      for (const item of items as CSPCategoryBudget[]) {
+        if (item.isTrackingSavingTarget) ids.add(item.category);
+      }
+    }
+    return ids;
+  }, [csp]);
+};
+
+/**
+ * Returns the set of category IDs that belong to the ignored bucket.
+ */
+export const useIgnoredCategoryIds = (): ReadonlySet<string> => {
+  const { data: csp } = useCSP();
+  return useMemo(() => {
+    const ids = new Set<string>();
+    if (!csp?.ignored) return ids;
+    for (const item of csp.ignored) {
+      ids.add(item.category);
+    }
+    return ids;
+  }, [csp]);
+};

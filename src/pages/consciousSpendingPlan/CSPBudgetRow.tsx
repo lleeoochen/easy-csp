@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import type { CSPCategoryBudget, CSPBucket } from "@easy-csp/shared-types";
+import { CSPBucket, type CSPCategoryBudget } from "@easy-csp/shared-types";
 import { CSPBudgetActionMenu } from "./CSPBudgetActionMenu";
 import { useBudgetFromSavingTarget, useRegularBudget } from "../../hooks/useCSPBudgetRow";
 import { useTransactions } from "../../hooks/api/useTransactions";
@@ -22,7 +22,7 @@ export const CSPBudgetRow = ({ budget, bucket, onDataChange, currentMonthString 
   const {
     getCategoryName,
     getAmount
-  } = useRegularBudget(budget.category, transactions);
+  } = useRegularBudget(budget.category, transactions, bucket === CSPBucket.Savings);
 
   const {
     getCategoryName: getCategoryNameFromSavingTarget,

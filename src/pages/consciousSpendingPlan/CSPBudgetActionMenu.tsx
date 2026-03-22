@@ -7,12 +7,13 @@ import {
   DropdownMenuTrigger,
 } from "../../components/common/dropdown-menu";
 import { Progress } from "../../components/common/progress";
-import type { CSPCategoryBudget, CSPBucket } from "@easy-csp/shared-types";
+import { type CSPCategoryBudget, CSPBucket } from "@easy-csp/shared-types";
 import { formatCurrency } from "../../utils/financialUtils";
 import { cn } from "../../components/common/utils";
 import { CSPBudgetEditDialog } from "./CSPBudgetEditDialog";
 import { PenIcon, BarChart3Icon, Trash2Icon } from "lucide-react";
 import { useDeleteCSPItem } from "../../hooks/api/useCSP";
+import { PROTECTED_CSP_CATEGORIES } from "@easy-csp/shared-types";
 
 interface CSPBudgetActionMenuProps {
   budget: CSPCategoryBudget;
@@ -44,8 +45,12 @@ export const CSPBudgetActionMenu = ({
   };
 
   const handleViewTransactions = () => {
-    // Navigate to transactions page with category and month filters
-    navigate(`/transactions?category=${encodeURIComponent(budget.category)}&month=${currentMonth}`);
+    // For saving targets, filter by fund; for regular categories, filter by category and no fund
+    if (budget.isTrackingSavingTarget) {
+      navigate(`/transactions?fund=${encodeURIComponent(budget.category)}&month=${currentMonth}`);
+    } else {
+      navigate(`/transactions?category=${encodeURIComponent(budget.category)}&fund=none&month=${currentMonth}`);
+    }
   };
 
   const handleRemoveCategory = () => {
@@ -96,7 +101,7 @@ export const CSPBudgetActionMenu = ({
               <BarChart3Icon className="mr-2 h-4 w-4" />
               View Transactions
             </DropdownMenuItem>
-            {budget.isTrackingSavingTarget !== true && (
+            {bucket !== CSPBucket.Income && budget.isTrackingSavingTarget !== true && !PROTECTED_CSP_CATEGORIES.has(budget.category) && (
               <DropdownMenuItem
                 onClick={handleRemoveCategory}
                 className="text-red-600 focus:text-red-600"

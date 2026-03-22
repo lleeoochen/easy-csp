@@ -8,7 +8,7 @@ import { Switch } from "../../components/common/switch";
 import { Card, CardContent, CardHeader } from "../../components/common/card";
 import { CategorySelector } from "../../components/common/CategorySelector";
 import type { RuleTransformation, RuleMatchingCriteria, RuleAction } from "@easy-csp/shared-types";
-import { CSPCategory, RuleCondition } from "@easy-csp/shared-types";
+import { CSPCategory, RuleCondition, SplitFrequency } from "@easy-csp/shared-types";
 import { useAddRule, useUpdateRule } from "../../hooks/api/useRules";
 import { cn } from "../../components/common/utils";
 import { generateAccountOptionValue, parseAccountOptionValue } from "../../utils/accountUtils";
@@ -51,6 +51,9 @@ export const RuleEditDialog = ({ open, onOpenChange, rule, ruleIndex }: RuleEdit
   const [changeCategoryValue, setChangeCategoryValue] = useState<string>(CSPCategory.Miscellaneous);
   const [toggleHiddenEnabled, setToggleHiddenEnabled] = useState(false);
   const [toggleHiddenValue, setToggleHiddenValue] = useState(false);
+  const [autoSplitEnabled, setAutoSplitEnabled] = useState(false);
+  const [autoSplitCount, setAutoSplitCount] = useState(2);
+  const [autoSplitFrequency, setAutoSplitFrequency] = useState<SplitFrequency>(SplitFrequency.Monthly);
 
   // Reset form when dialog opens/closes or rule changes
   useEffect(() => {
@@ -86,6 +89,9 @@ export const RuleEditDialog = ({ open, onOpenChange, rule, ruleIndex }: RuleEdit
       setChangeCategoryValue(rule.action.changeCategory || CSPCategory.Miscellaneous);
       setToggleHiddenEnabled(rule.action.toggleHidden !== undefined);
       setToggleHiddenValue(rule.action.toggleHidden || false);
+      setAutoSplitEnabled(!!rule.action.autoSplit);
+      setAutoSplitCount(rule.action.autoSplit?.splitCount ?? 2);
+      setAutoSplitFrequency(rule.action.autoSplit?.frequency ?? SplitFrequency.Monthly);
     } else {
       // Reset to defaults for new rule
       setName("");
@@ -104,6 +110,9 @@ export const RuleEditDialog = ({ open, onOpenChange, rule, ruleIndex }: RuleEdit
       setChangeCategoryValue(CSPCategory.Miscellaneous);
       setToggleHiddenEnabled(false);
       setToggleHiddenValue(false);
+      setAutoSplitEnabled(false);
+      setAutoSplitCount(2);
+      setAutoSplitFrequency(SplitFrequency.Monthly);
     }
   }, [rule]);
 
@@ -136,6 +145,9 @@ export const RuleEditDialog = ({ open, onOpenChange, rule, ruleIndex }: RuleEdit
     }
     if (toggleHiddenEnabled) {
       action.toggleHidden = toggleHiddenValue;
+    }
+    if (autoSplitEnabled) {
+      action.autoSplit = { splitCount: autoSplitCount, frequency: autoSplitFrequency };
     }
 
     return action;
@@ -346,6 +358,35 @@ export const RuleEditDialog = ({ open, onOpenChange, rule, ruleIndex }: RuleEdit
                     value={toggleHiddenValue.toString()}
                     onValueChange={(value) => setToggleHiddenValue(value === "true")}
                     isDisabled={!toggleHiddenEnabled}
+                  />
+                </div>
+              </div>
+
+              {/* Auto Split Action */}
+              <div className="flex flex-col items-start gap-2">
+                <div className="flex flex-row gap-2 justify-between w-full">
+                  <Label className={cn({ "text-gray-300": !autoSplitEnabled })}>Auto Split</Label>
+                  <Switch checked={autoSplitEnabled} onCheckedChange={setAutoSplitEnabled} />
+                </div>
+                <div className={cn("flex flex-row gap-2 w-full", { "hidden": !autoSplitEnabled })}>
+                  <Select
+                    options={Array.from({ length: 11 }, (_, i) => ({
+                      value: String(i + 2),
+                      label: `${i + 2} splits`
+                    }))}
+                    value={String(autoSplitCount)}
+                    onValueChange={(value) => setAutoSplitCount(Number(value))}
+                    isDisabled={!autoSplitEnabled}
+                  />
+                  <Select
+                    options={[
+                      { value: SplitFrequency.Weekly, label: "Weekly" },
+                      { value: SplitFrequency.Monthly, label: "Monthly" },
+                      { value: SplitFrequency.Yearly, label: "Yearly" }
+                    ]}
+                    value={autoSplitFrequency}
+                    onValueChange={(value) => setAutoSplitFrequency(value as SplitFrequency)}
+                    isDisabled={!autoSplitEnabled}
                   />
                 </div>
               </div>

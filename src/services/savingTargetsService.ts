@@ -8,7 +8,7 @@ import {
   getDocs,
   getDoc,
   query,
-  where
+  where,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import {
@@ -177,6 +177,27 @@ export class SavingTargetsService {
       } catch (cspError) {
         console.error("Error removing CSP budget item:", cspError);
         // Continue execution even if CSP fails - we still want to delete the saving target
+      }
+
+      // Nullify savingTargetId for all transactions linked to this fund
+      try {
+        const transactionsQuery = query(
+          collection(firestore, "transactions"),
+          where("uid", "==", uid),
+          where("savingTargetId", "==", id)
+        );
+        const transactionsSnapshot = await getDocs(transactionsQuery);
+
+        const updatePromises = transactionsSnapshot.docs.map(transactionDoc =>
+          updateDoc(doc(firestore, "transactions", transactionDoc.id), {
+            savingTargetId: null
+          })
+        );
+
+        await Promise.all(updatePromises);
+      } catch (transactionError) {
+        console.error("Error nullifying savingTargetId for transactions:", transactionError);
+        // Continue execution even if this fails
       }
 
       // Delete the document

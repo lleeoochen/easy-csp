@@ -1,11 +1,6 @@
-import { CSPBucket, CSPCategory, getCSPBucket, type CSPCategoryBudget } from "@easy-csp/shared-types";
+import { CSPBucket, type CSPCategoryBudget } from "@easy-csp/shared-types";
 import { CSPBucketCard } from "./CSPBucketCard";
 import { useCSP } from "../../hooks/api/useCSP";
-import { useTransactions } from "../../hooks/api/useTransactions";
-import { formatCurrency } from "../../utils/financialUtils";
-import { Card } from "../../components/common/card";
-import { getMonthBoundaries } from "../../utils/dateUtils";
-
 const CSP_BUCKET_ORDER: CSPBucket[] = [
   CSPBucket.Income,
   CSPBucket.FixedCost,
@@ -22,9 +17,6 @@ interface CSPBucketCardListProps {
 
 export function CSPBucketCardList({ selectedMonth, selectedYear }: CSPBucketCardListProps) {
   const { data: consciousSpendingPlan = {}, isLoading, error, refetch } = useCSP();
-  const { startDate, endDate } = getMonthBoundaries(selectedYear, selectedMonth);
-  const { data: transactionPages } = useTransactions({ startDate, endDate });
-  const transactions = transactionPages?.pages.flatMap(p => p.transactions ?? []).filter(t => t !== undefined) ?? [];
 
   if (isLoading) {
     return (
@@ -51,13 +43,6 @@ export function CSPBucketCardList({ selectedMonth, selectedYear }: CSPBucketCard
   // Format current month as YYYY-MM for URL parameter
   const currentMonthString = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}`;
 
-  const totalIncomeTarget = Object.entries<CSPCategoryBudget[]>(consciousSpendingPlan)
-    .filter(([bucket]) => bucket === CSPBucket.Income)
-    .reduce((total, entry) => {
-      const [, categoryBudgets] = entry;
-      return total + categoryBudgets.reduce((subtotal, categoryBudget) => subtotal + categoryBudget.amount, 0);
-    }, 0);
-
   const consciousSpendingPlanSortedEntries = Object
     .entries<CSPCategoryBudget[]>(consciousSpendingPlan)
     .sort((a, b) => {
@@ -71,51 +56,20 @@ export function CSPBucketCardList({ selectedMonth, selectedYear }: CSPBucketCard
   const spendingBuckets = consciousSpendingPlanSortedEntries
     .filter(([bucket]) => bucket !== CSPBucket.Income && bucket !== CSPBucket.Ignored);
 
-  const totalSpendingTarget = consciousSpendingPlanSortedEntries
-    .filter(([bucket]) => bucket !== CSPBucket.Income && bucket !== CSPBucket.Ignored)
-    .reduce((total, entry) => {
-      const [, categoryBudgets] = entry;
-      return total + categoryBudgets.reduce((subtotal, categoryBudget) => subtotal + categoryBudget.amount, 0);
-    }, 0);
-
-  let totalIncome = 0;
-  let totalSpending = 0;
-
-  transactions.forEach(transaction => {
-    const cspBucket = getCSPBucket(transaction.category as CSPCategory);
-    if (transaction.hidden) {
-      return;
-    }
-
-    switch (cspBucket) {
-      case CSPBucket.Ignored:
-        break;
-      case CSPBucket.Income:
-        totalIncome += transaction.amount;
-        break;
-      default:
-        totalSpending += transaction.amount;
-    }
-  });
-
   return (
     <>
-      {/* Summary Cards */}
-      <div className="gap-3 hidden">
-        <Card className="flex-1 px-6 py-4 p-3 text-center bg-primary-bg">
-          <div className="font-medium">Total Income</div>
-          <div className={`text-2xl font-medium`}>{formatCurrency(totalIncome)}</div>
-          <div className="font-medium">{formatCurrency(totalIncomeTarget)}</div>
-        </Card>
-        <Card className="flex-1 px-6 py-4 p-3 text-center bg-primary-bg">
-          <div className="font-medium">Total Spending</div>
-          <div className={`text-2xl font-medium`}>{formatCurrency(totalSpending)}</div>
-          <div className="font-medium">{formatCurrency(totalSpendingTarget)}</div>
-        </Card>
-      </div>
+      <div className="space-y-3">
+        {/* Summary Cards */}
+        <div className="flex flex-row gap-3">
+          <CSPBucketCard
+            cspBucket={CSPBucket.Income}
+            cspBudgets={consciousSpendingPlan[CSPBucket.Income] ?? []}
+            currentMonthString={currentMonthString}
+            showAddRow={false}
+          />
+        </div>
 
-      {/* Category Sections */}
-      <div className="space-y-4">
+        {/* Category Sections */}
         {spendingBuckets.map(([cspBucket, cspBudgets]) => (
           <CSPBucketCard
             key={cspBucket}

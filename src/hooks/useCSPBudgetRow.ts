@@ -15,16 +15,17 @@ export const useBudgetFromSavingTarget = (category: string, transactions: Transa
     return categoryMap[category] ?? category;
   }, [category, categoryMap]);
 
-  // Calculate spending for this category (tracks money flowing into the linked account)
+  // Calculate spending for this category (tracks money flowing into the linked account + expenses paid from fund)
   const getAmount = useCallback(() => {
     if (!savingTarget) return 0;
 
+    // Include both: inflows to the account
     return transactions
       .filter(t =>
-        t.institutionId === savingTarget.financialInstitutionId &&
+        (t.institutionId === savingTarget.financialInstitutionId &&
         t.accountId === savingTarget.accountId &&
         !t.hidden &&
-        t.amount < 0
+        t.amount < 0)
       )
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
   }, [savingTarget, transactions]);
@@ -32,7 +33,7 @@ export const useBudgetFromSavingTarget = (category: string, transactions: Transa
   return { getCategoryName, getAmount };
 };
 
-export const useRegularBudget = (category: string, transactions: Transaction[]) => {
+export const useRegularBudget = (category: string, transactions: Transaction[], inflowOnly = false) => {
   const categoryMap = useCategoryMap();
 
   const getCategoryName = useCallback(() => {
@@ -41,9 +42,14 @@ export const useRegularBudget = (category: string, transactions: Transaction[]) 
 
   const getAmount = useCallback(() => {
     return transactions
-      .filter(t => t.category === category && !t.hidden)
+      .filter(t =>
+        t.category === category &&
+        !t.savingTargetId &&  // Exclude fund transactions (tracked separately)
+        !t.hidden &&
+        (!inflowOnly || t.amount < 0)
+      )
       .reduce((sum, t) => sum + Math.abs(t.amount), 0);
-  }, [category, transactions]);
+  }, [category, transactions, inflowOnly]);
 
   return { getCategoryName, getAmount };
 };

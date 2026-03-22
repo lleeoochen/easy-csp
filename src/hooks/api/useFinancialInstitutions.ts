@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FinancialInstitutionsService } from '../../services/financialInstitutionsService';
+import { type FinancialInstitution, FinancialInstitutionStatus } from '@easy-csp/shared-types';
+import { removeItemFromCache } from './cacheUtils';
 
 export const FINANCIAL_INSTITUTIONS_QUERY_KEY = ['financialInstitutions'];
 
-const POLL_INTERVAL_MS = 10_000;
-const POLL_ROUNDS = 3;
+const POLL_INTERVAL_MS = 5_000;
+const POLL_ROUNDS = 12; // poll for up to 60s
 
 export const useFinancialInstitutions = () => {
   return useQuery({
@@ -14,19 +16,30 @@ export const useFinancialInstitutions = () => {
   });
 };
 
-const pollForSync = async (queryClient: ReturnType<typeof useQueryClient>) => {
-  for (let i = 0; i < POLL_ROUNDS; i++) {
-    await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS));
-    await queryClient.refetchQueries({ queryKey: FINANCIAL_INSTITUTIONS_QUERY_KEY });
-  }
+const startPolling = (queryClient: ReturnType<typeof useQueryClient>) => {
+  let round = 0;
+  const tick = async () => {
+    if (round >= POLL_ROUNDS) return;
+    round++;
+    await queryClient.refetchQueries({ queryKey: FINANCIAL_INSTITUTIONS_QUERY_KEY, type: 'active' });
+    setTimeout(tick, POLL_INTERVAL_MS);
+  };
+  setTimeout(tick, POLL_INTERVAL_MS);
 };
 
 export const useRefreshFinancialInstitutions = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async () => {
-      await FinancialInstitutionsService.refreshFinancialInstitutions();
-      await pollForSync(queryClient);
+    mutationFn: () => FinancialInstitutionsService.refreshFinancialInstitutions(),
+    onMutate: () => {
+      // Optimistically set all institutions to AwaitSync so UI updates immediately
+      queryClient.setQueryData(FINANCIAL_INSTITUTIONS_QUERY_KEY, (old: FinancialInstitution[] | undefined) =>
+        old?.map(inst => ({ ...inst, status: FinancialInstitutionStatus.AwaitSync })) ?? []
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: FINANCIAL_INSTITUTIONS_QUERY_KEY });
+      startPolling(queryClient);
     },
   });
 };
@@ -34,9 +47,10 @@ export const useRefreshFinancialInstitutions = () => {
 export const useRetrySyncInstitution = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (docId: string) => {
-      await FinancialInstitutionsService.retrySyncInstitution(docId);
-      await pollForSync(queryClient);
+    mutationFn: (docId: string) => FinancialInstitutionsService.retrySyncInstitution(docId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: FINANCIAL_INSTITUTIONS_QUERY_KEY });
+      startPolling(queryClient);
     },
   });
 };
@@ -45,7 +59,9 @@ export const useRemoveInstitution = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (docId: string) => FinancialInstitutionsService.removeInstitution(docId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: FINANCIAL_INSTITUTIONS_QUERY_KEY }),
+    onSuccess: (_data, docId) => {
+      removeItemFromCache(queryClient, FINANCIAL_INSTITUTIONS_QUERY_KEY, docId);
+    },
   });
 };
 
@@ -53,6 +69,9 @@ export const useMarkInstitutionForResync = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (docId: string) => FinancialInstitutionsService.markInstitutionForResync(docId),
-    onSuccess: () => pollForSync(queryClient),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: FINANCIAL_INSTITUTIONS_QUERY_KEY });
+      startPolling(queryClient);
+    },
   });
 };

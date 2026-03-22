@@ -7,6 +7,7 @@ export type ListTransactionsRequest = {
   startDate?: number;         // Optional start date as UTC epoch timestamp
   endDate?: number;           // Optional end date as UTC epoch timestamp
   category?: string;          // Optional category filter
+  savingTargetId?: string;    // Optional saving target (fund) filter
 };
 
 export type ListTransactionsResponse = {

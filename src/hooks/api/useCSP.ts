@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ConsciousSpendingPlanService } from '../../services/consciousSpendingPlanService';
 import type { CSPBucket } from '@easy-csp/shared-types';
+import { useMemo } from 'react';
+import { camelCaseToSentence } from '../../utils/stringUtils';
+import { useSavingTargets } from './useSavingTargets';
 
 export const CSP_QUERY_KEY = ['csp'];
 
@@ -38,6 +41,54 @@ export const useAddCSPItem = () => {
       }),
     onSuccess: (csp) => queryClient.setQueryData(CSP_QUERY_KEY, csp),
   });
+};
+
+/**
+ * Returns a map of category ID → display name derived from CSP data.
+ * For saving-target-linked categories, uses the saving target's name.
+ * Use `categoryNameMap.get(id) ?? camelCaseToSentence(id)` at the call site.
+ */
+export const useCategoryNameMap = (): ReadonlyMap<string, string> => {
+  const { data: csp } = useCSP();
+  const { data: savingTargets = [] } = useSavingTargets();
+
+  return useMemo(() => {
+    const map = new Map<string, string>();
+    if (!csp) return map;
+    for (const items of Object.values(csp)) {
+      for (const item of items) {
+        if (item.isTrackingSavingTarget) {
+          const target = savingTargets.find(t => t.id === item.category);
+          map.set(item.category, target?.name ?? item.name ?? camelCaseToSentence(item.category));
+        } else {
+          map.set(item.category, item.name ?? camelCaseToSentence(item.category));
+        }
+      }
+    }
+    return map;
+  }, [csp, savingTargets]);
+};
+
+/**
+ * Returns a map of category ID → display name, excluding saving target IDs.
+ * Use this for category selectors where users assign transaction categories.
+ */
+export const useRegularCategoryNameMap = (): ReadonlyMap<string, string> => {
+  const { data: csp } = useCSP();
+
+  return useMemo(() => {
+    const map = new Map<string, string>();
+    if (!csp) return map;
+    for (const items of Object.values(csp)) {
+      for (const item of items) {
+        // Exclude saving target categories
+        if (!item.isTrackingSavingTarget) {
+          map.set(item.category, item.name ?? camelCaseToSentence(item.category));
+        }
+      }
+    }
+    return map;
+  }, [csp]);
 };
 
 export const useDeleteCSPItem = () => {

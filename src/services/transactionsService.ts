@@ -66,6 +66,14 @@ export class TransactionsService {
         );
       }
 
+      // Add saving target filtering if provided
+      if (request?.savingTargetId) {
+        transactionsQuery = query(
+          transactionsQuery,
+          where("savingTargetId", "==", request.savingTargetId)
+        );
+      }
+
       // Sort by datetime in descending order (newest first)
       transactionsQuery = query(
         transactionsQuery,

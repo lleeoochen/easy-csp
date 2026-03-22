@@ -37,7 +37,7 @@ export const TabMenuItem = ({ path, icon }: TabMenuItemProps) => {
         )
       }
     >
-      <IconElement className="w-6 h-6" strokeWidth={strokeWidth}/>
+      <IconElement className="size-7" strokeWidth={strokeWidth}/>
       {/* <span className="text-xs mt-1">{ name }</span> */}
     </Link>
   );

@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { CSPBucket } from "@easy-csp/shared-types";
-import { Plus } from "lucide-react";
 import { useAddCSPItem, useCSP } from "../../hooks/api/useCSP";
 import { sentenceToCamelCase } from "../../utils/stringUtils";
 import { Input } from "../../components/common/input";
 import { Button } from "../../components/common/button";
+import { cn } from "../../components/common/utils";
 
 interface AddCategoryRowProps {
   bucket: CSPBucket;
@@ -67,16 +67,18 @@ export function AddCategoryRow({ bucket }: AddCategoryRowProps) {
           }}
           onKeyDown={handleKeyDown}
           placeholder="New category name..."
-          className="flex-1 text-sm bg-transparent border-b border-gray-300 focus:border-gray-500 outline-none py-0.5 placeholder-gray-400"
+          className="flex-1"
         />
         <Button
-          variant="icon"
+          variant="secondary"
           onClick={handleSubmit}
           disabled={addCSPItem.isPending}
-          className="text-gray-500 hover:text-gray-700 disabled:opacity-50 p-0.5"
           aria-label="Add category"
+          className={cn({
+            "hidden": inputValue === ""
+          })}
         >
-          <Plus size={16} />
+          Add
         </Button>
       </div>
       {error && (

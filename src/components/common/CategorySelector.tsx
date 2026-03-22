@@ -1,8 +1,6 @@
 import { Select } from "./select";
 import { Label } from "./label";
-import { CSPCategory } from "@easy-csp/shared-types";
-import { camelCaseToSentence } from "../../utils/stringUtils";
-import { useSavingTargets } from "../../hooks/api/useSavingTargets";
+import { useRegularCategoryNameMap } from "../../hooks/api/useCSP";
 
 interface CategorySelectorProps {
   value: string;
@@ -11,27 +9,28 @@ interface CategorySelectorProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  includeAllOption?: boolean;
 }
 
 export const CategorySelector = ({
   value,
   onValueChange,
-  label = "Category",
+  label,
   placeholder = "Select a category",
   disabled = false,
-  className
+  className,
+  includeAllOption = true
 }: CategorySelectorProps) => {
-  const { data: savingTargets = [] } = useSavingTargets();
+  const categoryNameMap = useRegularCategoryNameMap();
 
-  const savingTargetOptions = savingTargets.map(target => ({
-    value: target.id,
-    label: target.name
-  }));
-
-  const categoryOptions = Object.values(CSPCategory).map((category) => ({
-    value: category,
-    label: camelCaseToSentence(category)
-  }));
+  // Build options with optional "All" at the top
+  const options = [
+    ...(includeAllOption ? [{ value: '', label: 'All categories' }] : []),
+    ...Array.from(categoryNameMap.entries()).map(([id, name]) => ({
+      value: id,
+      label: name,
+    })),
+  ];
 
   return (
     <div className={className}>
@@ -39,7 +38,7 @@ export const CategorySelector = ({
         {label}
       </Label>
       <Select
-        options={[...savingTargetOptions, ...categoryOptions]}
+        options={options}
         value={value}
         onValueChange={onValueChange}
         isDisabled={disabled}

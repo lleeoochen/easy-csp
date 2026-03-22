@@ -15,7 +15,17 @@ export default {
         'primary-fg': colors.white,
         'secondary-bg': colors.gray['300'],
         'secondary-fg': colors.black,
-      }
+      },
+      width: {
+        'fill': 'fill-available',
+        'webkit-fill': '-webkit-fill-available',
+        'moz-fill': '-moz-available',
+      },
+      height: {
+        'fill': 'fill-available',
+        'webkit-fill': '-webkit-fill-available',
+        'moz-fill': '-moz-available',
+      },
     }
   },
   plugins: [],

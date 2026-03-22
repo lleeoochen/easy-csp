@@ -31,6 +31,23 @@ export const useUpdateTransaction = () => {
   return useMutation({
     mutationFn: ({ transactionId, updates }: { transactionId: string; updates: Partial<Transaction> }) =>
       TransactionsService.updateTransaction(transactionId, updates),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['transactions'] }),
+    onSuccess: (_data, { transactionId, updates }) => {
+      // Update the transaction in cache after successful API call
+      queryClient.setQueriesData<{ pages: ListTransactionsResponse[]; pageParams: unknown[] }>(
+        { queryKey: ['transactions'] },
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            pages: old.pages.map((page) => ({
+              ...page,
+              transactions: (page.transactions ?? []).map((t) =>
+                t.id === transactionId ? { ...t, ...updates } : t
+              ),
+            })),
+          };
+        }
+      );
+    },
   });
 };

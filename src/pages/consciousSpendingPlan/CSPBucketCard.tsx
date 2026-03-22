@@ -17,9 +17,10 @@ interface CSPBucketCardProps {
   cspBucket: CSPBucket;
   cspBudgets: CSPCategoryBudget[];
   currentMonthString: string;
+  showAddRow?: boolean;
 }
 
-export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString }: CSPBucketCardProps) {
+export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString, showAddRow = true }: CSPBucketCardProps) {
   // State to store data from each child row
   const [rowData, setRowData] = useState<Record<string, { spending: number; budget: number }>>({});
 
@@ -70,7 +71,7 @@ export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString }: CSP
             />
           </div >
         ))}
-        {cspBucket !== CSPBucket.Savings && (
+        {showAddRow && cspBucket !== CSPBucket.Savings && (
           <div className="px-4 py-4">
             <AddCategoryRow bucket={cspBucket} />
           </div>

@@ -95,16 +95,16 @@ export function SavingTargetDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {mode === "add" ? "Create New Saving Target" : "Edit Saving Target"}
+            {mode === "add" ? "Create New Saving Fund" : "Edit Saving Fund"}
           </DialogTitle>
           <DialogDescription>
-            {mode === "add" ? "Set a new savings target" : "Update your saving target details"}
+            {mode === "add" ? "Set a new savings fund" : "Update your saving fund details"}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Saving Target Name</Label>
+            <Label htmlFor="name">Saving Fund Name</Label>
             <Input
               id="name"
               placeholder="e.g., Emergency Fund"
@@ -129,7 +129,6 @@ export function SavingTargetDialog({
           <div className="space-y-2">
             <Label htmlFor="account">Select Account</Label>
             <AccountSelector
-              id="account"
               value={formData.selectedAccount}
               onChange={(value) => setFormData({ ...formData, selectedAccount: value })}
             />
@@ -153,7 +152,7 @@ export function SavingTargetDialog({
             onClick={handleSubmit}
             disabled={!isFormValid}
           >
-            {mode === "add" ? "Create target" : "Save changes"}
+            {mode === "add" ? "Create fund" : "Save changes"}
           </Button>
         </DialogFooter>
       </DialogContent>

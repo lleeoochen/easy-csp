@@ -5,6 +5,7 @@ import { AlertTriangle, Edit2, Trash2 } from "lucide-react";
 import { useDeleteRule, useUpdateRule } from "../../hooks/api/useRules";
 import { useCategoryMap } from "../../hooks/useCategoryMap";
 import type { RuleTransformation } from "@easy-csp/shared-types";
+import { useRegularCategoryNameMap } from "../../hooks/api/useCSP";
 
 interface RulesListProps {
   rules: RuleTransformation[];
@@ -15,6 +16,7 @@ export function RulesList({ rules, onRuleClick }: RulesListProps) {
   const deleteRuleMutation = useDeleteRule();
   const updateRuleMutation = useUpdateRule();
   const categoryMap = useCategoryMap();
+  const categoryNameMap = useRegularCategoryNameMap();
 
   const handleToggleRule = (ruleIndex: number, enabled: boolean) => {
     const rule = rules[ruleIndex];
@@ -48,7 +50,7 @@ export function RulesList({ rules, onRuleClick }: RulesListProps) {
       parts.push(`Amount ${symbol} $${criteria.amount.value}`);
     }
     if (criteria.category) {
-      parts.push(`Category ${criteria.category.condition} "${criteria.category.value}"`);
+      parts.push(`Category ${criteria.category.condition} "${categoryNameMap.get(criteria.category.value)}"`);
     }
 
     return parts.join(" AND ");
@@ -58,13 +60,16 @@ export function RulesList({ rules, onRuleClick }: RulesListProps) {
     const actions: string[] = [];
 
     if (rule.action.changeCategory) {
-      actions.push(`Set category to "${rule.action.changeCategory}"`);
+      actions.push(`Set category to "${categoryNameMap.get(rule.action.changeCategory)}"`);
     }
     if (rule.action.toggleHidden !== undefined) {
       actions.push(rule.action.toggleHidden ? "Hide transaction" : "Show transaction");
     }
+    if (rule.action.autoSplit) {
+      actions.push(`Auto-split into ${rule.action.autoSplit.splitCount} (${rule.action.autoSplit.frequency})`);
+    }
 
-    return actions.join(", ");
+    return actions.join("\n");
   };
 
   if (rules.length === 0) {
@@ -128,7 +133,7 @@ export function RulesList({ rules, onRuleClick }: RulesListProps) {
                   <div className="mt-2 font-bold">
                     Action
                   </div>
-                  <span>{formatActions(rule)}</span>
+                  <span className="whitespace-pre-wrap">{formatActions(rule)}</span>
                 </div>
               </div>
             </CardContent>
