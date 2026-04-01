@@ -1,17 +1,14 @@
-import { useState, useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { CSPBucket, type CSPCategoryBudget } from "@easy-csp/shared-types";
 import { Card, CardContent, CardHeader } from "../../components/common/card";
 import { camelCaseToSentence } from "../../utils/stringUtils";
 import { formatCurrency } from "../../utils/financialUtils";
 import { CSPBudgetRow } from "./CSPBudgetRow";
 import { AddCategoryRow } from "./AddCategoryRow";
-
-// const bucketColor = {
-//   [CSPBucket.FixedCost]: 'bg-orange-300',
-//   [CSPBucket.Savings]: 'bg-green-300',
-//   [CSPBucket.Investment]: 'bg-blue-300',
-//   [CSPBucket.GuildFreeSpending]: 'bg-red-300',
-// };
+import { useTransactions } from "../../hooks/api/useTransactions";
+import { getMonthBoundaries } from "../../utils/dateUtils";
+import { sumTransactions } from "../../utils/transactionUtils";
+import { useSavingTargets } from "../../hooks/api/useSavingTargets";
 
 interface CSPBucketCardProps {
   cspBucket: CSPBucket;
@@ -21,30 +18,56 @@ interface CSPBucketCardProps {
 }
 
 export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString, showAddRow = true }: CSPBucketCardProps) {
-  // State to store data from each child row
-  const [rowData, setRowData] = useState<Record<string, { spending: number; budget: number }>>({});
+  const [year, month] = currentMonthString.split('-').map(Number);
+  const { startDate, endDate } = getMonthBoundaries(year, month - 1);
+  const { data: transactionPages } = useTransactions({ startDate, endDate });
+  const { data: savingTargets = [] } = useSavingTargets();
 
-  // Stable callback function that child components will call
-  const handleRowDataChange = useCallback((category: string, spending: number, budget: number) => {
-    setRowData(prev => ({
-      ...prev,
-      [category]: { spending, budget }
-    }));
-  }, []);
+  const transactions = useMemo(() =>
+    transactionPages?.pages.flatMap(p => p.transactions ?? []) ?? [],
+    [transactionPages]
+  );
 
-  // Calculate totals from aggregated child data
+  // Calculate totals using our transaction utility
   const { totalSpent, totalBudgeted } = useMemo(() => {
-    const totalSpent = Object.values(rowData).reduce((sum, { spending }) => sum + spending, 0);
-    const totalBudgeted = Object.values(rowData).reduce((sum, { budget }) => sum + budget, 0);
+    let totalSpent = 0;
+    let totalBudgeted = 0;
+
+    cspBudgets.forEach(budget => {
+      if (budget.isTrackingSavingTarget) {
+        const savingTarget = savingTargets.find(st => st.id === budget.category);
+        if (savingTarget) {
+          totalSpent += sumTransactions(transactions, {
+            institutionId: savingTarget.financialInstitutionId,
+            accountId: savingTarget.accountId,
+            includeHidden: false,
+            inflowOnly: true
+          });
+        }
+      } else if (cspBucket === CSPBucket.Savings) {
+        totalSpent += sumTransactions(transactions, {
+          category: budget.category,
+          excludeSavingTargets: true,
+          includeHidden: false,
+          inflowOnly: true
+        });
+      } else {
+        totalSpent += sumTransactions(transactions, {
+          category: budget.category,
+          excludeSavingTargets: true,
+          includeHidden: false
+        });
+      }
+
+      totalBudgeted += budget.amount;
+    });
+
     return { totalSpent, totalBudgeted };
-  }, [rowData]);
-  // const percentage = totalBudgeted > 0 ? (totalSpent / totalBudgeted) * 100 : 0;
-  // const isOverBudget = totalSpent > totalBudgeted;
+  }, [cspBudgets, cspBucket, transactions, savingTargets]);
 
   return (
     <Card className="flex-1">
       <CardHeader className={`flex flex-row items-stretch`}>
-        {/* <div className={`${bucketColor[cspBucket]} w-2 mr-2 my-1.5 rounded-full`}></div> */}
         <div className="flex flex-col items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2">
@@ -66,7 +89,6 @@ export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString, showA
             <CSPBudgetRow
               budget={budget}
               bucket={cspBucket as CSPBucket}
-              onDataChange={handleRowDataChange}
               currentMonthString={currentMonthString}
             />
           </div >

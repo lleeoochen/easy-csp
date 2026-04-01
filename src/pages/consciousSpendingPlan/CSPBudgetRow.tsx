@@ -1,44 +1,58 @@
-import { useEffect } from "react";
+import { useMemo } from "react";
 import { CSPBucket, type CSPCategoryBudget } from "@easy-csp/shared-types";
 import { CSPBudgetActionMenu } from "./CSPBudgetActionMenu";
 import { useBudgetFromSavingTarget, useRegularBudget } from "../../hooks/useCSPBudgetRow";
 import { useTransactions } from "../../hooks/api/useTransactions";
 import { getMonthBoundaries } from "../../utils/dateUtils";
-
+import { sumTransactions } from "../../utils/transactionUtils";
+import { useSavingTargets } from "../../hooks/api/useSavingTargets";
 
 interface CSPBudgetRowProps {
   budget: CSPCategoryBudget;
   bucket: CSPBucket;
-  onDataChange: (category: string, spending: number, budget: number) => void;
   currentMonthString: string;
 }
 
-export const CSPBudgetRow = ({ budget, bucket, onDataChange, currentMonthString }: CSPBudgetRowProps) => {
+export const CSPBudgetRow = ({ budget, bucket, currentMonthString }: CSPBudgetRowProps) => {
   const [year, month] = currentMonthString.split('-').map(Number);
   const { startDate, endDate } = getMonthBoundaries(year, month - 1);
   const { data: transactionPages } = useTransactions({ startDate, endDate });
-  const transactions = transactionPages?.pages.flatMap(p => p.transactions ?? []) ?? [];
+  const { data: savingTargets = [] } = useSavingTargets();
 
-  const {
-    getCategoryName,
-    getAmount
-  } = useRegularBudget(budget.category, transactions, bucket === CSPBucket.Savings);
+  const transactions = useMemo(() =>
+    transactionPages?.pages.flatMap(p => p.transactions ?? []) ?? [],
+    [transactionPages]
+  );
 
-  const {
-    getCategoryName: getCategoryNameFromSavingTarget,
-    getAmount: getAmountFromSavingTarget
-  } = useBudgetFromSavingTarget(budget.category, transactions);
+  // Calculate spending using our transaction utility
+  const actualAmount = useMemo(() => {
+    if (budget.isTrackingSavingTarget) {
+      const savingTarget = savingTargets.find(st => st.id === budget.category);
+      if (!savingTarget) return 0;
+
+      return Math.abs(sumTransactions(transactions, {
+        id: 'savingTargetRow',
+        institutionId: savingTarget.financialInstitutionId,
+        accountId: savingTarget.accountId,
+        includeHidden: false,
+        inflowOnly: true
+      }));
+    }
+
+    return sumTransactions(transactions, {
+      category: budget.category,
+      excludeSavingTargets: true,
+      includeHidden: false
+    });
+  }, [budget.category, budget.isTrackingSavingTarget, transactions, savingTargets]);
+
+  // Use the hooks for category names only
+  const { getCategoryName } = useRegularBudget(budget.category);
+  const { getCategoryName: getCategoryNameFromSavingTarget } = useBudgetFromSavingTarget(budget.category);
 
   const categoryName = budget.isTrackingSavingTarget ? getCategoryNameFromSavingTarget() : getCategoryName();
-  const actualAmount = budget.isTrackingSavingTarget ? getAmountFromSavingTarget() : getAmount();
   const budgetAmount = budget.amount;
-  const amountLeft = budgetAmount - actualAmount;
   const isOverBudget = budget.isTrackingSavingTarget ? false : actualAmount > budgetAmount;
-
-  // Report data changes to parent
-  useEffect(() => {
-    onDataChange(budget.category, actualAmount, budgetAmount);
-  }, [onDataChange, budget.category, actualAmount, budgetAmount]);
 
   return (
     <CSPBudgetActionMenu
@@ -47,9 +61,8 @@ export const CSPBudgetRow = ({ budget, bucket, onDataChange, currentMonthString 
       categoryName={categoryName}
       actualAmount={actualAmount}
       budgetAmount={budgetAmount}
-      amountLeft={amountLeft}
       isOverBudget={isOverBudget}
       currentMonth={currentMonthString}
     />
   );
-}
+};

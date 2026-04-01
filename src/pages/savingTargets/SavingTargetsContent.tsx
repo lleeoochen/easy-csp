@@ -46,7 +46,7 @@ export function SavingTargetsContent({
 
       {/* Saving Targets List */}
       <Card className="mt-3">
-        <CardHeader>
+        <CardHeader className="text-lg">
           Saving Funds
         </CardHeader>
         <CardContent className=" p-0! divide-y divide-gray-200">

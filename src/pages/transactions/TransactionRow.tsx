@@ -3,6 +3,7 @@ import { useCategoryMap, useSavingTargetCategoryIds, useIgnoredCategoryIds } fro
 import { useSavingTargets } from "../../hooks/api/useSavingTargets";
 import { useSplitTransactionsByParent } from "../../hooks/api/useSplitTransactions";
 import { cn } from "../../components/common/utils";
+import { formatCurrency, getTransactionSignPrefix } from "../../utils/financialUtils";
 
 type TransactionRowProps = {
   transaction: Transaction;
@@ -52,13 +53,15 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
     isIgnored: ignoredCategoryIds.has(transaction.category) || transaction.hidden
   };
 
+  const displayName = transaction.nickname || transaction.name;
+
   return (
     <div className="bg-white active:bg-accent/50 transition-colors cursor-pointer hover:bg-accent/20 rounded-2xl">
       <div className="py-1" onClick={() => onClick(transaction)}>
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className="min-w-0 flex-1">
-              <div className="truncate">{transaction.name}</div>
+              <div className="truncate">{displayName}</div>
               <div className={cn(
                 "text-sm truncate",
                 categoryInfo.isSavingTarget ? "text-blue-600 font-medium" : "text-gray-400"
@@ -81,7 +84,7 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
               categoryInfo.isIgnored && "text-gray-400",
               !categoryInfo.isIgnored && transaction.amount < 0 && "text-green-600"
             )}>
-              {transaction.amount < 0 ? "+" : ""}${Math.abs(transaction.amount).toLocaleString()}
+              {getTransactionSignPrefix(transaction.amount) + formatCurrency(transaction.amount)}
             </div>
             <div className="text-sm text-gray-400 text-muted-foreground">
               {new Date(transaction.datetime).toLocaleDateString("en-US", { month: "short", day: "numeric" })}

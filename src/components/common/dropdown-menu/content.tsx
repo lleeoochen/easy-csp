@@ -52,7 +52,7 @@ export const DropdownMenuContent: React.FC<DropdownMenuContentProps> = ({
     <div
       ref={contentRef}
       className={cn(
-        "absolute top-5 mb-1 min-w-32 overflow-hidden bg-white/20 z-10 backdrop-blur-lg rounded-2xl shadow-2xl border border-gray-300",
+        "absolute top-5 mb-1 min-w-32 overflow-hidden bg-white/20 z-10 backdrop-blur-lg rounded-2xl shadow-xl/30 divide-y divide-gray-200",
         alignmentClasses[align],
         className
       )}

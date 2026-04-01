@@ -21,9 +21,11 @@ interface CSPBudgetActionMenuProps {
   categoryName: string;
   actualAmount: number;
   budgetAmount: number;
-  amountLeft: number;
   isOverBudget: boolean;
   currentMonth: string; // Format: YYYY-MM
+  showEdit?: boolean;
+  showDelete?: boolean;
+  onViewTransactions?: () => void;
 }
 
 export const CSPBudgetActionMenu = ({
@@ -32,9 +34,11 @@ export const CSPBudgetActionMenu = ({
   categoryName,
   actualAmount,
   budgetAmount,
-  amountLeft,
   isOverBudget,
-  currentMonth
+  currentMonth,
+  showEdit = true,
+  showDelete = true,
+  onViewTransactions
 }: CSPBudgetActionMenuProps) => {
   const navigate = useNavigate();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -45,6 +49,10 @@ export const CSPBudgetActionMenu = ({
   };
 
   const handleViewTransactions = () => {
+    if (onViewTransactions) {
+      onViewTransactions();
+      return;
+    }
     // For saving targets, filter by fund; for regular categories, filter by category and no fund
     if (budget.isTrackingSavingTarget) {
       navigate(`/transactions?fund=${encodeURIComponent(budget.category)}&month=${currentMonth}`);
@@ -84,30 +92,30 @@ export const CSPBudgetActionMenu = ({
                 </div>
                 <div className={cn("text-gray-400 text-sm", { "text-red-400": isOverBudget })}>
                   {
-                    amountLeft >= 0
-                      ? formatCurrency(amountLeft) + " left"
-                      : formatCurrency(Math.abs(amountLeft)) + " over"
+                    formatCurrency(actualAmount)
                   }
                 </div>
               </div>
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={handleEditBudget}>
-              <PenIcon className="mr-2 h-4 w-4" />
-              Edit Budget
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleViewTransactions}>
               <BarChart3Icon className="mr-2 h-4 w-4" />
               View Transactions
             </DropdownMenuItem>
-            {bucket !== CSPBucket.Income && budget.isTrackingSavingTarget !== true && !PROTECTED_CSP_CATEGORIES.has(budget.category) && (
+            {showEdit && (
+              <DropdownMenuItem onClick={handleEditBudget}>
+                <PenIcon className="mr-2 h-4 w-4" />
+                Edit
+              </DropdownMenuItem>
+            )}
+            {showDelete && bucket !== CSPBucket.Income && budget.isTrackingSavingTarget !== true && !PROTECTED_CSP_CATEGORIES.has(budget.category) && (
               <DropdownMenuItem
                 onClick={handleRemoveCategory}
                 className="text-red-600 focus:text-red-600"
               >
                 <Trash2Icon className="mr-2 h-4 w-4" />
-                Remove Category
+                Remove
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>

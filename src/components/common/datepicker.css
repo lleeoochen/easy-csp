@@ -1,0 +1,23 @@
+/* Custom styles for react-day-picker to match Tailwind theme */
+.rdp-custom {
+  --rdp-accent-color: #3b82f6;
+  --rdp-background-color: #dbeafe;
+}
+
+.rdp-custom .rdp-day_button:hover:not([disabled]) {
+  background-color: #f3f4f6;
+}
+
+.rdp-custom .rdp-day_button:focus-visible {
+  outline: 2px solid #9ca3af;
+}
+
+.rdp-custom .rdp-day_selected .rdp-day_button {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.rdp-custom .rdp-day_today:not(.rdp-day_selected) .rdp-day_button {
+  font-weight: 600;
+  color: #3b82f6;
+}

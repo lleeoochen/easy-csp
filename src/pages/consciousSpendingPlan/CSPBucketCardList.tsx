@@ -1,5 +1,6 @@
 import { CSPBucket, type CSPCategoryBudget } from "@easy-csp/shared-types";
 import { CSPBucketCard } from "./CSPBucketCard";
+import { CSPOverviewCard } from "./CSPOverviewCard";
 import { useCSP } from "../../hooks/api/useCSP";
 const CSP_BUCKET_ORDER: CSPBucket[] = [
   CSPBucket.Income,
@@ -17,6 +18,9 @@ interface CSPBucketCardListProps {
 
 export function CSPBucketCardList({ selectedMonth, selectedYear }: CSPBucketCardListProps) {
   const { data: consciousSpendingPlan = {}, isLoading, error, refetch } = useCSP();
+
+  // Format current month as YYYY-MM for URL parameter
+  const currentMonthString = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}`;
 
   if (isLoading) {
     return (
@@ -40,8 +44,8 @@ export function CSPBucketCardList({ selectedMonth, selectedYear }: CSPBucketCard
     );
   }
 
-  // Format current month as YYYY-MM for URL parameter
-  const currentMonthString = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}`;
+  // Format current month as YYYY-MM for URL parameter (already defined above)
+  // const currentMonthString = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}`;
 
   const consciousSpendingPlanSortedEntries = Object
     .entries<CSPCategoryBudget[]>(consciousSpendingPlan)
@@ -56,16 +60,21 @@ export function CSPBucketCardList({ selectedMonth, selectedYear }: CSPBucketCard
   const spendingBuckets = consciousSpendingPlanSortedEntries
     .filter(([bucket]) => bucket !== CSPBucket.Income && bucket !== CSPBucket.Ignored);
 
+  // Collect all expense buckets with their budgets for overview
+  const expenseBucketsForOverview = spendingBuckets.map(([bucket, budgets]) => ({
+    bucket: bucket as CSPBucket,
+    budgets
+  }));
+
   return (
     <>
       <div className="space-y-3">
-        {/* Summary Cards */}
+        {/* Overview Card */}
         <div className="flex flex-row gap-3">
-          <CSPBucketCard
-            cspBucket={CSPBucket.Income}
-            cspBudgets={consciousSpendingPlan[CSPBucket.Income] ?? []}
+          <CSPOverviewCard
+            incomeBudgets={consciousSpendingPlan[CSPBucket.Income] ?? []}
+            expenseBuckets={expenseBucketsForOverview}
             currentMonthString={currentMonthString}
-            showAddRow={false}
           />
         </div>
 

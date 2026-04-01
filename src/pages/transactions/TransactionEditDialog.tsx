@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/common/dialog";
 import { Button } from "../../components/common/button";
 import { Label } from "../../components/common/label";
+import { Input } from "../../components/common/input";
+import { DatePicker } from "../../components/common/DatePicker";
 import { CategorySelector } from "../../components/common/CategorySelector";
 import { SavingTargetSelector } from "../../components/common/SavingTargetSelector";
 import { TransactionSplitDialog } from "./TransactionSplitDialog";
@@ -10,6 +12,8 @@ import { CSPCategory } from "@easy-csp/shared-types";
 import { upperCaseToSentence } from "../../utils/stringUtils";
 import { useFinancialInstitutions } from "../../hooks/api/useFinancialInstitutions";
 import { useUpdateTransaction } from "../../hooks/api/useTransactions";
+import "../../components/common/datepicker.css";
+import { formatCurrency, getTransactionSignPrefix } from "../../utils/financialUtils";
 
 interface TransactionEditDialogProps {
   open: boolean;
@@ -26,16 +30,22 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction }: Trans
   const [selectedFund, setSelectedFund] = useState<string>(
     transaction?.savingTargetId || ''
   );
+  const [nickname, setNickname] = useState<string>(
+    transaction?.nickname || ''
+  );
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(false);
   const [splitDialogOpen, setSplitDialogOpen] = useState(false);
 
   const isAlreadySplit = !!(transaction?.splitParentId);
 
-  // Update selectedCategory and selectedFund when transaction changes
+  // Update state when transaction changes
   useEffect(() => {
     if (transaction) {
       setSelectedCategory(transaction.category);
       setSelectedFund(transaction.savingTargetId || '');
+      setNickname(transaction.nickname || '');
+      setSelectedDate(new Date(transaction.datetime));
     }
   }, [transaction]);
 
@@ -44,12 +54,22 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction }: Trans
 
     setIsLoading(true);
     try {
+      // Build updates object
+      const updates: Partial<Transaction> = {
+        category: selectedCategory,
+        savingTargetId: selectedFund,
+        nickname: nickname,
+      };
+
+      // Convert date to epoch timestamp if changed
+      const newTimestamp = selectedDate.getTime();
+      if (newTimestamp !== transaction.datetime) {
+        updates.datetime = newTimestamp;
+      }
+
       await updateTransaction.mutateAsync({
         transactionId: transaction.id,
-        updates: {
-          category: selectedCategory, // Category and fund are independent
-          savingTargetId: selectedFund || undefined,
-        },
+        updates,
       });
       onOpenChange(false);
     } catch (error) {
@@ -63,6 +83,8 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction }: Trans
     if (transaction) {
       setSelectedCategory(transaction.category);
       setSelectedFund(transaction.savingTargetId || '');
+      setNickname(transaction.nickname || '');
+      setSelectedDate(new Date(transaction.datetime));
     }
     onOpenChange(false);
   };
@@ -78,7 +100,9 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction }: Trans
   if (!transaction) return null;
 
   const hasChanges = selectedCategory !== transaction.category ||
-                     (selectedFund || null) !== (transaction.savingTargetId || null);
+                     (selectedFund || null) !== (transaction.savingTargetId || null) ||
+                     nickname !== (transaction.nickname || '') ||
+                     selectedDate.getTime() !== transaction.datetime;
 
   return (
     <>
@@ -89,28 +113,36 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction }: Trans
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <div className="grid grid-cols-3">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium text-gray-700">Amount</Label>
-                <p className="text-sm text-gray-500">${transaction.amount.toLocaleString()}</p>
+                <p className="text-sm text-gray-500">{getTransactionSignPrefix(transaction.amount)}{formatCurrency(transaction.amount)}</p>
               </div>
               <div>
-                <Label className="text-sm font-medium text-gray-700">Date</Label>
-                <p className="text-sm text-gray-500">{new Date(transaction.datetime).toLocaleDateString()}</p>
+                <Label className="text-sm font-medium text-gray-700">Account</Label>
+                <p className="text-sm text-gray-500">{institution?.institutionName} - {account?.accountName}</p>
               </div>
-              <div>
-                <Label className="text-sm font-medium text-gray-700">Hidden</Label>
-                <p className="text-sm text-gray-500">{transaction.hidden.toString()}</p>
-              </div>
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-gray-700">Account</Label>
-              <p className="text-sm text-gray-500">{institution?.institutionName} - {account?.accountName}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-gray-700">Plaid Label</Label>
               <p className="text-sm text-gray-500">{upperCaseToSentence(transaction.plaidCategory)}</p>
             </div>
+            <div>
+              <Label htmlFor="nickname" className="text-sm font-medium text-gray-700">Nickname (Optional)</Label>
+              <Input
+                id="nickname"
+                type="text"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder="Add a custom name..."
+              />
+            </div>
+            <DatePicker
+              id="date"
+              label="Date"
+              value={selectedDate}
+              onChange={setSelectedDate}
+            />
             <CategorySelector
               value={selectedCategory}
               onValueChange={setSelectedCategory}
@@ -122,8 +154,8 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction }: Trans
               value={selectedFund}
               onValueChange={setSelectedFund}
               label="Fund (Optional)"
-              placeholder="No fund"
-              includeNoneOption
+              placeholder="Excluded from funds"
+              includeNoneOption={true}
             />
           </div>
 

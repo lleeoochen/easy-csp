@@ -73,15 +73,15 @@ export function CSPBudgetEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Budget</DialogTitle>
+          <DialogTitle>Edit Target</DialogTitle>
           <DialogDescription>
-            Update the budget amount for {camelCaseToSentence(categoryName)}
+            Update the target amount for {camelCaseToSentence(categoryName)}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="amount">Budget Amount</Label>
+            <Label htmlFor="amount">Target Amount</Label>
             <Input
               id="amount"
               type="number"
@@ -89,7 +89,7 @@ export function CSPBudgetEditDialog({
               step="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              placeholder="Enter budget amount"
+              placeholder="Enter target amount"
               disabled={isLoading}
               autoFocus
             />
@@ -109,7 +109,7 @@ export function CSPBudgetEditDialog({
               type="submit"
               disabled={!amount || isLoading}
             >
-              {isLoading ? "Updating..." : "Update Budget"}
+              {isLoading ? "Updating..." : "Update"}
             </Button>
           </DialogFooter>
         </form>

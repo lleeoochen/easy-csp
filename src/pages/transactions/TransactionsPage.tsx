@@ -215,6 +215,7 @@ const TransactionsPage = () => {
           }
         >
           <TransactionsList
+            hasNextPage={hasNextPage}
             transactions={transactions}
             handleTransactionClick={handleTransactionClick}/>
         </InfiniteScroll>

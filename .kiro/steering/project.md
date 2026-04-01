@@ -64,7 +64,7 @@ Never call Plaid APIs directly from the frontend. The frontend initiates the Pla
 ### UI Components
 
 - Tailwind CSS v4 is the primary styling tool
-- Prefer a UI component library for common primitives (buttons, inputs, modals, etc.) — evaluate shadcn/ui (built on Radix UI + Tailwind) as the default choice
+- Custom UI components in `src/components/common/` for primitives (buttons, inputs, modals, etc.)
 - Use `lucide-react` for icons (already installed)
 - Use `clsx` + `tailwind-merge` for conditional class composition
 

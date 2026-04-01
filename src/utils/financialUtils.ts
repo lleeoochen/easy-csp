@@ -30,7 +30,7 @@ export function formatCurrency(
     maximumFractionDigits: decimals,
   });
 
-  return formatter.format(roundedAmount);
+  return formatter.format(Math.abs(roundedAmount));
 }
 
 /**
@@ -170,4 +170,15 @@ export function formatCurrencyWithSign(
     isPositive,
     className: isNegative ? negativeClass : isPositive ? positiveClass : undefined
   };
+}
+
+/**
+ * Returns the appropriate sign prefix for transaction amounts
+ * In this app, negative amounts represent income (money in), so they get a "+" prefix
+ * Positive amounts represent expenses (money out), so they get no prefix
+ * @param amount The transaction amount
+ * @returns "+" for negative amounts (income), "" for positive amounts (expenses)
+ */
+export function getTransactionSignPrefix(amount: number): string {
+  return amount < 0 ? "+" : "";
 }
