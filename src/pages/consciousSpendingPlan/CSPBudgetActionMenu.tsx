@@ -21,11 +21,12 @@ interface CSPBudgetActionMenuProps {
   categoryName: string;
   actualAmount: number;
   budgetAmount: number;
-  isOverBudget: boolean;
   currentMonth: string; // Format: YYYY-MM
   showEdit?: boolean;
   showDelete?: boolean;
   onViewTransactions?: () => void;
+  exceedingIsGood?: boolean; // If true, exceeding budget shows green; if false, shows red
+  className?: string;
 }
 
 export const CSPBudgetActionMenu = ({
@@ -34,15 +35,18 @@ export const CSPBudgetActionMenu = ({
   categoryName,
   actualAmount,
   budgetAmount,
-  isOverBudget,
   currentMonth,
+  className,
   showEdit = true,
   showDelete = true,
-  onViewTransactions
+  onViewTransactions,
+  exceedingIsGood = false
 }: CSPBudgetActionMenuProps) => {
   const navigate = useNavigate();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const deleteCSPItem = useDeleteCSPItem();
+
+  const isOverBudget = actualAmount > budgetAmount;
 
   const handleEditBudget = () => {
     setIsEditDialogOpen(true);
@@ -72,7 +76,7 @@ export const CSPBudgetActionMenu = ({
 
   return (
     <>
-      <div className="relative">
+      <div className={cn("relative", className)}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div className="py-1 cursor-pointer hover:bg-accent/20 active:bg-accent/50 w-full">
@@ -83,14 +87,20 @@ export const CSPBudgetActionMenu = ({
                 <Progress
                   className="bg-gray-200 grow shrink basis-1/3"
                   value={Math.min(actualAmount / budgetAmount * 100, 100)}
-                  activeColorClass={cn("bg-primary-bg", { "bg-red-400": isOverBudget })}
+                  activeColorClass={cn("bg-gray-500", {
+                    "bg-red-400": isOverBudget && !exceedingIsGood,
+                    "bg-green-800": isOverBudget && exceedingIsGood
+                  })}
                 />
               </div>
               <div className="flex justify-between">
                 <div className="text-gray-400 text-sm">
                   Target: {formatCurrency(budgetAmount)}
                 </div>
-                <div className={cn("text-gray-400 text-sm", { "text-red-400": isOverBudget })}>
+                <div className={cn("text-gray-400 text-sm", {
+                  "text-red-400": isOverBudget && !exceedingIsGood,
+                  "text-green-800": isOverBudget && exceedingIsGood
+                })}>
                   {
                     formatCurrency(actualAmount)
                   }

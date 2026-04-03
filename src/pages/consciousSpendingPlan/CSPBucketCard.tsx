@@ -8,7 +8,7 @@ import { AddCategoryRow } from "./AddCategoryRow";
 import { useTransactions } from "../../hooks/api/useTransactions";
 import { getMonthBoundaries } from "../../utils/dateUtils";
 import { sumTransactions } from "../../utils/transactionUtils";
-import { useSavingTargets } from "../../hooks/api/useSavingTargets";
+import { useCSP } from "../../hooks/api/useCSP";
 
 interface CSPBucketCardProps {
   cspBucket: CSPBucket;
@@ -21,7 +21,7 @@ export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString, showA
   const [year, month] = currentMonthString.split('-').map(Number);
   const { startDate, endDate } = getMonthBoundaries(year, month - 1);
   const { data: transactionPages } = useTransactions({ startDate, endDate });
-  const { data: savingTargets = [] } = useSavingTargets();
+  const { data: csp } = useCSP();
 
   const transactions = useMemo(() =>
     transactionPages?.pages.flatMap(p => p.transactions ?? []) ?? [],
@@ -30,40 +30,18 @@ export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString, showA
 
   // Calculate totals using our transaction utility
   const { totalSpent, totalBudgeted } = useMemo(() => {
-    let totalSpent = 0;
-    let totalBudgeted = 0;
-
-    cspBudgets.forEach(budget => {
-      if (budget.isTrackingSavingTarget) {
-        const savingTarget = savingTargets.find(st => st.id === budget.category);
-        if (savingTarget) {
-          totalSpent += sumTransactions(transactions, {
-            institutionId: savingTarget.financialInstitutionId,
-            accountId: savingTarget.accountId,
-            includeHidden: false,
-            inflowOnly: true
-          });
-        }
-      } else if (cspBucket === CSPBucket.Savings) {
-        totalSpent += sumTransactions(transactions, {
-          category: budget.category,
-          excludeSavingTargets: true,
-          includeHidden: false,
-          inflowOnly: true
-        });
-      } else {
-        totalSpent += sumTransactions(transactions, {
-          category: budget.category,
-          excludeSavingTargets: true,
-          includeHidden: false
-        });
-      }
-
-      totalBudgeted += budget.amount;
+    const totalSpent = sumTransactions(transactions, {
+      includeBuckets: [cspBucket],
+      excludeWithSavingTarget: cspBucket !== CSPBucket.Savings,
+      includeHidden: false,
+      inflowOnly: cspBucket === CSPBucket.Savings,
+      csp
     });
 
+    const totalBudgeted = cspBudgets.reduce((sum, budget) => sum + budget.amount, 0);
+
     return { totalSpent, totalBudgeted };
-  }, [cspBudgets, cspBucket, transactions, savingTargets]);
+  }, [cspBudgets, cspBucket, transactions, csp]);
 
   return (
     <Card className="flex-1">

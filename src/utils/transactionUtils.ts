@@ -1,28 +1,29 @@
-import { type Transaction, type CSPCategory, CSPBucket } from "@easy-csp/shared-types";
-import { CSP_CATEGORY_TO_BUCKET_MAPPING } from "@easy-csp/shared-types";
+import { type Transaction, CSPBucket, type ConsciousSpendingPlan } from "@easy-csp/shared-types";
 
 export interface TransactionSumOptions {
   /** Include hidden transactions in the sum (default: false) */
   includeHidden?: boolean;
-  /** Include transactions from ignored bucket categories (default: false) */
-  includeIgnoredBucket?: boolean;
   /** Only include inflow transactions (amount < 0) (default: false) */
   inflowOnly?: boolean;
   /** Only include outflow transactions (amount > 0) (default: false) */
   outflowOnly?: boolean;
   /** Filter by specific category */
   category?: string;
-  /** Filter by specific saving target ID */
-  savingTargetId?: string;
+  /** Filter by saving target ID. Use 'any' to match transactions with any saving target, or a specific ID */
+  savingTargetId?: string | 'any';
+  /** Exclude transactions that have any savingTargetId (useful for non-Savings buckets) */
+  excludeWithSavingTarget?: boolean;
   /** Filter by specific institution ID */
   institutionId?: string;
   /** Filter by specific account ID */
   accountId?: string;
-  /** Exclude transactions that have a saving target ID (default: false) */
-  excludeSavingTargets?: boolean;
-
-  savingTargetsOnly?: boolean;
-  id?: string;
+  /** Include only transactions from these buckets */
+  includeBuckets?: CSPBucket[];
+  /** Exclude transactions from these buckets */
+  excludeBuckets?: CSPBucket[];
+  /** User's CSP data for bucket filtering (required when using includeBuckets/excludeBuckets) */
+  csp?: ConsciousSpendingPlan;
+  debug?: boolean;
 }
 
 /**
@@ -52,18 +53,41 @@ export function sumTransactions(
   options: TransactionSumOptions = {}
 ): number {
   const {
-    id,
+    debug,
     includeHidden = false,
-    includeIgnoredBucket = false,
     inflowOnly = false,
     outflowOnly = false,
     category,
     savingTargetId,
+    excludeWithSavingTarget = false,
     institutionId,
     accountId,
-    excludeSavingTargets = false,
-    savingTargetsOnly = false
+    includeBuckets,
+    excludeBuckets,
+    csp
   } = options;
+
+  // Build category/savingTargetId-to-bucket mapping once for performance
+  let categoryToBucket: Map<string, CSPBucket> | undefined;
+  let savingTargetToBucket: Map<string, CSPBucket> | undefined;
+
+  if ((includeBuckets || excludeBuckets) && csp) {
+    categoryToBucket = new Map();
+    savingTargetToBucket = new Map();
+
+    for (const [bucket, budgets] of Object.entries(csp)) {
+      const bucketType = bucket as CSPBucket;
+      for (const budget of budgets) {
+        if (budget.isTrackingSavingTarget) {
+          // For saving target budgets, map by savingTargetId (stored in category field)
+          savingTargetToBucket.set(budget.category, bucketType);
+        } else {
+          // For regular budgets, map by category
+          categoryToBucket.set(budget.category, bucketType);
+        }
+      }
+    }
+  }
 
   const result = transactions
     .filter(transaction => {
@@ -72,12 +96,40 @@ export function sumTransactions(
         return false;
       }
 
-      // Filter by ignored bucket
-      if (!includeIgnoredBucket) {
-        const categoryBucket = CSP_CATEGORY_TO_BUCKET_MAPPING[transaction.category as CSPCategory];
-        if (categoryBucket === CSPBucket.Ignored) {
-          return false;
+      // Exclude transactions with saving targets if requested
+      if (excludeWithSavingTarget && transaction.savingTargetId) {
+        return false;
+      }
+
+      // Determine transaction bucket(s) - a transaction can belong to multiple buckets
+      const transactionBuckets: CSPBucket[] = [];
+      if ((includeBuckets || excludeBuckets) && (categoryToBucket || savingTargetToBucket)) {
+        // Check savingTargetId bucket
+        if (transaction.savingTargetId) {
+          const savingBucket = savingTargetToBucket?.get(transaction.savingTargetId);
+          if (savingBucket) {
+            transactionBuckets.push(savingBucket);
+          }
         }
+        // Check category bucket
+        const categoryBucket = categoryToBucket?.get(transaction.category);
+        if (categoryBucket) {
+          transactionBuckets.push(categoryBucket);
+        }
+      }
+
+      if (debug && transaction.savingTargetId) {
+        console.log({transactionBuckets, savingTargetToBucket, });
+      }
+
+      // Filter by bucket inclusion - transaction must be in at least one included bucket
+      if (includeBuckets && !transactionBuckets.some(bucket => includeBuckets.includes(bucket))) {
+        return false;
+      }
+
+      // Filter by bucket exclusion - transaction must not be in any excluded bucket
+      if (excludeBuckets && transactionBuckets.some(bucket => excludeBuckets.includes(bucket))) {
+        return false;
       }
 
       // Filter by inflow only
@@ -95,13 +147,15 @@ export function sumTransactions(
       }
 
       // Filter by saving target ID
-      if (savingTargetId && transaction.savingTargetId !== savingTargetId) {
-        return false;
-      }
-
-      // Exclude transactions with saving targets
-      if (excludeSavingTargets && transaction.savingTargetId) {
-        return false;
+      if (savingTargetId !== undefined) {
+        if (savingTargetId === 'any') {
+          // Match any transaction with a saving target
+          if (!transaction.savingTargetId) {
+            return false;
+          }
+        } else if (transaction.savingTargetId !== savingTargetId) {
+          return false;
+        }
       }
 
       // Filter by institution ID
@@ -114,17 +168,18 @@ export function sumTransactions(
         return false;
       }
 
-      if (savingTargetsOnly && !transaction.savingTargetId) {
-        return false;
-      }
-
       return true;
     });
-    if (id === 'savingTargetRow') {
+    if (debug) {
       console.log(result.map(t => ({
         name: t.name,
+        category: t.category,
+        savingTargetId: t.savingTargetId,
         amount: t.amount
       })));
+      console.log(result.reduce((sum, transaction) => sum + transaction.amount, 0));
+      console.log(options);
+      console.log(transactions.map(t => ([t.name, t.amount, t.category])));
     }
 
     return result.reduce((sum, transaction) => sum + transaction.amount, 0);
@@ -141,13 +196,12 @@ export const TransactionSummaries = {
     sumTransactions(transactions, { includeHidden: false }),
 
   /**
-   * Sum all inflow transactions (negative amounts) excluding hidden and saving targets
+   * Sum all inflow transactions (negative amounts) excluding hidden
    */
   inflowsOnly: (transactions: Transaction[]) =>
     sumTransactions(transactions, {
       includeHidden: false,
-      inflowOnly: true,
-      excludeSavingTargets: true
+      inflowOnly: true
     }),
 
   /**
@@ -174,7 +228,7 @@ export const TransactionSummaries = {
   excludingIgnored: (transactions: Transaction[]) =>
     sumTransactions(transactions, {
       includeHidden: false,
-      includeIgnoredBucket: false
+      excludeBuckets: [CSPBucket.Ignored]
     })
 };
 

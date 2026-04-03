@@ -6,8 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>easy-csp</title>
     <link href="/src/styles/main.css" rel="stylesheet">
+    <style>
+      :root {
+        --color-background: #2b91ba;
+        --color-primary-bg: #2e6d9c;
+        --color-primary-fg: #ffffff;
+        --color-secondary-bg: #d1d5db;
+        --color-secondary-fg: #000000;
+        --color-tabs-bar-bg: #1c5b89cc;
+        --color-tabs-bar-fg: #ffffff;
+        --color-tabs-bar-active-bg: #ffffff;
+        --color-tabs-bar-active-fg: #2e6d9c;
+      }
+    </style>
   </head>
-  <body style="background-color: #2b91ba;">
+  <body style="background-color: var(--color-background);">
     <div id="root"></div>
     <script type="module" src="/main.tsx"></script>
   </body>

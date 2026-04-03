@@ -6,6 +6,9 @@ import { useTransactions } from "../../hooks/api/useTransactions";
 import { getMonthBoundaries } from "../../utils/dateUtils";
 import { sumTransactions } from "../../utils/transactionUtils";
 import { useSavingTargets } from "../../hooks/api/useSavingTargets";
+import { useCSP } from "../../hooks/api/useCSP";
+
+const POSITIVE_BUCKETS = [CSPBucket.Savings, CSPBucket.Income, CSPBucket.Investment];
 
 interface CSPBudgetRowProps {
   budget: CSPCategoryBudget;
@@ -18,6 +21,7 @@ export const CSPBudgetRow = ({ budget, bucket, currentMonthString }: CSPBudgetRo
   const { startDate, endDate } = getMonthBoundaries(year, month - 1);
   const { data: transactionPages } = useTransactions({ startDate, endDate });
   const { data: savingTargets = [] } = useSavingTargets();
+  const { data: csp } = useCSP();
 
   const transactions = useMemo(() =>
     transactionPages?.pages.flatMap(p => p.transactions ?? []) ?? [],
@@ -31,7 +35,6 @@ export const CSPBudgetRow = ({ budget, bucket, currentMonthString }: CSPBudgetRo
       if (!savingTarget) return 0;
 
       return Math.abs(sumTransactions(transactions, {
-        id: 'savingTargetRow',
         institutionId: savingTarget.financialInstitutionId,
         accountId: savingTarget.accountId,
         includeHidden: false,
@@ -40,11 +43,12 @@ export const CSPBudgetRow = ({ budget, bucket, currentMonthString }: CSPBudgetRo
     }
 
     return sumTransactions(transactions, {
+      excludeWithSavingTarget: true,
       category: budget.category,
-      excludeSavingTargets: true,
+      csp,
       includeHidden: false
     });
-  }, [budget.category, budget.isTrackingSavingTarget, transactions, savingTargets]);
+  }, [budget.isTrackingSavingTarget, budget.category, transactions, csp, savingTargets]);
 
   // Use the hooks for category names only
   const { getCategoryName } = useRegularBudget(budget.category);
@@ -52,7 +56,6 @@ export const CSPBudgetRow = ({ budget, bucket, currentMonthString }: CSPBudgetRo
 
   const categoryName = budget.isTrackingSavingTarget ? getCategoryNameFromSavingTarget() : getCategoryName();
   const budgetAmount = budget.amount;
-  const isOverBudget = budget.isTrackingSavingTarget ? false : actualAmount > budgetAmount;
 
   return (
     <CSPBudgetActionMenu
@@ -61,7 +64,7 @@ export const CSPBudgetRow = ({ budget, bucket, currentMonthString }: CSPBudgetRo
       categoryName={categoryName}
       actualAmount={actualAmount}
       budgetAmount={budgetAmount}
-      isOverBudget={isOverBudget}
+      exceedingIsGood={POSITIVE_BUCKETS.includes(bucket)}
       currentMonth={currentMonthString}
     />
   );

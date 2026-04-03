@@ -8,17 +8,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        'background': '#2b91ba',
+        'background': 'var(--color-background)',
         'btn-background': colors.white,
         'card': colors.white,
-        'primary-bg': '#2e6d9c',
-        'primary-fg': colors.white,
-        'secondary-bg': colors.gray['300'],
-        'secondary-fg': colors.black,
-        'tabs-bar-bg': '#1c5b89cc',
-        'tabs-bar-fg': colors.white,
-        'tabs-bar-active-bg': colors.white,
-        'tabs-bar-active-fg': '#2e6d9c',
+        'primary-bg': 'var(--color-primary-bg)',
+        'primary-fg': 'var(--color-primary-fg)',
+        'secondary-bg': 'var(--color-secondary-bg)',
+        'secondary-fg': 'var(--color-secondary-fg)',
+        'tabs-bar-bg': 'var(--color-tabs-bar-bg)',
+        'tabs-bar-fg': 'var(--color-tabs-bar-fg)',
+        'tabs-bar-active-bg': 'var(--color-tabs-bar-active-bg)',
+        'tabs-bar-active-fg': 'var(--color-tabs-bar-active-fg)',
       },
       width: {
         'fill': 'fill-available',

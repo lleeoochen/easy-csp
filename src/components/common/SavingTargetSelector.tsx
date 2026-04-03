@@ -26,8 +26,8 @@ export const SavingTargetSelector = ({
   const { data: savingTargets = [] } = useSavingTargets();
 
   const options = [
-    ...(includeAllOption ? [{ value: '', label: 'Included all funds' }] : []),
-    ...(includeNoneOption ? [{ value: 'none', label: 'Excluded from funds' }] : []),
+    ...(includeAllOption ? [{ value: '', label: 'Include all funds' }] : []),
+    ...(includeNoneOption ? [{ value: 'none', label: 'Exclude all funds' }] : []),
     ...savingTargets.map(target => ({
       value: target.id,
       label: target.name,

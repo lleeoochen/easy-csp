@@ -6,6 +6,7 @@ import { CSPBudgetActionMenu } from "./CSPBudgetActionMenu";
 import { useTransactions } from "../../hooks/api/useTransactions";
 import { getMonthBoundaries } from "../../utils/dateUtils";
 import { sumTransactions } from "../../utils/transactionUtils";
+import { useCSP } from "../../hooks/api/useCSP";
 
 interface CSPOverviewCardProps {
   incomeBudgets: CSPCategoryBudget[];
@@ -18,6 +19,7 @@ export function CSPOverviewCard({ incomeBudgets, expenseBuckets, currentMonthStr
   const [year, month] = currentMonthString.split('-').map(Number);
   const { startDate, endDate } = getMonthBoundaries(year, month - 1);
   const { data: transactionPages } = useTransactions({ startDate, endDate });
+  const { data: csp } = useCSP();
 
   const transactions = useMemo(() =>
     transactionPages?.pages.flatMap(p => p.transactions ?? []) ?? [],
@@ -25,51 +27,58 @@ export function CSPOverviewCard({ incomeBudgets, expenseBuckets, currentMonthStr
   );
 
   const { totalIncome, totalIncomeBudget } = useMemo(() => {
-    let totalIncome = 0;
-    let totalIncomeBudget = 0;
+    const totalIncome = Math.abs(
+      sumTransactions(transactions, {
+        excludeBuckets: [CSPBucket.Ignored],
+        includeHidden: false,
+        inflowOnly: true,
+        csp,
+      })
+    );
 
-    incomeBudgets.forEach(budget => {
-      totalIncome += Math.abs(
-        sumTransactions(transactions, {
-          category: budget.category,
-          excludeSavingTargets: false,
-          includeHidden: false,
-          inflowOnly: true
-        })
-      );
-      totalIncomeBudget += budget.amount;
-    });
+    const totalIncomeBudget = incomeBudgets.reduce((sum, budget) => sum + budget.amount, 0);
 
     return { totalIncome, totalIncomeBudget };
-  }, [incomeBudgets, transactions]);
+  }, [incomeBudgets, transactions, csp]);
 
-  const { totalExpenses, totalExpensesBudget } = useMemo(() => {
-    // Total expenses = regular outflows + contributions to savings targets
+  const { totalExpenses, totalExpensesBudget, totalSavings, totalSavingsBudget } = useMemo(() => {
+    // Regular expenses (FixedCost and GuildFreeSpending buckets only)
     const regularExpenses = sumTransactions(transactions, {
-      excludeSavingTargets: true,
+      includeBuckets: [CSPBucket.FixedCost, CSPBucket.GuildFreeSpending],
+      excludeWithSavingTarget: true,
       includeHidden: false,
-      includeIgnoredBucket: false,
-      outflowOnly: true
+      outflowOnly: true,
+      csp
     });
 
+    // Savings and investment contributions
     const savingsContributions = Math.abs(sumTransactions(transactions, {
-      savingTargetsOnly: true,
+      includeBuckets: [CSPBucket.Savings, CSPBucket.Investment],
       includeHidden: false,
-      includeIgnoredBucket: false,
-      inflowOnly: true
+      inflowOnly: true,
+      csp
     }));
 
-    const totalExpenses = regularExpenses + savingsContributions;
     let totalExpensesBudget = 0;
+    let totalSavingsBudget = 0;
 
-    expenseBuckets.forEach(({ budgets }) => {
+    expenseBuckets.forEach(({ bucket, budgets }) => {
       budgets.forEach(budget => {
-        totalExpensesBudget += budget.amount;
+        if (bucket === CSPBucket.Savings || bucket === CSPBucket.Investment) {
+          totalSavingsBudget += budget.amount;
+        } else if (bucket !== CSPBucket.Ignored) {
+          totalExpensesBudget += budget.amount;
+        }
       });
     });
 
-    return { totalExpenses, totalExpensesBudget };
-  }, [expenseBuckets, transactions]);
+    return {
+      totalExpenses: regularExpenses,
+      totalExpensesBudget,
+      totalSavings: savingsContributions,
+      totalSavingsBudget
+    };
+  }, [expenseBuckets, transactions, csp]);
 
   // Create synthetic budgets for overview rows
   const incomeBudget: CSPCategoryBudget = {
@@ -80,6 +89,11 @@ export function CSPOverviewCard({ incomeBudgets, expenseBuckets, currentMonthStr
   const expenseBudget: CSPCategoryBudget = {
     category: 'expenses',
     amount: totalExpensesBudget
+  };
+
+  const savingsBudget: CSPCategoryBudget = {
+    category: 'savings',
+    amount: totalSavingsBudget
   };
 
   return (
@@ -93,30 +107,44 @@ export function CSPOverviewCard({ incomeBudgets, expenseBuckets, currentMonthStr
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex flex-col">
+      <CardContent className="flex flex-col p-0! divide-y divide-gray-200">
         <CSPBudgetActionMenu
+          className="px-4 py-1.5"
           budget={incomeBudget}
           bucket={CSPBucket.Income}
           categoryName="Total Income"
           actualAmount={totalIncome}
           budgetAmount={totalIncomeBudget}
-          isOverBudget={false}
           currentMonth={currentMonthString}
           showEdit={true}
           showDelete={false}
+          exceedingIsGood={true}
           onViewTransactions={() => navigate(`/transactions?category=income&month=${currentMonthString}`)}
         />
         <CSPBudgetActionMenu
+          className="px-4 py-1.5"
           budget={expenseBudget}
           bucket={CSPBucket.FixedCost}
-          categoryName="Total Spent"
+          categoryName="Total Expenses"
           actualAmount={totalExpenses}
           budgetAmount={totalExpensesBudget}
-          isOverBudget={totalExpenses > totalExpensesBudget}
           currentMonth={currentMonthString}
           showEdit={false}
           showDelete={false}
           onViewTransactions={() => navigate(`/transactions?month=${currentMonthString}`)}
+        />
+        <CSPBudgetActionMenu
+          className="px-4 py-1.5"
+          budget={savingsBudget}
+          bucket={CSPBucket.Savings}
+          categoryName="Total Savings"
+          actualAmount={totalSavings}
+          budgetAmount={totalSavingsBudget}
+          currentMonth={currentMonthString}
+          showEdit={false}
+          showDelete={false}
+          exceedingIsGood={true}
+          onViewTransactions={() => navigate(`/transactions?buckets=savings,investment&month=${currentMonthString}`)}
         />
       </CardContent>
     </Card>

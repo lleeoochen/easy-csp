@@ -7,6 +7,7 @@ import { Button } from "../components/common/button";
 import { useNavigate } from "react-router-dom";
 import { isDevEnvironment } from "../utils/envUtils";
 import { DevTestImport } from "../components/DevTestImport";
+import { ThemeSelector } from "../components/ThemeSelector";
 
 const SettingsPage = () => {
   const { signedIn } = useAuthState();
@@ -29,6 +30,9 @@ const SettingsPage = () => {
   return (
     <Page title="Settings">
       <div className="space-y-4">
+        {/* Theme Selector */}
+        <ThemeSelector />
+
         {/* User Information Section */}
         <Card>
           <CardHeader className="text-lg flex items-center">
