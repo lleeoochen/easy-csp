@@ -14,6 +14,7 @@ import { useFinancialInstitutions } from "../../hooks/api/useFinancialInstitutio
 import { useUpdateTransaction } from "../../hooks/api/useTransactions";
 import "../../components/common/datepicker.css";
 import { formatCurrency, getTransactionSignPrefix } from "../../utils/financialUtils";
+import { Split } from "lucide-react";
 
 interface TransactionEditDialogProps {
   open: boolean;
@@ -38,6 +39,7 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction }: Trans
   const [splitDialogOpen, setSplitDialogOpen] = useState(false);
 
   const isAlreadySplit = !!(transaction?.splitParentId);
+  const isSplitParent = transaction?.splitParentId === transaction?.id;
 
   // Update state when transaction changes
   useEffect(() => {
@@ -113,6 +115,21 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction }: Trans
           </DialogHeader>
 
           <div className="space-y-4 py-4">
+            {isAlreadySplit && (
+              <div className="bg-primary-bg rounded-lg p-3">
+                <div className="flex items-center gap-2 text-sm text-primary-fg">
+                  <Split size={18} strokeWidth={2.5} />
+                  <span className="font-medium">
+                    {isSplitParent ? 'Split Parent Transaction' : 'Split Transaction'}
+                  </span>
+                </div>
+                <p className="text-xs text-white/90 mt-1">
+                  {isSplitParent
+                    ? 'This transaction has been split into multiple parts'
+                    : 'This is part of a split transaction'}
+                </p>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label className="text-sm font-medium text-gray-700">Amount</Label>

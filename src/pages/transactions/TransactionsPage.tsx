@@ -1,6 +1,6 @@
 import { TransactionsList } from "./TransactionsList";
 import { Page } from "../../components/Page";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { Transaction } from "@easy-csp/shared-types";
 import { TransactionEditDialog } from "./TransactionEditDialog";
@@ -11,15 +11,17 @@ import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, SlidersHorizontal, X } from
 import { CategorySelector } from "../../components/common/CategorySelector";
 import { SavingTargetSelector } from "../../components/common/SavingTargetSelector";
 import { MonthSelector } from "../../components/MonthSelector";
-import { getCurrentMonthYear, getMonthBoundaries } from "../../utils/dateUtils";
+import { getMonthBoundaries } from "../../utils/dateUtils";
 import { Button } from "../../components/common/button";
 import { Input } from "../../components/common/input";
 import { Card } from "../../components/common/card";
+import { useMonthFilter } from "../../hooks/useMonthFilter";
 
 const FETCH_LIMIT = 20;
 
 const TransactionsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { selectedYear, selectedMonth, handleMonthSelect } = useMonthFilter();
 
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -28,25 +30,6 @@ const TransactionsPage = () => {
 
   const categoryFilter = searchParams.get('category');
   const savingTargetFilter = searchParams.get('fund');
-  const monthFilter = searchParams.get('month');
-
-  const { month: currentMonth, year: currentYear } = getCurrentMonthYear();
-
-  useEffect(() => {
-    if (!monthFilter) {
-      const value = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
-      setSearchParams(p => { p.set('month', value); return p; }, { replace: true });
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const parsedMonth = useMemo(() => {
-    if (!monthFilter) return null;
-    const [y, m] = monthFilter.split('-').map(Number);
-    return (y && m) ? { year: y, month: m - 1 } : null;
-  }, [monthFilter]);
-
-  const selectedYear = parsedMonth?.year ?? currentYear;
-  const selectedMonth = parsedMonth?.month ?? currentMonth;
 
   const baseRequest = useMemo((): Omit<ListTransactionsRequest, 'startAfter'> => {
     const request: Omit<ListTransactionsRequest, 'startAfter'> = { limit: FETCH_LIMIT };
@@ -96,13 +79,6 @@ const TransactionsPage = () => {
     const newParams = new URLSearchParams(searchParams);
     if (value) newParams.set(filterType, value);
     else newParams.delete(filterType);
-    setSearchParams(newParams);
-  }, [searchParams, setSearchParams]);
-
-  const handleMonthSelect = useCallback((year: number, month: number) => {
-    const value = `${year}-${String(month + 1).padStart(2, '0')}`;
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set('month', value);
     setSearchParams(newParams);
   }, [searchParams, setSearchParams]);
 

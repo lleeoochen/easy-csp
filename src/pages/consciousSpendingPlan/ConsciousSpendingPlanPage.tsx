@@ -1,18 +1,10 @@
-import { useCallback, useState } from "react";
 import { CSPBucketCardList } from "./CSPBucketCardList";
 import { MonthSelector } from "../../components/MonthSelector";
-import { getCurrentMonthYear } from "../../utils/dateUtils";
 import { Page } from "../../components/Page";
+import { useMonthFilter } from "../../hooks/useMonthFilter";
 
 const ConsciousSpendingPlanPage = () => {
-  const { month: currentMonth, year: currentYear } = getCurrentMonthYear();
-  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
-  const [selectedYear, setSelectedYear] = useState(currentYear);
-
-  const handleMonthSelect = useCallback((year: number, month: number) => {
-    setSelectedYear(year);
-    setSelectedMonth(month);
-  }, []);
+  const { selectedYear, selectedMonth, handleMonthSelect } = useMonthFilter();
 
   return (
     <Page title="Conscious Spending Plan">
