@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { isDevEnvironment } from "../utils/envUtils";
 import { DevTestImport } from "../components/DevTestImport";
 import { ThemeSelector } from "../components/ThemeSelector";
+import { TravelModeSettingsRow } from "../components/TravelModeSettingsRow";
 
 const SettingsPage = () => {
   const { signedIn } = useAuthState();
@@ -92,6 +93,9 @@ const SettingsPage = () => {
               </div>
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </button>
+
+            {/* Travel Mode */}
+            <TravelModeSettingsRow />
           </CardContent>
         </Card>
 

@@ -6,10 +6,12 @@ import { RuleEditDialog } from "./RuleEditDialog";
 import { Button } from "../../components/common/button";
 import { BackButton } from "../../components/common/BackButton";
 import type { RuleTransformation } from "@easy-csp/shared-types";
+import { TRAVEL_MODE_RULE_NAME } from "../../types/travelMode";
 
 const RulesPage = () => {
   const { data: rulesDoc, isLoading, error, refetch } = useRules();
-  const transformations = rulesDoc?.transformations ?? [];
+  const transformations = (rulesDoc?.transformations ?? []).filter(
+    transform => transform.name != TRAVEL_MODE_RULE_NAME);
 
   const [selectedRule, setSelectedRule] = useState<RuleTransformation | null>(null);
   const [selectedRuleIndex, setSelectedRuleIndex] = useState<number | null>(null);

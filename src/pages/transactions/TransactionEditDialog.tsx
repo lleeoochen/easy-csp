@@ -34,7 +34,9 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction }: Trans
   const [nickname, setNickname] = useState<string>(
     transaction?.nickname || ''
   );
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(
+    transaction ? new Date(transaction.datetime) : new Date()
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [splitDialogOpen, setSplitDialogOpen] = useState(false);
 

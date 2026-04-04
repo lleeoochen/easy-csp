@@ -54,6 +54,7 @@ export function DatePicker({ value, onChange, label, id }: DatePickerProps) {
               mode="single"
               selected={value}
               onSelect={handleSelect}
+              defaultMonth={value}
               className="rdp-custom"
             />
           </div>
