@@ -9,7 +9,7 @@ import { useTransactions } from "../../hooks/api/useTransactions";
 import type { ListTransactionsRequest } from "../../types/firestoreTypes";
 import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, SlidersHorizontal, X, Plus } from "lucide-react";
 import { CategorySelector } from "../../components/common/CategorySelector";
-import { SavingTargetSelector } from "../../components/common/SavingTargetSelector";
+import { SavingTargetFilter } from "../../components/common/SavingTargetFilter";
 import { MonthSelector } from "../../components/MonthSelector";
 import { getMonthBoundaries } from "../../utils/dateUtils";
 import { Button } from "../../components/common/button";
@@ -99,21 +99,6 @@ const TransactionsPage = () => {
   return (
     <Page title="Transactions">
       <div className="space-y-4">
-        {/* Add Transaction Button */}
-        <div className="flex justify-end">
-          <Button
-            variant="primary"
-            onClick={() => {
-              setSelectedTransaction(null);
-              setIsEditDialogOpen(true);
-            }}
-            className="flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add Transaction
-          </Button>
-        </div>
-
         <div className="flex flex-col gap-4 mb-2">
           <MonthSelector
             selectedMonth={selectedMonth}
@@ -123,29 +108,42 @@ const TransactionsPage = () => {
 
           {/* Filter toggle row */}
           <div className="flex flex-col gap-2">
-            <div className="grid grid-cols-2 gap-2 w-fit">
-              <Button
-                variant="icon"
-                onClick={() => setFiltersOpen(o => !o)}
-                className="flex items-center gap-1.5"
-              >
-                <SlidersHorizontal className="w-4 h-4" />
-                Filters
+            <div className="flex justify-between">
+              <div className="flex gap-2">
+                <Button
+                  variant="icon"
+                  onClick={() => setFiltersOpen(o => !o)}
+                  className="flex items-center gap-1.5"
+                >
+                  <SlidersHorizontal className="w-4 h-4" />
+                  Filters
+                  {hasActiveFilters && (
+                    <span className="bg-primary-bg text-white text-xs rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                      •
+                    </span>
+                  )}
+                  {filtersOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                </Button>
                 {hasActiveFilters && (
-                  <span className="bg-primary-bg text-white text-xs rounded-full w-4 h-4 flex items-center justify-center leading-none">
-                    •
-                  </span>
+                  <div className="flex">
+                    <Button variant="icon" onClick={handleReset} className="flex items-center gap-1 text-sm">
+                      <X className="w-3 h-3" />
+                      Reset
+                    </Button>
+                  </div>
                 )}
-                {filtersOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              </div>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setSelectedTransaction(null);
+                  setIsEditDialogOpen(true);
+                }}
+                className="flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Add
               </Button>
-              {hasActiveFilters && (
-                <div className="flex">
-                  <Button variant="icon" onClick={handleReset} className="flex items-center gap-1 text-sm">
-                    <X className="w-3 h-3" />
-                    Reset
-                  </Button>
-                </div>
-              )}
             </div>
 
             {/* Expandable filter panel */}
@@ -167,7 +165,7 @@ const TransactionsPage = () => {
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <SavingTargetSelector
+                    <SavingTargetFilter
                       value={savingTargetFilter ?? ''}
                       onValueChange={(v) => handleSetFilter('fund', v)}
                       placeholder="Filter by fund"

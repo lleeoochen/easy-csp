@@ -32,9 +32,9 @@ export function TravelModeSettingsRow() {
 
   return (
     <>
-      <button
+      <div
         onClick={handleRowClick}
-        className="w-full flex items-center justify-between rounded-lg hover:bg-gray-100 transition-colors p-2"
+        className="w-full flex items-center justify-between rounded-lg hover:bg-gray-100 transition-colors p-2 cursor-pointer"
       >
         <div className="flex items-center gap-3">
           <Plane className="w-5 h-5 text-gray-600" />
@@ -55,7 +55,7 @@ export function TravelModeSettingsRow() {
           )}
           <ChevronRight className="w-5 h-5 text-gray-400" />
         </div>
-      </button>
+      </div>
 
       <TravelModeConfigDialog
         open={dialogOpen}

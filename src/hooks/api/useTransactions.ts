@@ -4,12 +4,12 @@ import type { ListTransactionsRequest, ListTransactionsResponse } from '../../ty
 import { NEXT_TOKEN_END } from '../../services/transactionsService';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Transaction } from '@easy-csp/shared-types';
-import type { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+// import type { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 
-type InfiniteTransactionsData = {
-  pages: ListTransactionsResponse[];
-  pageParams: (QueryDocumentSnapshot<DocumentData, DocumentData> | undefined)[];
-};
+// type InfiniteTransactionsData = {
+//   pages: ListTransactionsResponse[];
+//   pageParams: (QueryDocumentSnapshot<DocumentData, DocumentData> | undefined)[];
+// };
 
 export const useTransactions = (baseRequest: Omit<ListTransactionsRequest, 'startAfter'>) => {
   return useInfiniteQuery({
@@ -37,30 +37,30 @@ export const useUpdateTransaction = () => {
   return useMutation({
     mutationFn: ({ transactionId, updates }: { transactionId: string; updates: Partial<Transaction> }) =>
       TransactionsService.updateTransaction(transactionId, updates),
-    onSuccess: (_data, { transactionId, updates }) => {
+    onSuccess: () => {
       // If datetime was updated, invalidate all transaction queries to refetch
-      if (updates.datetime !== undefined) {
-        queryClient.invalidateQueries({ queryKey: ['transactions'] });
-        return;
-      }
+      // if (updates.datetime !== undefined) {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+        // return;
+      // }
 
-      // Otherwise, just update the transaction in cache
-      queryClient.setQueriesData<InfiniteTransactionsData>(
-        { queryKey: ['transactions'] },
-        (old) => {
-          if (!old) return old;
+      // // Otherwise, just update the transaction in cache
+      // queryClient.setQueriesData<InfiniteTransactionsData>(
+      //   { queryKey: ['transactions'] },
+      //   (old) => {
+      //     if (!old) return old;
 
-          return {
-            ...old,
-            pages: old.pages.map((page) => ({
-              ...page,
-              transactions: (page.transactions ?? []).map((t) =>
-                t.id === transactionId ? { ...t, ...updates } : t
-              ),
-            })),
-          };
-        }
-      );
+      //     return {
+      //       ...old,
+      //       pages: old.pages.map((page) => ({
+      //         ...page,
+      //         transactions: (page.transactions ?? []).map((t) =>
+      //           t.id === transactionId ? { ...t, ...updates } : t
+      //         ),
+      //       })),
+      //     };
+      //   }
+      // );
     },
   });
 };
