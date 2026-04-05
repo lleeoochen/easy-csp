@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/common/dialog";
-import { Button } from "../../components/common/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/common/dialog";
+import { DialogActionPanel } from "../../components/common/DialogActionPanel";
 import { Label } from "../../components/common/label";
 import { Select } from "../../components/common/select";
 import type { Transaction } from "@easy-csp/shared-types";
@@ -126,14 +126,17 @@ export const TransactionSplitDialog = ({ open, onOpenChange, transaction }: Tran
           {error && <p className="text-sm text-red-500">{error}</p>}
         </div>
 
-        <DialogFooter>
-          <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={splitMutation.isPending}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleSubmit} disabled={splitMutation.isPending}>
-            {splitMutation.isPending ? "Splitting..." : "Split"}
-          </Button>
-        </DialogFooter>
+        <DialogActionPanel
+          cancel={{
+            label: 'Cancel',
+            onClick: () => onOpenChange(false),
+          }}
+          submit={{
+            label: 'Split',
+            onClick: handleSubmit,
+          }}
+          isLoading={splitMutation.isPending}
+        />
       </DialogContent>
     </Dialog>
   );

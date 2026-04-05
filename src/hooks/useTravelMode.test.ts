@@ -17,7 +17,7 @@
  *
  * const handleSave = () => {
  *   mutate(
- *     { categories: ['diningOut'], savingTargetId: 'fund-123' },
+ *     { categories: ['diningOut'], fundId: 'fund-123' },
  *     {
  *       onSuccess: () => toast.success('Travel mode configured'),
  *       onError: (err) => toast.error(err.message)

@@ -1,7 +1,7 @@
 import type { Transaction } from "@easy-csp/shared-types";
 import { isManualTransaction } from "@easy-csp/shared-types";
-import { useCategoryMap, useSavingTargetCategoryIds, useIgnoredCategoryIds } from "../../hooks/useCategoryMap";
-import { useSavingTargets } from "../../hooks/api/useSavingTargets";
+import { useCategoryMap, useFundCategoryIds, useIgnoredCategoryIds } from "../../hooks/useCategoryMap";
+import { useFunds } from "../../hooks/api/useFunds";
 import { cn } from "../../components/common/utils";
 import { formatCurrency, getTransactionSignPrefix } from "../../utils/financialUtils";
 import { Split, Target, PenLine } from "lucide-react";
@@ -52,24 +52,24 @@ function SplitIndicator({ transaction }: { transaction: Transaction }) {
 
 export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
   const categoryMap = useCategoryMap();
-  const savingTargetCategoryIds = useSavingTargetCategoryIds();
+  const fundCategoryIds = useFundCategoryIds();
   const ignoredCategoryIds = useIgnoredCategoryIds();
-  const { data: savingTargets = [] } = useSavingTargets();
+  const { data: funds = [] } = useFunds();
 
   const isManual = isManualTransaction(transaction);
 
-  const savingTarget = transaction.savingTargetId
-    ? savingTargets.find(st => st.id === transaction.savingTargetId)
+  const fund = transaction.fundId
+    ? funds.find(st => st.id === transaction.fundId)
     : null;
 
-  const targetColor = transaction.savingTargetId
-    ? SAVING_TARGET_COLORS[hashStringToIndex(transaction.savingTargetId, SAVING_TARGET_COLORS.length)]
+  const targetColor = transaction.fundId
+    ? SAVING_TARGET_COLORS[hashStringToIndex(transaction.fundId, SAVING_TARGET_COLORS.length)]
     : "text-blue-600";
 
   const categoryText = categoryMap[transaction.category] ?? transaction.category;
 
   const categoryInfo = {
-    isSavingTarget: savingTargetCategoryIds.has(transaction.category),
+    isFund: fundCategoryIds.has(transaction.category),
     isIgnored: ignoredCategoryIds.has(transaction.category) || transaction.hidden
   };
 
@@ -89,9 +89,9 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
               </div>
               <div className={cn(
                 "flex flex-row gap-1 items-center text-sm flex-wrap",
-                categoryInfo.isSavingTarget ? `${targetColor} font-medium` : "text-gray-400"
+                categoryInfo.isFund ? `${targetColor} font-medium` : "text-gray-400"
               )}>
-                {savingTarget && (
+                {fund && (
                   <Target className={targetColor} size={18} strokeWidth={2} />
                 )}
                 <SplitIndicator transaction={transaction} />

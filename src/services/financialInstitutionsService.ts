@@ -14,7 +14,7 @@ import {
   FinancialInstitutionStatus,
 } from "@easy-csp/shared-types";
 import type { FinancialInstitution } from "@easy-csp/shared-types";
-import { withoutUndefinedValue } from "../utils/firestoreHelpers";
+import { prepareFirestoreData } from "../utils/firestoreHelpers";
 
 export class FinancialInstitutionsService {
   private static getAuthenticatedUserId(): string {
@@ -48,7 +48,7 @@ export class FinancialInstitutionsService {
       );
       await Promise.all(
         snapshot.docs.map((d) =>
-          updateDoc(doc(firestore, FINANCIAL_INSTITUTIONS_COLLECTION, d.id), withoutUndefinedValue({
+          updateDoc(doc(firestore, FINANCIAL_INSTITUTIONS_COLLECTION, d.id), prepareFirestoreData({
             status: FinancialInstitutionStatus.AwaitSync,
           }))
         )
@@ -62,7 +62,7 @@ export class FinancialInstitutionsService {
   /** Retries sync for a single institution by setting it back to AwaitSync */
   public static async retrySyncInstitution(docId: string): Promise<void> {
     const firestore = getFirestore();
-    await updateDoc(doc(firestore, FINANCIAL_INSTITUTIONS_COLLECTION, docId), withoutUndefinedValue({
+    await updateDoc(doc(firestore, FINANCIAL_INSTITUTIONS_COLLECTION, docId), prepareFirestoreData({
       status: FinancialInstitutionStatus.AwaitSync,
       plaidErrorCode: null,
     }));
@@ -77,7 +77,7 @@ export class FinancialInstitutionsService {
   /** Sets institution back to AwaitSync after a successful reconnect via Plaid Link update mode */
   public static async markInstitutionForResync(docId: string): Promise<void> {
     const firestore = getFirestore();
-    await updateDoc(doc(firestore, FINANCIAL_INSTITUTIONS_COLLECTION, docId), withoutUndefinedValue({
+    await updateDoc(doc(firestore, FINANCIAL_INSTITUTIONS_COLLECTION, docId), prepareFirestoreData({
       status: FinancialInstitutionStatus.AwaitSync,
       plaidErrorCode: null,
     }));

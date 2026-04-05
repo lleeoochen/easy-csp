@@ -10,6 +10,11 @@ import { getMonthBoundaries } from "../../utils/dateUtils";
 import { sumTransactions } from "../../utils/transactionUtils";
 import { useCSP } from "../../hooks/api/useCSP";
 
+const FUND_POWERED_BUCKETS = [
+  CSPBucket.Savings,
+  CSPBucket.Investment,
+];
+
 interface CSPBucketCardProps {
   cspBucket: CSPBucket;
   cspBudgets: CSPCategoryBudget[];
@@ -32,9 +37,9 @@ export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString, showA
   const { totalSpent, totalBudgeted } = useMemo(() => {
     const totalSpent = sumTransactions(transactions, {
       includeBuckets: [cspBucket],
-      excludeWithSavingTarget: cspBucket !== CSPBucket.Savings,
+      excludeWithFund: !FUND_POWERED_BUCKETS.includes(cspBucket),
       includeHidden: false,
-      inflowOnly: cspBucket === CSPBucket.Savings,
+      inflowOnly: FUND_POWERED_BUCKETS.includes(cspBucket),
       csp
     });
 
@@ -71,7 +76,7 @@ export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString, showA
             />
           </div >
         ))}
-        {showAddRow && cspBucket !== CSPBucket.Savings && (
+        {showAddRow && !FUND_POWERED_BUCKETS.includes(cspBucket) && (
           <div className="p-2">
             <AddCategoryRow bucket={cspBucket} />
           </div>

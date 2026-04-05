@@ -1,8 +1,9 @@
 import { Select } from "./select";
 import { Label } from "./label";
-import { useSavingTargets } from "../../hooks/api/useSavingTargets";
+import { useFunds } from "../../hooks/api/useFunds";
+import { FundType } from "@easy-csp/shared-types";
 
-interface SavingTargetFilterProps {
+interface FundFilterProps {
   value: string;
   onValueChange: (value: string) => void;
   label?: string;
@@ -11,9 +12,10 @@ interface SavingTargetFilterProps {
   className?: string;
   includeAllOption?: boolean;
   includeNoneOption?: boolean;
+  filterByType?: FundType;
 }
 
-export const SavingTargetFilter = ({
+export const FundFilter = ({
   value,
   onValueChange,
   label,
@@ -22,22 +24,28 @@ export const SavingTargetFilter = ({
   className,
   includeAllOption = false,
   includeNoneOption = false,
-}: SavingTargetFilterProps) => {
-  const { data: savingTargets = [] } = useSavingTargets();
+  filterByType,
+}: FundFilterProps) => {
+  const { data: funds = [] } = useFunds();
+
+  // Filter funds by type if specified
+  const filteredFunds = filterByType
+    ? funds.filter(fund => fund.type === filterByType)
+    : funds;
 
   const options = [
     ...(includeAllOption ? [{ value: '', label: 'All transactions' }] : []),
     ...(includeNoneOption ? [{ value: 'none', label: 'No fund assigned' }] : []),
-    ...savingTargets.map(target => ({
-      value: target.id,
-      label: target.name,
+    ...filteredFunds.map(fund => ({
+      value: fund.id,
+      label: fund.name,
     })),
   ];
 
   return (
     <div className={className}>
       {label && (
-        <Label htmlFor="savingTargetFilter" className="text-sm font-medium text-gray-700">
+        <Label htmlFor="fundFilter" className="text-sm font-medium text-gray-700">
           {label}
         </Label>
       )}

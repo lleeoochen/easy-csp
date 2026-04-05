@@ -97,14 +97,57 @@ src/
 - Document shapes are defined in `easy-csp-shared-types/src/firestore.types.ts`
 - Always use typed converters when reading/writing documents
 - Keep security rules in `easy-csp-cloud/firestore.rules`
-- **Always filter out `undefined` values before Firestore writes** — Firestore rejects `undefined` but accepts `null`
-  - Import and use `withoutUndefinedValue` from `src/utils/firestoreHelpers.ts`
-  - Apply to all `addDoc`, `updateDoc`, `setDoc`, and transaction write calls
+- **Always prepare data before Firestore writes** — Firestore rejects `undefined` but accepts `null` and `deleteField()`
+
+#### Create Operations (addDoc)
+- **Use `withoutUndefinedValue`** for `addDoc` — filters out undefined fields
+- `addDoc` does NOT support `deleteField()` — it's for creating new documents
   ```typescript
   import { withoutUndefinedValue } from "../utils/firestoreHelpers";
 
-  await updateDoc(docRef, withoutUndefinedValue(data));
+  // Create new document - undefined values are filtered out
+  await addDoc(
+    collection(firestore, "transactions"),
+    withoutUndefinedValue({
+      name: "Coffee",
+      amount: 5.50,
+      category: undefined  // This field will be omitted from the document
+    })
+  );
   ```
+
+#### Update Operations (updateDoc)
+- **Use `prepareFirestoreData`** for `updateDoc` — converts undefined to `deleteField()`
+- This allows you to remove fields from existing documents by passing undefined
+  ```typescript
+  import { prepareFirestoreData } from "../utils/firestoreHelpers";
+
+  // Update existing document - undefined values remove fields
+  await updateDoc(docRef, prepareFirestoreData({
+    name: "John",
+    age: undefined,  // This field will be REMOVED from Firestore
+    city: null       // This field will be set to null in Firestore
+  }));
+  ```
+
+#### Full Document Replacement (setDoc)
+- **Use `prepareFirestoreData`** for `setDoc` without merge — full document replacement
+- **Use `prepareFirestoreData`** for `setDoc` with merge — behaves like updateDoc
+  ```typescript
+  import { prepareFirestoreData } from "../utils/firestoreHelpers";
+
+  // Full replacement
+  await setDoc(docRef, prepareFirestoreData(fullDocument));
+
+  // Merge (like update)
+  await setDoc(docRef, prepareFirestoreData(partialData), { merge: true });
+  ```
+
+#### Summary
+- `addDoc` → use `withoutUndefinedValue` (filters undefined)
+- `updateDoc` → use `prepareFirestoreData` (converts undefined to deleteField)
+- `setDoc` → use `prepareFirestoreData` (works for both full replacement and merge)
+- Legacy code may use `withoutUndefinedValue` everywhere — migrate to this pattern when touching that code
 
 ---
 

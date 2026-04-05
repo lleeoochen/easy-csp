@@ -8,7 +8,7 @@ import {
 } from "./common/dialog";
 import { Button } from "./common/button";
 import { Label } from "./common/label";
-import { SavingTargetSelector } from "./common/SavingTargetSelector";
+import { FundSelector } from "./common/FundSelector";
 import { useCSP } from "../hooks/api/useCSP";
 import { useSaveTravelMode, useUserRules } from "../hooks/useTravelMode";
 import { getTravelModeConfig, getDefaultTravelCategories } from "../utils/travelModeUtils";
@@ -40,10 +40,10 @@ function useTravelModeConfigDialogContent() {
   // Derive initial state from existing config or defaults
   // The parent component uses a key to reset this hook when config changes
   const initialCategories = existingConfig?.categories ?? defaultCategories;
-  const initialSavingTargetId = existingConfig?.savingTargetId ?? "";
+  const initialFundId = existingConfig?.fundId ?? "";
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategories);
-  const [savingTargetId, setSavingTargetId] = useState<string>(initialSavingTargetId);
+  const [fundId, setFundId] = useState<string>(initialFundId);
 
   // Sync state when initial values change (e.g., when CSP data loads)
   useEffect(() => {
@@ -51,8 +51,8 @@ function useTravelModeConfigDialogContent() {
   }, [initialCategories]);
 
   useEffect(() => {
-    setSavingTargetId(initialSavingTargetId);
-  }, [initialSavingTargetId]);
+    setFundId(initialFundId);
+  }, [initialFundId]);
 
   const handleCategoryToggle = (category: string) => {
     setSelectedCategories((prev) =>
@@ -63,10 +63,10 @@ function useTravelModeConfigDialogContent() {
   };
 
   const handleSave = (onClose: () => void) => {
-    if (selectedCategories.length === 0 || !savingTargetId) return;
+    if (selectedCategories.length === 0 || !fundId) return;
 
     saveConfig(
-      { categories: selectedCategories, savingTargetId },
+      { categories: selectedCategories, fundId: fundId },
       {
         onSuccess: () => {
           onClose();
@@ -75,7 +75,7 @@ function useTravelModeConfigDialogContent() {
     );
   };
 
-  const isValid = selectedCategories.length > 0 && savingTargetId !== "";
+  const isValid = selectedCategories.length > 0 && fundId !== "";
 
   // Group categories by bucket
   const categoriesByBucket = useMemo(() => {
@@ -84,7 +84,7 @@ function useTravelModeConfigDialogContent() {
     return CSP_BUCKET_ORDER.map((bucket) => ({
       bucket,
       categories: (csp[bucket] || [])
-        .filter((budget) => !budget.isTrackingSavingTarget) // Exclude saving target categories
+        .filter((budget) => !budget.isTrackingFund) // Exclude saving target categories
         .map((budget) => ({
           id: budget.category,
           name: budget.name || camelCaseToSentence(budget.category),
@@ -94,8 +94,8 @@ function useTravelModeConfigDialogContent() {
 
   return {
     selectedCategories,
-    savingTargetId,
-    setSavingTargetId,
+    fundId,
+    setFundId,
     handleCategoryToggle,
     handleSave,
     isValid,
@@ -112,7 +112,7 @@ export function TravelModeConfigDialog({ open, onOpenChange }: TravelModeConfigD
   // Use rule as key to reset component state when config changes
   const dialogKey = useMemo(() => {
     const config = getTravelModeConfig(rule ?? null);
-    return config ? `${config.categories.join(',')}-${config.savingTargetId}` : 'new';
+    return config ? `${config.categories.join(',')}-${config.fundId}` : 'new';
   }, [rule]);
 
   return (
@@ -127,8 +127,8 @@ export function TravelModeConfigDialog({ open, onOpenChange }: TravelModeConfigD
 function TravelModeConfigDialogInner({ onClose }: { onClose: () => void }) {
   const {
     selectedCategories,
-    savingTargetId,
-    setSavingTargetId,
+    fundId,
+    setFundId,
     handleCategoryToggle,
     handleSave,
     isValid,
@@ -176,9 +176,9 @@ function TravelModeConfigDialogInner({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        <SavingTargetSelector
-          value={savingTargetId}
-          onValueChange={setSavingTargetId}
+        <FundSelector
+          value={fundId}
+          onValueChange={setFundId}
           label="Saving Fund"
           placeholder="Select a fund"
         />

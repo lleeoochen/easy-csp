@@ -22,7 +22,7 @@ import {
 } from "@easy-csp/shared-types";
 import { TRAVEL_MODE_RULE_NAME, type TravelModeConfig } from "../types/travelMode";
 import { getTravelModeRules } from "../utils/travelModeUtils";
-import { withoutUndefinedValue } from "../utils/firestoreHelpers";
+import { prepareFirestoreData } from "../utils/firestoreHelpers";
 
 /**
  * Custom error class for Travel Mode service errors
@@ -195,7 +195,7 @@ export class TravelModeService {
         );
       }
 
-      if (!config.savingTargetId || typeof config.savingTargetId !== "string" || config.savingTargetId.trim() === "") {
+      if (!config.fundId || typeof config.fundId !== "string" || config.fundId.trim() === "") {
         throw new TravelModeError(
           "Saving target must be selected",
           TravelModeErrorCode.INVALID_CONFIG
@@ -230,7 +230,7 @@ export class TravelModeService {
             }
           },
           action: {
-            assignSavingTargetId: config.savingTargetId
+            assignFundId: config.fundId
           }
         }));
 
@@ -238,10 +238,10 @@ export class TravelModeService {
         transformations.push(...travelModeRules);
 
         // Save updated rules
-        transaction.set(ruleDocRef, withoutUndefinedValue({
+        transaction.set(ruleDocRef, prepareFirestoreData({
           uid,
           transformations
-        }));
+        }), { merge: true });
       });
     } catch (error) {
       this.handleFirestoreError(error, "create or update travel mode rule");
@@ -305,10 +305,10 @@ export class TravelModeService {
         });
 
         // Save updated rules
-        transaction.set(ruleDocRef, withoutUndefinedValue({
+        transaction.set(ruleDocRef, prepareFirestoreData({
           uid,
           transformations
-        }));
+        }), { merge: true });
       });
     } catch (error) {
       this.handleFirestoreError(error, "toggle travel mode");

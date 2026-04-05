@@ -3,7 +3,7 @@ import { ConsciousSpendingPlanService } from '../../services/consciousSpendingPl
 import type { CSPBucket } from '@easy-csp/shared-types';
 import { useMemo } from 'react';
 import { camelCaseToSentence } from '../../utils/stringUtils';
-import { useSavingTargets } from './useSavingTargets';
+import { useFunds } from './useFunds';
 
 export const CSP_QUERY_KEY = ['csp'];
 
@@ -34,8 +34,8 @@ export const useUpdateCSPItem = () => {
 export const useAddCSPItem = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ bucket, category, amount, isTrackingSavingTarget, name }: { bucket: CSPBucket; category: string; amount: number; isTrackingSavingTarget?: boolean; name?: string }) =>
-      ConsciousSpendingPlanService.addCSPItem(bucket, category, amount, isTrackingSavingTarget, name).then(r => {
+    mutationFn: ({ bucket, category, amount, isTrackingFund, name }: { bucket: CSPBucket; category: string; amount: number; isTrackingFund?: boolean; name?: string }) =>
+      ConsciousSpendingPlanService.addCSPItem(bucket, category, amount, isTrackingFund, name).then(r => {
         if (!r.success) throw new Error(r.message ?? 'Failed to add CSP item');
         return r.csp!;
       }),
@@ -50,15 +50,15 @@ export const useAddCSPItem = () => {
  */
 export const useCategoryNameMap = (): ReadonlyMap<string, string> => {
   const { data: csp } = useCSP();
-  const { data: savingTargets = [] } = useSavingTargets();
+  const { data: funds = [] } = useFunds();
 
   return useMemo(() => {
     const map = new Map<string, string>();
     if (!csp) return map;
     for (const items of Object.values(csp)) {
       for (const item of items) {
-        if (item.isTrackingSavingTarget) {
-          const target = savingTargets.find(t => t.id === item.category);
+        if (item.isTrackingFund) {
+          const target = funds.find(t => t.id === item.category);
           map.set(item.category, target?.name ?? item.name ?? camelCaseToSentence(item.category));
         } else {
           map.set(item.category, item.name ?? camelCaseToSentence(item.category));
@@ -66,7 +66,7 @@ export const useCategoryNameMap = (): ReadonlyMap<string, string> => {
       }
     }
     return map;
-  }, [csp, savingTargets]);
+  }, [csp, funds]);
 };
 
 /**
@@ -82,7 +82,7 @@ export const useRegularCategoryNameMap = (): ReadonlyMap<string, string> => {
     for (const items of Object.values(csp)) {
       for (const item of items) {
         // Exclude saving target categories
-        if (!item.isTrackingSavingTarget) {
+        if (!item.isTrackingFund) {
           map.set(item.category, item.name ?? camelCaseToSentence(item.category));
         }
       }

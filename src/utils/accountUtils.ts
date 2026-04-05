@@ -37,16 +37,16 @@ export function generateAccountOptions(institutions: FinancialInstitution[]) {
 }
 
 /**
- * Finds the account option value for a given saving target
- * @param savingTarget - The saving target with institutionId and accountId
+ * Finds the account option value for a given fund
+ * @param fund - The fund with institutionId and accountId
  * @returns The account option value string, "manual" for manual funds, or empty string
  */
-export function getAccountOptionValueForSavingTarget(
-  savingTarget: { financialInstitutionId?: string; accountId?: string }
+export function getAccountOptionValueForFund(
+  fund: { financialInstitutionId?: string; accountId?: string }
 ): string {
   // Return "manual" for manual funds (no accountId)
-  if (!savingTarget.accountId || !savingTarget.financialInstitutionId) {
+  if (!fund.accountId || !fund.financialInstitutionId) {
     return 'manual';
   }
-  return generateAccountOptionValue(savingTarget.financialInstitutionId, savingTarget.accountId);
+  return generateAccountOptionValue(fund.financialInstitutionId, fund.accountId);
 }

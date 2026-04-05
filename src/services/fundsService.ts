@@ -12,18 +12,17 @@ import {
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import {
-  SAVING_TARGETS_COLLECTION,
+  FUNDS_COLLECTION,
   FINANCIAL_INSTITUTIONS_COLLECTION,
   CSPBucket,
+  FundType,
 } from "@easy-csp/shared-types";
-import type { SavingTarget, FinancialInstitution } from "@easy-csp/shared-types";
-import type { UI_SavingTargetAndBalance } from "../types/uiTypes";
+import type { Fund, FinancialInstitution } from "@easy-csp/shared-types";
+import type { UI_FundAndBalance } from "../types/uiTypes";
 import { ConsciousSpendingPlanService } from "./consciousSpendingPlanService";
-import { withoutUndefinedValue } from "../utils/firestoreHelpers";
+import { prepareFirestoreData, withoutUndefinedValue } from "../utils/firestoreHelpers";
 
-// Extended SavingTarget interface with current balance information
-
-export class SavingTargetsService {
+export class FundsService {
   private static getAuthenticatedUserId(): string {
     const auth = getAuth();
     const uid = auth.currentUser?.uid;
@@ -34,100 +33,122 @@ export class SavingTargetsService {
   }
 
   /**
-   * Creates a new saving target for a user
+   * Creates a new fund for a user
    */
-  public static async addSavingTarget(
+  public static async addFund(
     name: string,
+    type: FundType,
     targetAmount: number,
     financialInstitutionId?: string,
     accountId?: string
-  ): Promise<{ success: boolean; savingTarget?: SavingTarget & { id: string }; message?: string }> {
+  ): Promise<{ success: boolean; fund?: Fund & { id: string }; message?: string }> {
     try {
       const uid = this.getAuthenticatedUserId();
       const firestore = getFirestore();
 
-      const savingTarget: SavingTarget = withoutUndefinedValue({
+      const fund: Partial<Fund> = {
         uid,
         name,
+        type,
         targetAmount,
         financialInstitutionId,
         accountId,
-      });
+      };
 
       // If accountId is undefined, initialize currentBalance to 0 (manual fund)
       if (accountId === undefined) {
-        savingTarget.currentBalance = 0;
+        fund.currentBalance = 0;
       }
 
       // Add to Firestore with auto-generated document ID
+      // Use withoutUndefinedValue for addDoc (doesn't support deleteField)
       const docRef = await addDoc(
-        collection(firestore, SAVING_TARGETS_COLLECTION),
-        withoutUndefinedValue(savingTarget)
+        collection(firestore, FUNDS_COLLECTION),
+        withoutUndefinedValue(fund)
       );
 
-      // Add CSP budget under savings bucket with category set to document ID
+      // Determine which CSP bucket based on fund type
+      const cspBucket = type === FundType.Saving ? CSPBucket.Savings : CSPBucket.Investment;
+
+      // Add CSP budget under appropriate bucket with category set to document ID
       try {
         await ConsciousSpendingPlanService.addCSPItem(
-          CSPBucket.Savings,
+          cspBucket,
           docRef.id,
           0,
           true
         );
       } catch (cspError) {
         console.error("Error adding CSP budget item:", cspError);
-        // Continue execution even if CSP fails - the saving target was created successfully
+        // Continue execution even if CSP fails - the fund was created successfully
       }
 
       return {
         success: true,
-        savingTarget: {
-          ...savingTarget,
+        fund: {
+          ...fund,
           id: docRef.id,
-        },
+        } as Fund & { id: string },
       };
     } catch (error) {
-      console.error("Error adding saving target:", error);
+      console.error("Error adding fund:", error);
       return {
         success: false,
-        message: "Failed to add saving target",
+        message: "Failed to add fund",
       };
     }
   }
 
   /**
-   * Updates an existing saving target
+   * Updates an existing fund
    */
-  public static async updateSavingTarget(
+  public static async updateFund(
     id: string,
-    updates: Partial<Pick<SavingTarget, "name" | "targetAmount" | "financialInstitutionId" | "accountId">>
-  ): Promise<{ success: boolean; savingTarget?: SavingTarget & { id: string }; message?: string }> {
+    updates: Partial<Pick<Fund, "name" | "type" | "targetAmount" | "financialInstitutionId" | "accountId">>
+  ): Promise<{ success: boolean; fund?: Fund & { id: string }; message?: string }> {
     try {
       const uid = this.getAuthenticatedUserId();
       const firestore = getFirestore();
-      const docRef = doc(firestore, SAVING_TARGETS_COLLECTION, id);
+      const docRef = doc(firestore, FUNDS_COLLECTION, id);
 
       // First verify the document exists and belongs to the user
       const docSnap = await getDoc(docRef);
       if (!docSnap.exists()) {
         return {
           success: false,
-          message: "Saving target not found",
+          message: "Fund not found",
         };
       }
 
-      const existingData = docSnap.data() as SavingTarget;
+      const existingData = docSnap.data() as Fund;
       if (existingData.uid !== uid) {
         return {
           success: false,
-          message: "Unauthorized access to saving target",
+          message: "Unauthorized access to fund",
         };
       }
 
-      // Update the document (filter out undefined values)
-      await updateDoc(docRef, withoutUndefinedValue(updates));
+      // If type is changing, we need to move the CSP budget item
+      if (updates.type && updates.type !== existingData.type) {
+        const oldBucket = existingData.type === FundType.Saving ? CSPBucket.Savings : CSPBucket.Investment;
+        const newBucket = updates.type === FundType.Saving ? CSPBucket.Savings : CSPBucket.Investment;
+
+        try {
+          // Delete from old bucket
+          await ConsciousSpendingPlanService.deleteCSPItem(oldBucket, id);
+          // Add to new bucket
+          await ConsciousSpendingPlanService.addCSPItem(newBucket, id, 0, true);
+        } catch (cspError) {
+          console.error("Error moving CSP budget item:", cspError);
+        }
+      }
+
+      // Update the document
+      // prepareFirestoreData will convert undefined values to deleteField()
+      await updateDoc(docRef, prepareFirestoreData(updates));
 
       // Return updated data
-      const updatedSavingTarget = {
+      const updatedFund = {
         ...existingData,
         ...updates,
         id,
@@ -135,74 +156,74 @@ export class SavingTargetsService {
 
       return {
         success: true,
-        savingTarget: updatedSavingTarget,
+        fund: updatedFund,
       };
     } catch (error) {
-      console.error("Error updating saving target:", error);
+      console.error("Error updating fund:", error);
       return {
         success: false,
-        message: "Failed to update saving target",
+        message: "Failed to update fund",
       };
     }
   }
 
   /**
-   * Removes a saving target
+   * Removes a fund
    */
-  public static async removeSavingTarget(
+  public static async removeFund(
     id: string
   ): Promise<{ success: boolean; message?: string }> {
     try {
       const uid = this.getAuthenticatedUserId();
       const firestore = getFirestore();
-      const docRef = doc(firestore, SAVING_TARGETS_COLLECTION, id);
+      const docRef = doc(firestore, FUNDS_COLLECTION, id);
 
       // First verify the document exists and belongs to the user
       const docSnap = await getDoc(docRef);
       if (!docSnap.exists()) {
         return {
           success: false,
-          message: "Saving target not found",
+          message: "Fund not found",
         };
       }
 
-      const existingData = docSnap.data() as SavingTarget;
+      const existingData = docSnap.data() as Fund;
       if (existingData.uid !== uid) {
         return {
           success: false,
-          message: "Unauthorized access to saving target",
+          message: "Unauthorized access to fund",
         };
       }
 
-      // Remove CSP budget item with matching category before deleting the saving target
+      // Determine which CSP bucket based on fund type
+      const cspBucket = existingData.type === FundType.Saving ? CSPBucket.Savings : CSPBucket.Investment;
+
+      // Remove CSP budget item with matching category before deleting the fund
       try {
-        await ConsciousSpendingPlanService.deleteCSPItem(
-          CSPBucket.Savings,
-          id
-        );
+        await ConsciousSpendingPlanService.deleteCSPItem(cspBucket, id);
       } catch (cspError) {
         console.error("Error removing CSP budget item:", cspError);
-        // Continue execution even if CSP fails - we still want to delete the saving target
+        // Continue execution even if CSP fails - we still want to delete the fund
       }
 
-      // Nullify savingTargetId for all transactions linked to this fund
+      // Nullify fundId for all transactions linked to this fund
       try {
         const transactionsQuery = query(
           collection(firestore, "transactions"),
           where("uid", "==", uid),
-          where("savingTargetId", "==", id)
+          where("fundId", "==", id)
         );
         const transactionsSnapshot = await getDocs(transactionsQuery);
 
         const updatePromises = transactionsSnapshot.docs.map(transactionDoc =>
-          updateDoc(doc(firestore, "transactions", transactionDoc.id), withoutUndefinedValue({
-            savingTargetId: null
+          updateDoc(doc(firestore, "transactions", transactionDoc.id), prepareFirestoreData({
+            fundId: null
           }))
         );
 
         await Promise.all(updatePromises);
       } catch (transactionError) {
-        console.error("Error nullifying savingTargetId for transactions:", transactionError);
+        console.error("Error nullifying fundId for transactions:", transactionError);
         // Continue execution even if this fails
       }
 
@@ -213,32 +234,32 @@ export class SavingTargetsService {
         success: true,
       };
     } catch (error) {
-      console.error("Error removing saving target:", error);
+      console.error("Error removing fund:", error);
       return {
         success: false,
-        message: "Failed to remove saving target",
+        message: "Failed to remove fund",
       };
     }
   }
 
   /**
-   * Lists all saving targets for a user with current balance information
+   * Lists all funds for a user with current balance information
    */
-  public static async listSavingTargets(): Promise<{
+  public static async listFunds(): Promise<{
     success: boolean;
-    savingTargets?: UI_SavingTargetAndBalance[];
+    funds?: UI_FundAndBalance[];
     message?: string
   }> {
     try {
       const uid = this.getAuthenticatedUserId();
       const firestore = getFirestore();
 
-      // Fetch saving targets
-      const savingTargetsQuery = query(
-        collection(firestore, SAVING_TARGETS_COLLECTION),
+      // Fetch funds
+      const fundsQuery = query(
+        collection(firestore, FUNDS_COLLECTION),
         where("uid", "==", uid)
       );
-      const savingTargetsSnapshot = await getDocs(savingTargetsQuery);
+      const fundsSnapshot = await getDocs(fundsQuery);
 
       // Fetch user's financial institutions
       const financialInstitutionsQuery = query(
@@ -252,26 +273,26 @@ export class SavingTargetsService {
         ...doc.data() as FinancialInstitution,
       }));
 
-      // Process saving targets with balance information
-      const savingTargetsWithBalance: UI_SavingTargetAndBalance[] = savingTargetsSnapshot.docs.map((doc) => {
-        const savingTarget = doc.data() as SavingTarget;
+      // Process funds with balance information
+      const fundsWithBalance: UI_FundAndBalance[] = fundsSnapshot.docs.map((doc) => {
+        const fund = doc.data() as Fund;
         let currentAmount = 0;
         let institutionName = '';
         let accountName = '';
 
         // Check if fund is manual (no accountId)
-        if (savingTarget.accountId === undefined) {
+        if (fund.accountId === undefined) {
           // Manual fund - use currentBalance field
-          currentAmount = savingTarget.currentBalance ?? 0;
+          currentAmount = fund.currentBalance ?? 0;
           institutionName = '';
           accountName = '';
         } else {
           // Account-based fund - calculate current balance from tracked account
-          if (savingTarget.financialInstitutionId && savingTarget.accountId) {
-            const institution = financialInstitutions.find((fi) => fi.institutionId === savingTarget.financialInstitutionId);
+          if (fund.financialInstitutionId && fund.accountId) {
+            const institution = financialInstitutions.find((fi) => fi.institutionId === fund.financialInstitutionId);
 
             if (institution) {
-              const account = institution.accounts.find((acc) => acc.accountId === savingTarget.accountId);
+              const account = institution.accounts.find((acc) => acc.accountId === fund.accountId);
 
               if (account) {
                 currentAmount = account.balance;
@@ -283,7 +304,7 @@ export class SavingTargetsService {
         }
 
         return {
-          ...savingTarget,
+          ...fund,
           id: doc.id,
           currentAmount,
           institutionName,
@@ -293,13 +314,13 @@ export class SavingTargetsService {
 
       return {
         success: true,
-        savingTargets: savingTargetsWithBalance,
+        funds: fundsWithBalance,
       };
     } catch (error) {
-      console.error("Error listing saving targets:", error);
+      console.error("Error listing funds:", error);
       return {
         success: false,
-        message: "Failed to list saving targets",
+        message: "Failed to list funds",
       };
     }
   }

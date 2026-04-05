@@ -9,7 +9,7 @@ import { useTransactions } from "../../hooks/api/useTransactions";
 import type { ListTransactionsRequest } from "../../types/firestoreTypes";
 import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, SlidersHorizontal, X, Plus } from "lucide-react";
 import { CategorySelector } from "../../components/common/CategorySelector";
-import { SavingTargetFilter } from "../../components/common/SavingTargetFilter";
+import { FundFilter } from "../../components/common/FundFilter";
 import { MonthSelector } from "../../components/MonthSelector";
 import { getMonthBoundaries } from "../../utils/dateUtils";
 import { Button } from "../../components/common/button";
@@ -29,20 +29,20 @@ const TransactionsPage = () => {
   const [searchText, setSearchText] = useState('');
 
   const categoryFilter = searchParams.get('category');
-  const savingTargetFilter = searchParams.get('fund');
+  const fundFilter = searchParams.get('fund');
 
   const baseRequest = useMemo((): Omit<ListTransactionsRequest, 'startAfter'> => {
     const request: Omit<ListTransactionsRequest, 'startAfter'> = { limit: FETCH_LIMIT };
 
     if (categoryFilter) request.category = categoryFilter;
-    if (savingTargetFilter && savingTargetFilter !== 'none') request.savingTargetId = savingTargetFilter;
+    if (fundFilter && fundFilter !== 'none') request.fundId = fundFilter;
 
     const { startDate, endDate } = getMonthBoundaries(selectedYear, selectedMonth);
     request.startDate = startDate;
     request.endDate = endDate;
 
     return request;
-  }, [categoryFilter, savingTargetFilter, selectedYear, selectedMonth]);
+  }, [categoryFilter, fundFilter, selectedYear, selectedMonth]);
 
   const {
     data,
@@ -58,17 +58,17 @@ const TransactionsPage = () => {
     let all = data?.pages.flatMap(page => page.transactions ?? []) ?? [];
 
     // Filter out transactions with funds when fund=none is specified
-    if (savingTargetFilter === 'none') {
-      all = all.filter(t => !t.savingTargetId);
+    if (fundFilter === 'none') {
+      all = all.filter(t => !t.fundId);
     }
 
     // Apply search text filter
     if (!searchText.trim()) return all;
     const lower = searchText.toLowerCase();
     return all.filter(t => t.name?.toLowerCase().includes(lower));
-  }, [data, searchText, savingTargetFilter]);
+  }, [data, searchText, fundFilter]);
 
-  const hasActiveFilters = !!(categoryFilter || (savingTargetFilter && savingTargetFilter !== 'none') || searchText);
+  const hasActiveFilters = !!(categoryFilter || (fundFilter && fundFilter !== 'none') || searchText);
 
   const handleTransactionClick = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
@@ -165,8 +165,8 @@ const TransactionsPage = () => {
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <SavingTargetFilter
-                      value={savingTargetFilter ?? ''}
+                    <FundFilter
+                      value={fundFilter ?? ''}
                       onValueChange={(v) => handleSetFilter('fund', v)}
                       placeholder="Filter by fund"
                       includeAllOption

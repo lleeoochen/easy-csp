@@ -13,16 +13,16 @@ export const useCategoryMap = (): Record<string, string> => {
 
 /**
  * Returns the set of category IDs that are tracking a saving target.
- * Prefer this over isSavingTargetCategory — it reads directly from CSP data.
+ * Prefer this over isFundCategory — it reads directly from CSP data.
  */
-export const useSavingTargetCategoryIds = (): ReadonlySet<string> => {
+export const useFundCategoryIds = (): ReadonlySet<string> => {
   const { data: csp } = useCSP();
   return useMemo(() => {
     const ids = new Set<string>();
     if (!csp) return ids;
     for (const items of Object.values(csp)) {
       for (const item of items as CSPCategoryBudget[]) {
-        if (item.isTrackingSavingTarget) ids.add(item.category);
+        if (item.isTrackingFund) ids.add(item.category);
       }
     }
     return ids;

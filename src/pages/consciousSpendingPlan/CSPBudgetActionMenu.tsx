@@ -58,7 +58,7 @@ export const CSPBudgetActionMenu = ({
       return;
     }
     // For saving targets, filter by fund; for regular categories, filter by category and no fund
-    if (budget.isTrackingSavingTarget) {
+    if (budget.isTrackingFund) {
       navigate(`/transactions?fund=${encodeURIComponent(budget.category)}&month=${currentMonth}`);
     } else {
       navigate(`/transactions?category=${encodeURIComponent(budget.category)}&fund=none&month=${currentMonth}`);
@@ -119,7 +119,7 @@ export const CSPBudgetActionMenu = ({
                 Edit
               </DropdownMenuItem>
             )}
-            {showDelete && bucket !== CSPBucket.Income && budget.isTrackingSavingTarget !== true && !PROTECTED_CSP_CATEGORIES.has(budget.category) && (
+            {showDelete && bucket !== CSPBucket.Income && budget.isTrackingFund !== true && !PROTECTED_CSP_CATEGORIES.has(budget.category) && (
               <DropdownMenuItem
                 onClick={handleRemoveCategory}
                 className="text-red-600 focus:text-red-600"

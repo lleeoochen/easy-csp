@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useCategoryMap } from "./useCategoryMap";
 
-export const useBudgetFromSavingTarget = (category: string) => {
+export const useBudgetFromFund = (category: string) => {
   const categoryMap = useCategoryMap();
 
   const getCategoryName = useCallback(() => {

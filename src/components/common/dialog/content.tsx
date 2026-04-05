@@ -27,12 +27,17 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
 
     if (!isVisible) return null;
 
+    // Extract z-index from className if provided, otherwise use default z-50
+    const zIndexMatch = className?.match(/z-\[?\d+\]?/);
+    const zIndex = zIndexMatch ? zIndexMatch[0] : 'z-50';
+
     const content = (
       <>
         {/* Backdrop with fade animation */}
         <div
           className={cn(
-            "fixed inset-0 z-50 bg-black/80 transition-opacity duration-200",
+            "fixed inset-0 bg-black/80 transition-opacity duration-200",
+            zIndex,
             isAnimating ? "opacity-100" : "opacity-0"
           )}
           onClick={() => setOpen(false)}
@@ -41,7 +46,8 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         <div
           ref={ref}
           className={cn(
-            "fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-2rem)] max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border bg-btn-background p-4 shadow-lg transition-all duration-200 rounded-lg",
+            "fixed left-[50%] top-[50%] grid w-[calc(100%-2rem)] max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border bg-btn-background p-4 shadow-lg transition-all duration-200 rounded-lg",
+            zIndex,
             isAnimating
               ? "scale-100 opacity-100"
               : "scale-95 opacity-0",

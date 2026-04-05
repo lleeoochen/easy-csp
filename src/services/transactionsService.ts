@@ -13,19 +13,18 @@ import {
   getDoc,
   deleteDoc,
   runTransaction,
-  deleteField,
   type Firestore,
   type Transaction as FirestoreTransaction
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import {
   TRANSACTIONS_COLLECTION,
-  SAVING_TARGETS_COLLECTION,
+  FUNDS_COLLECTION,
   isManualFund,
 } from "@easy-csp/shared-types";
-import type { Transaction, SavingTarget } from "@easy-csp/shared-types";
+import type { Transaction, Fund } from "@easy-csp/shared-types";
 import type { ListTransactionsRequest, ListTransactionsResponse } from "../types/firestoreTypes";
-import { withoutUndefinedValue } from "../utils/firestoreHelpers";
+import { prepareFirestoreData, withoutUndefinedValue } from "../utils/firestoreHelpers";
 
 export const NEXT_TOKEN_END = "NEXT_TOKEN_END";
 
@@ -76,11 +75,11 @@ export class TransactionsService {
         );
       }
 
-      // Add saving target filtering if provided
-      if (request?.savingTargetId) {
+      // Add fund filtering if provided
+      if (request?.fundId) {
         transactionsQuery = query(
           transactionsQuery,
-          where("savingTargetId", "==", request.savingTargetId)
+          where("fundId", "==", request.fundId)
         );
       }
 
@@ -127,7 +126,7 @@ export class TransactionsService {
 
   /**
    * Creates a new transaction in Firestore
-   * If savingTargetId is provided and fund is manual, atomically updates currentBalance
+   * If fundId is provided and fund is manual, atomically updates currentBalance
    */
   public static async createTransaction(
     transaction: Omit<Transaction, 'id' | 'uid'>
@@ -142,28 +141,31 @@ export class TransactionsService {
         uid,
       };
 
-      // If savingTargetId is provided, check if fund is manual and update balance atomically
-      if (transaction.savingTargetId) {
-        const fundRef = doc(firestore, SAVING_TARGETS_COLLECTION, transaction.savingTargetId);
+      // If fundId is provided, check if fund is manual and update balance atomically
+      if (transaction.fundId) {
+        const fundRef = doc(firestore, FUNDS_COLLECTION, transaction.fundId);
 
         // Use Firestore transaction for atomic balance update
         const createdTransactionId = await runTransaction(firestore, async (firestoreTransaction) => {
           const fundSnap = await firestoreTransaction.get(fundRef);
 
           if (fundSnap.exists()) {
-            const fundData = fundSnap.data() as SavingTarget;
+            const fundData = fundSnap.data() as Fund;
 
             // If fund is manual (no accountId), update currentBalance
+            // Note: transaction.amount is negative for income, positive for expenses
+            // For fund balance: income should increase, expenses should decrease
+            // So we negate the transaction amount
             if (isManualFund(fundData)) {
               const currentBalance = fundData.currentBalance ?? 0;
-              const newBalance = currentBalance + transaction.amount;
+              const newBalance = currentBalance - transaction.amount;
               firestoreTransaction.update(fundRef, { currentBalance: newBalance });
             }
           }
 
           // Create transaction document
           const transactionRef = doc(collection(firestore, TRANSACTIONS_COLLECTION));
-          firestoreTransaction.set(transactionRef, withoutUndefinedValue(transactionData));
+          firestoreTransaction.set(transactionRef, prepareFirestoreData(transactionData), { merge: true });
 
           return transactionRef.id;
         });
@@ -176,7 +178,8 @@ export class TransactionsService {
           },
         };
       } else {
-        // No savingTargetId, just create the transaction
+        // No fundId, just create the transaction
+        // Use withoutUndefinedValue for addDoc (doesn't support deleteField)
         const docRef = await addDoc(
           collection(firestore, TRANSACTIONS_COLLECTION),
           withoutUndefinedValue(transactionData)
@@ -201,7 +204,7 @@ export class TransactionsService {
 
   /**
    * Deletes a transaction from Firestore
-   * If transaction has savingTargetId and fund is manual, atomically updates currentBalance
+   * If transaction has fundId and fund is manual, atomically updates currentBalance
    */
   public static async deleteTransaction(transactionId: string): Promise<{ success: boolean; message?: string }> {
     try {
@@ -210,7 +213,7 @@ export class TransactionsService {
 
       const transactionRef = doc(firestore, TRANSACTIONS_COLLECTION, transactionId);
 
-      // Read transaction to get savingTargetId and amount
+      // Read transaction to get fundId and amount
       const transactionSnap = await getDoc(transactionRef);
 
       if (!transactionSnap.exists()) {
@@ -230,22 +233,25 @@ export class TransactionsService {
         };
       }
 
-      // If transaction has savingTargetId, check if fund is manual and update balance atomically
-      if (transactionData.savingTargetId) {
-        const fundRef = doc(firestore, SAVING_TARGETS_COLLECTION, transactionData.savingTargetId);
+      // If transaction has fundId, check if fund is manual and update balance atomically
+      if (transactionData.fundId) {
+        const fundRef = doc(firestore, FUNDS_COLLECTION, transactionData.fundId);
 
         // Use Firestore transaction for atomic balance update
         await runTransaction(firestore, async (firestoreTransaction) => {
           const fundSnap = await firestoreTransaction.get(fundRef);
 
           if (fundSnap.exists()) {
-            const fundData = fundSnap.data() as SavingTarget;
+            const fundData = fundSnap.data() as Fund;
 
             // If fund is manual (no accountId), update currentBalance
+            // Note: transaction.amount is negative for income, positive for expenses
+            // For fund balance: income should increase, expenses should decrease
+            // So we negate the transaction amount (reverse the operation when deleting)
             if (isManualFund(fundData)) {
               const currentBalance = fundData.currentBalance ?? 0;
-              const newBalance = currentBalance - transactionData.amount;
-              firestoreTransaction.update(fundRef, withoutUndefinedValue({ currentBalance: newBalance }));
+              const newBalance = currentBalance + transactionData.amount;
+              firestoreTransaction.update(fundRef, prepareFirestoreData({ currentBalance: newBalance }));
             }
           }
 
@@ -253,7 +259,7 @@ export class TransactionsService {
           firestoreTransaction.delete(transactionRef);
         });
       } else {
-        // No savingTargetId, just delete the transaction
+        // No fundId, just delete the transaction
         await deleteDoc(transactionRef);
       }
 
@@ -271,91 +277,89 @@ export class TransactionsService {
 
   /**
    * Updates a transaction in Firestore
-   * If savingTargetId or amount changed and fund is manual, atomically updates currentBalance
+   * If fundId or amount changed and fund is manual, atomically updates currentBalance
    */
   /**
    * Prepare updates by converting undefined fields to deleteField()
    */
   private static prepareTransactionUpdates(updates: Partial<Transaction>): Partial<Transaction> {
-    const prepared = { ...updates };
-
-    if (updates.savingTargetId === undefined && 'savingTargetId' in updates) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (prepared as any).savingTargetId = deleteField();
-    }
-    if (updates.nickname === undefined && 'nickname' in updates) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (prepared as any).nickname = deleteField();
-    }
-
-    return prepared;
+    // prepareFirestoreData will handle converting undefined to deleteField()
+    // No need for manual handling anymore
+    return updates;
   }
 
   /**
-   * Update old saving target balance when transaction is moved or amount changes
+   * Update old fund balance when transaction is moved or amount changes
    */
-  private static async updateOldSavingTargetBalance(
+  private static async updateOldFundBalance(
     firestoreTransaction: FirestoreTransaction,
     firestore: Firestore,
-    oldSavingTargetId: string,
+    oldFundId: string,
     oldAmount: number,
     newAmount: number,
-    savingTargetChanged: boolean,
+    fundChanged: boolean,
     amountChanged: boolean
   ): Promise<void> {
     try {
-      const oldFundRef = doc(firestore, SAVING_TARGETS_COLLECTION, oldSavingTargetId);
+      const oldFundRef = doc(firestore, FUNDS_COLLECTION, oldFundId);
       const oldFundSnap = await firestoreTransaction.get(oldFundRef);
 
       if (!oldFundSnap.exists()) return;
 
-      const oldFundData = oldFundSnap.data() as SavingTarget;
+      const oldFundData = oldFundSnap.data() as Fund;
       if (!isManualFund(oldFundData)) return;
 
       const currentBalance = oldFundData.currentBalance ?? 0;
       let newBalance: number;
 
-      if (savingTargetChanged) {
-        // Fund changed: subtract old amount from old fund
-        newBalance = currentBalance - oldAmount;
+      if (fundChanged) {
+        // Fund changed: reverse the old transaction's effect on old fund
+        // Note: transaction.amount is negative for income, positive for expenses
+        // For fund balance: income should increase, expenses should decrease
+        // So we negate the transaction amount (reverse when removing from fund)
+        newBalance = currentBalance + oldAmount;
       } else if (amountChanged) {
         // Only amount changed: update by difference
-        const difference = newAmount - oldAmount;
+        // Reverse old amount effect, apply new amount effect
+        const difference = oldAmount - newAmount;
         newBalance = currentBalance + difference;
       } else {
         return;
       }
 
-      firestoreTransaction.update(oldFundRef, withoutUndefinedValue({ currentBalance: newBalance }));
+      firestoreTransaction.update(oldFundRef, prepareFirestoreData({ currentBalance: newBalance }));
     } catch (error) {
-      console.warn(`Could not access old saving target ${oldSavingTargetId}:`, error);
+      console.warn(`Could not access old fund ${oldFundId}:`, error);
     }
   }
 
   /**
-   * Update new saving target balance when transaction is moved to it
+   * Update new fund balance when transaction is moved to it
    */
-  private static async updateNewSavingTargetBalance(
+  private static async updateNewFundBalance(
     firestoreTransaction: FirestoreTransaction,
     firestore: Firestore,
-    newSavingTargetId: string,
+    newFundId: string,
     newAmount: number
   ): Promise<void> {
     try {
-      const newFundRef = doc(firestore, SAVING_TARGETS_COLLECTION, newSavingTargetId);
+      const newFundRef = doc(firestore, FUNDS_COLLECTION, newFundId);
       const newFundSnap = await firestoreTransaction.get(newFundRef);
 
       if (!newFundSnap.exists()) return;
 
-      const newFundData = newFundSnap.data() as SavingTarget;
+      const newFundData = newFundSnap.data() as Fund;
       if (!isManualFund(newFundData)) return;
 
       const currentBalance = newFundData.currentBalance ?? 0;
-      const newBalance = currentBalance + newAmount;
+      // Note: transaction.amount is negative for income, positive for expenses
+      // For fund balance: income should increase, expenses should decrease
+      // So we negate the transaction amount
+      const newBalance = currentBalance - newAmount;
 
-      firestoreTransaction.update(newFundRef, withoutUndefinedValue({ currentBalance: newBalance }));
+      firestoreTransaction.update(newFundRef, prepareFirestoreData({ currentBalance: newBalance }));
     } catch (error) {
-      console.warn(`Could not access new saving target ${newSavingTargetId}:`, error);
+      console.warn(`Could not access new fund ${newFundId}:`, error);
     }
   }
 
@@ -391,48 +395,48 @@ export class TransactionsService {
       const originalTransaction = await this.fetchAndValidateTransaction(firestore, transactionId, uid);
       const transactionRef = doc(firestore, TRANSACTIONS_COLLECTION, transactionId);
 
-      const oldSavingTargetId = originalTransaction.savingTargetId;
+      const oldFundId = originalTransaction.fundId;
       const oldAmount = originalTransaction.amount;
-      const newSavingTargetId = updates.savingTargetId;
+      const newFundId = updates.fundId;
       const newAmount = updates.amount !== undefined ? updates.amount : oldAmount;
 
-      const savingTargetChanged = oldSavingTargetId !== newSavingTargetId;
+      const fundChanged = oldFundId !== newFundId;
       const amountChanged = oldAmount !== newAmount;
-      const needsBalanceUpdate = savingTargetChanged || amountChanged;
+      const needsBalanceUpdate = fundChanged || amountChanged;
 
       const preparedUpdates = this.prepareTransactionUpdates(updates);
 
       if (needsBalanceUpdate) {
         await runTransaction(firestore, async (firestoreTransaction) => {
           // Update old fund balance if it exists
-          if (oldSavingTargetId) {
-            await this.updateOldSavingTargetBalance(
+          if (oldFundId) {
+            await this.updateOldFundBalance(
               firestoreTransaction,
               firestore,
-              oldSavingTargetId,
+              oldFundId,
               oldAmount,
               newAmount,
-              savingTargetChanged,
+              fundChanged,
               amountChanged
             );
           }
 
           // Update new fund balance if fund changed
-          if (savingTargetChanged && newSavingTargetId) {
-            await this.updateNewSavingTargetBalance(
+          if (fundChanged && newFundId) {
+            await this.updateNewFundBalance(
               firestoreTransaction,
               firestore,
-              newSavingTargetId,
+              newFundId,
               newAmount
             );
           }
 
           // Update transaction document
-          firestoreTransaction.update(transactionRef, withoutUndefinedValue(preparedUpdates));
+          firestoreTransaction.update(transactionRef, prepareFirestoreData(preparedUpdates));
         });
       } else {
         // No balance updates needed, just update the transaction
-        await updateDoc(transactionRef, withoutUndefinedValue(preparedUpdates));
+        await updateDoc(transactionRef, prepareFirestoreData(preparedUpdates));
       }
     } catch (error) {
       console.error("Error updating transaction:", error);

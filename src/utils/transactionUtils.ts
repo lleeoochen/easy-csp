@@ -10,9 +10,9 @@ export interface TransactionSumOptions {
   /** Filter by specific category */
   category?: string;
   /** Filter by saving target ID. Use 'any' to match transactions with any saving target, or a specific ID */
-  savingTargetId?: string | 'any';
-  /** Exclude transactions that have any savingTargetId (useful for non-Savings buckets) */
-  excludeWithSavingTarget?: boolean;
+  fundId?: string | 'any';
+  /** Exclude transactions that have any fundId (useful for non-Savings buckets) */
+  excludeWithFund?: boolean;
   /** Filter by specific institution ID */
   institutionId?: string;
   /** Filter by specific account ID */
@@ -45,7 +45,7 @@ export interface TransactionSumOptions {
  * // Sum only inflow transactions (negative amounts) excluding saving targets
  * const inflows = sumTransactions(transactions, {
  *   inflowOnly: true,
- *   excludeSavingTargets: true
+ *   excludeFunds: true
  * });
  */
 export function sumTransactions(
@@ -58,8 +58,8 @@ export function sumTransactions(
     inflowOnly = false,
     outflowOnly = false,
     category,
-    savingTargetId,
-    excludeWithSavingTarget = false,
+    fundId,
+    excludeWithFund = false,
     institutionId,
     accountId,
     includeBuckets,
@@ -67,20 +67,20 @@ export function sumTransactions(
     csp
   } = options;
 
-  // Build category/savingTargetId-to-bucket mapping once for performance
+  // Build category/fundId-to-bucket mapping once for performance
   let categoryToBucket: Map<string, CSPBucket> | undefined;
-  let savingTargetToBucket: Map<string, CSPBucket> | undefined;
+  let fundToBucket: Map<string, CSPBucket> | undefined;
 
   if ((includeBuckets || excludeBuckets) && csp) {
     categoryToBucket = new Map();
-    savingTargetToBucket = new Map();
+    fundToBucket = new Map();
 
     for (const [bucket, budgets] of Object.entries(csp)) {
       const bucketType = bucket as CSPBucket;
       for (const budget of budgets) {
-        if (budget.isTrackingSavingTarget) {
-          // For saving target budgets, map by savingTargetId (stored in category field)
-          savingTargetToBucket.set(budget.category, bucketType);
+        if (budget.isTrackingFund) {
+          // For saving target budgets, map by fundId (stored in category field)
+          fundToBucket.set(budget.category, bucketType);
         } else {
           // For regular budgets, map by category
           categoryToBucket.set(budget.category, bucketType);
@@ -97,16 +97,16 @@ export function sumTransactions(
       }
 
       // Exclude transactions with saving targets if requested
-      if (excludeWithSavingTarget && transaction.savingTargetId) {
+      if (excludeWithFund && transaction.fundId) {
         return false;
       }
 
       // Determine transaction bucket(s) - a transaction can belong to multiple buckets
       const transactionBuckets: CSPBucket[] = [];
-      if ((includeBuckets || excludeBuckets) && (categoryToBucket || savingTargetToBucket)) {
-        // Check savingTargetId bucket
-        if (transaction.savingTargetId) {
-          const savingBucket = savingTargetToBucket?.get(transaction.savingTargetId);
+      if ((includeBuckets || excludeBuckets) && (categoryToBucket || fundToBucket)) {
+        // Check fundId bucket
+        if (transaction.fundId) {
+          const savingBucket = fundToBucket?.get(transaction.fundId);
           if (savingBucket) {
             transactionBuckets.push(savingBucket);
           }
@@ -118,8 +118,8 @@ export function sumTransactions(
         }
       }
 
-      if (debug && transaction.savingTargetId) {
-        console.log({transactionBuckets, savingTargetToBucket, });
+      if (debug && transaction.fundId) {
+        console.log({transactionBuckets, fundToBucket, });
       }
 
       // Filter by bucket inclusion - transaction must be in at least one included bucket
@@ -147,13 +147,13 @@ export function sumTransactions(
       }
 
       // Filter by saving target ID
-      if (savingTargetId !== undefined) {
-        if (savingTargetId === 'any') {
+      if (fundId !== undefined) {
+        if (fundId === 'any') {
           // Match any transaction with a saving target
-          if (!transaction.savingTargetId) {
+          if (!transaction.fundId) {
             return false;
           }
-        } else if (transaction.savingTargetId !== savingTargetId) {
+        } else if (transaction.fundId !== fundId) {
           return false;
         }
       }
@@ -174,7 +174,7 @@ export function sumTransactions(
       console.log(result.map(t => ({
         name: t.name,
         category: t.category,
-        savingTargetId: t.savingTargetId,
+        fundId: t.fundId,
         amount: t.amount
       })));
       console.log(result.reduce((sum, transaction) => sum + transaction.amount, 0));
@@ -216,9 +216,9 @@ export const TransactionSummaries = {
   /**
    * Sum transactions for a specific saving target
    */
-  bySavingTarget: (transactions: Transaction[], savingTargetId: string) =>
+  byFund: (transactions: Transaction[], fundId: string) =>
     sumTransactions(transactions, {
-      savingTargetId,
+      fundId,
       includeHidden: false
     }),
 

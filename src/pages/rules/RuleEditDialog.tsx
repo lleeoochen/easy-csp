@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/common/dialog";
-import { Button } from "../../components/common/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/common/dialog";
+import { DialogActionPanel } from "../../components/common/DialogActionPanel";
 import { Input } from "../../components/common/input";
 import { Select } from "../../components/common/select";
 import { Label } from "../../components/common/label";
@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader } from "../../components/common/card";
 import { CategorySelector } from "../../components/common/CategorySelector";
 import type { RuleTransformation, RuleMatchingCriteria, RuleAction } from "@easy-csp/shared-types";
 import { CSPCategory, RuleCondition, SplitFrequency } from "@easy-csp/shared-types";
-import { useAddRule, useUpdateRule } from "../../hooks/api/useRules";
+import { useAddRule, useUpdateRule, useDeleteRule } from "../../hooks/api/useRules";
 import { cn } from "../../components/common/utils";
 import { generateAccountOptionValue, parseAccountOptionValue } from "../../utils/accountUtils";
 import { AccountSelector } from "../../components/common/AccountSelector";
@@ -24,6 +24,7 @@ interface RuleEditDialogProps {
 export const RuleEditDialog = ({ open, onOpenChange, rule, ruleIndex }: RuleEditDialogProps) => {
   const addRuleMutation = useAddRule();
   const updateRuleMutation = useUpdateRule();
+  const deleteRuleMutation = useDeleteRule();
   const [isLoading, setIsLoading] = useState(false);
 
   // Form state
@@ -202,11 +203,28 @@ export const RuleEditDialog = ({ open, onOpenChange, rule, ruleIndex }: RuleEdit
     onOpenChange(false);
   };
 
+  const handleDelete = async () => {
+    if (ruleIndex === null) return;
+
+    if (confirm("Are you sure you want to delete this rule?")) {
+      setIsLoading(true);
+      try {
+        await deleteRuleMutation.mutateAsync(ruleIndex);
+        onOpenChange(false);
+      } catch (error) {
+        console.error('Error deleting rule:', error);
+        // TODO: Show error toast/notification
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-background">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-primary-fg">
             {ruleIndex !== null ? "Edit Transaction Rule" : "Create Transaction Rule"}
           </DialogTitle>
         </DialogHeader>
@@ -394,22 +412,21 @@ export const RuleEditDialog = ({ open, onOpenChange, rule, ruleIndex }: RuleEdit
           </Card>
         </div>
 
-        <DialogFooter>
-          <Button
-            variant="secondary"
-            onClick={handleCancel}
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleSave}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Saving...' : ruleIndex !== null ? 'Update Rule' : 'Create Rule'}
-          </Button>
-        </DialogFooter>
+        <DialogActionPanel
+          cancel={{
+            label: 'Cancel',
+            onClick: handleCancel,
+          }}
+          submit={{
+            label: ruleIndex !== null ? 'Update' : 'Create',
+            onClick: handleSave,
+          }}
+          delete={ruleIndex !== null ? {
+            label: 'Delete',
+            onClick: handleDelete,
+          } : undefined}
+          isLoading={isLoading}
+        />
       </DialogContent>
     </Dialog>
   );

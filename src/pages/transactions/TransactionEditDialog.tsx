@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/common/dialog";
-import { Button } from "../../components/common/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/common/dialog";
+import { DialogActionPanel } from "../../components/common/DialogActionPanel";
 import { Label } from "../../components/common/label";
 import { Input } from "../../components/common/input";
 import { DatePicker } from "../../components/common/DatePicker";
 import { CategorySelector } from "../../components/common/CategorySelector";
-import { SavingTargetSelector } from "../../components/common/SavingTargetSelector";
+import { FundSelector } from "../../components/common/FundSelector";
 import { TransactionSplitDialog } from "./TransactionSplitDialog";
 import type { Transaction } from "@easy-csp/shared-types";
 import { CSPCategory } from "@easy-csp/shared-types";
@@ -20,10 +20,10 @@ interface TransactionEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   transaction: Transaction | null;
-  prefilledSavingTargetId?: string;
+  prefilledFundId?: string;
 }
 
-export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefilledSavingTargetId }: TransactionEditDialogProps) => {
+export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefilledFundId }: TransactionEditDialogProps) => {
   const { data: institutions = [] } = useFinancialInstitutions();
   const updateTransaction = useUpdateTransaction();
   const deleteTransaction = useDeleteTransaction();
@@ -37,7 +37,7 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefill
     transaction?.category || CSPCategory.Others
   );
   const [selectedFund, setSelectedFund] = useState<string>(
-    prefilledSavingTargetId || transaction?.savingTargetId || ''
+    prefilledFundId || transaction?.fundId || ''
   );
   const [nickname, setNickname] = useState<string>(
     transaction?.nickname || ''
@@ -56,7 +56,6 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefill
   );
   const [isLoading, setIsLoading] = useState(false);
   const [splitDialogOpen, setSplitDialogOpen] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{
     name?: string;
     amount?: string;
@@ -96,7 +95,7 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefill
   useEffect(() => {
     if (transaction) {
       setSelectedCategory(transaction.category);
-      setSelectedFund(transaction.savingTargetId || '');
+      setSelectedFund(transaction.fundId || '');
       setNickname(transaction.nickname || '');
       setSelectedDate(new Date(transaction.datetime));
       setTransactionName(transaction.name);
@@ -105,14 +104,14 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefill
     } else {
       // Reset for create mode
       setSelectedCategory(CSPCategory.Others);
-      setSelectedFund(prefilledSavingTargetId || '');
+      setSelectedFund(prefilledFundId || '');
       setNickname('');
       setSelectedDate(new Date());
       setTransactionName('');
       setTransactionAmount('');
       setTransactionType('expense');
     }
-  }, [transaction, prefilledSavingTargetId]);
+  }, [transaction, prefilledFundId]);
 
   const handleSave = async () => {
     if (isCreateMode) {
@@ -129,7 +128,7 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefill
           amount: finalAmount,
           datetime: selectedDate.getTime(),
           category: selectedCategory,
-          savingTargetId: selectedFund || undefined,
+          fundId: selectedFund || undefined,
           nickname: nickname || undefined,
           institutionId: null as unknown as string, // Manual transaction
           accountId: null as unknown as string, // Manual transaction
@@ -153,7 +152,7 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefill
         // Build updates object
         const updates: Partial<Transaction> = {
           category: selectedCategory,
-          savingTargetId: selectedFund || undefined,
+          fundId: selectedFund || undefined,
           nickname: nickname || undefined,
         };
 
@@ -193,7 +192,7 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefill
   const handleCancel = () => {
     if (transaction) {
       setSelectedCategory(transaction.category);
-      setSelectedFund(transaction.savingTargetId || '');
+      setSelectedFund(transaction.fundId || '');
       setNickname(transaction.nickname || '');
       setSelectedDate(new Date(transaction.datetime));
       setTransactionName(transaction.name);
@@ -202,14 +201,13 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefill
     } else {
       // Reset for create mode
       setSelectedCategory(CSPCategory.Miscellaneous);
-      setSelectedFund(prefilledSavingTargetId || '');
+      setSelectedFund(prefilledFundId || '');
       setNickname('');
       setSelectedDate(new Date());
       setTransactionName('');
       setTransactionAmount('');
       setTransactionType('expense');
     }
-    setShowDeleteConfirm(false);
     onOpenChange(false);
   };
 
@@ -224,7 +222,6 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefill
       console.error('Error deleting transaction:', error);
     } finally {
       setIsLoading(false);
-      setShowDeleteConfirm(false);
     }
   };
 
@@ -240,7 +237,7 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefill
 
   const hasChanges = isCreateMode ? true : (
     selectedCategory !== transaction.category ||
-    (selectedFund || null) !== (transaction.savingTargetId || null) ||
+    (selectedFund || null) !== (transaction.fundId || null) ||
     nickname !== (transaction.nickname || '') ||
     selectedDate.getTime() !== transaction.datetime ||
     parseFloat(transactionAmount) !== Math.abs(transaction.amount) ||
@@ -301,17 +298,6 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefill
                 <div className="flex gap-2 mt-1">
                   <button
                     type="button"
-                    onClick={() => setTransactionType('expense')}
-                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                      transactionType === 'expense'
-                        ? 'bg-primary-bg text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    Expense
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => setTransactionType('income')}
                     className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                       transactionType === 'income'
@@ -320,6 +306,17 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefill
                     }`}
                   >
                     Income
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTransactionType('expense')}
+                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                      transactionType === 'expense'
+                        ? 'bg-primary-bg text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Expense
                   </button>
                 </div>
               </div>
@@ -393,7 +390,7 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefill
               disabled={false}
               includeAllOption={false}
             />
-            <SavingTargetSelector
+            <FundSelector
               value={selectedFund}
               onValueChange={setSelectedFund}
               label="Fund (Optional)"
@@ -402,67 +399,36 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefill
             />
           </div>
 
-          <DialogFooter>
-            {showDeleteConfirm ? (
-              <div className="flex flex-col">
-                <div className="text-sm text-red-600 mr-auto">Are you sure you want to delete this transaction?</div>
-                <div className="flex flex-row justify-end gap-2">
-                  <Button
-                    variant="secondary"
-                    onClick={() => setShowDeleteConfirm(false)}
-                    disabled={isLoading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="primary"
-                    onClick={handleDelete}
-                    disabled={isLoading}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    {isLoading ? 'Deleting...' : 'Confirm'}
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <Button
-                  variant="secondary"
-                  onClick={handleCancel}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-                {!isCreateMode && isManual && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => setShowDeleteConfirm(true)}
-                    disabled={isLoading}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    Delete
-                  </Button>
-                )}
-                {!isCreateMode && !isManual && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => setSplitDialogOpen(true)}
-                    disabled={isLoading || isAlreadySplit}
-                    title={isAlreadySplit ? "Transaction is already split" : "Split this transaction"}
-                  >
-                    Split
-                  </Button>
-                )}
-                <Button
-                  variant="primary"
-                  onClick={handleSave}
-                  disabled={isLoading || !hasChanges}
-                >
-                  {isLoading ? 'Saving...' : (isCreateMode ? 'Create' : 'Save')}
-                </Button>
-              </>
-            )}
-          </DialogFooter>
+          <DialogActionPanel
+            cancel={{
+              label: 'Cancel',
+              onClick: handleCancel,
+              disabled: isLoading
+            }}
+            submit={{
+              label: isLoading ? 'Saving...' : (isCreateMode ? 'Create' : 'Save'),
+              onClick: handleSave,
+              disabled: isLoading || !hasChanges
+            }}
+            delete={!isCreateMode && isManual ? {
+              label: 'Delete',
+              onClick: handleDelete,
+              disabled: isLoading,
+              className: 'text-red-600 hover:text-red-700',
+              confirmation: {
+                title: 'Delete Transaction',
+                message: 'Are you sure you want to delete this transaction? This action cannot be undone.'
+              }
+            } : undefined}
+            customActions={!isCreateMode && !isManual ? [{
+              label: 'Split',
+              onClick: () => setSplitDialogOpen(true),
+              disabled: isLoading || isAlreadySplit,
+              variant: 'secondary',
+              title: isAlreadySplit ? "Transaction is already split" : "Split this transaction"
+            }] : undefined}
+            isLoading={isLoading}
+          />
         </DialogContent>
       </Dialog>
 

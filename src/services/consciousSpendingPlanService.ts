@@ -11,7 +11,7 @@ import {
   CSPBucket,
   PROTECTED_CSP_CATEGORIES,
 } from "@easy-csp/shared-types";
-import { withoutUndefinedValue } from "../utils/firestoreHelpers";
+import { prepareFirestoreData } from "../utils/firestoreHelpers";
 
 export class ConsciousSpendingPlanService {
   private static getAuthenticatedUserId(): string {
@@ -110,7 +110,7 @@ export class ConsciousSpendingPlanService {
       };
 
       // Update the document
-      await updateDoc(docRef, withoutUndefinedValue(updatedCSP));
+      await updateDoc(docRef, prepareFirestoreData(updatedCSP));
 
       return {
         success: true,
@@ -132,7 +132,7 @@ export class ConsciousSpendingPlanService {
     bucket: CSPBucket,
     category: string,
     amount: number,
-    isTrackingSavingTarget?: boolean,
+    isTrackingFund?: boolean,
     name?: string
   ): Promise<{
     success: boolean;
@@ -170,7 +170,7 @@ export class ConsciousSpendingPlanService {
       bucketItems.push({
         category,
         amount,
-        ...(isTrackingSavingTarget !== undefined ? { isTrackingSavingTarget } : {}),
+        ...(isTrackingFund !== undefined ? { isTrackingFund } : {}),
         ...(name ? { name } : {})
       });
 
@@ -180,7 +180,7 @@ export class ConsciousSpendingPlanService {
       };
 
       // Update the document
-      await updateDoc(docRef, withoutUndefinedValue(updatedCSP));
+      await updateDoc(docRef, prepareFirestoreData(updatedCSP));
 
       return {
         success: true,
@@ -235,7 +235,7 @@ export class ConsciousSpendingPlanService {
       };
 
       // Update the document
-      await updateDoc(docRef, withoutUndefinedValue(updatedCSP));
+      await updateDoc(docRef, prepareFirestoreData(updatedCSP));
 
       return {
         success: true,

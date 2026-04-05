@@ -97,7 +97,7 @@ Add `<AddCategoryRow bucket={cspBucket} />` at the bottom of `CardContent`, cond
 Location: `easy-csp/src/pages/consciousSpendingPlan/CSPBudgetActionMenu.tsx`
 
 Add a "Remove Category" `DropdownMenuItem` that:
-- Is hidden for saving-target-backed categories (`budget.isTrackingSavingTarget === true`)
+- Is hidden for saving-target-backed categories (`budget.isTrackingFund === true`)
 - Opens a confirmation dialog before calling `useDeleteCSPItem`
 
 ### 4. `useCategoryMap` (rewritten)
@@ -109,7 +109,7 @@ Replace the `Object.values(CSPCategory)` iteration with an iteration over all en
 ```ts
 export const useCategoryMap = (): Record<string, string> => {
   const { data: csp } = useCSP();
-  const { data: savingTargets = [] } = useSavingTargets();
+  const { data: savingTargets = [] } = useFunds();
 
   return useMemo(() => {
     const map: Record<string, string> = {};
@@ -141,14 +141,14 @@ public static async addCSPItem(
   bucket: CSPBucket,
   category: string,
   amount: number,
-  isTrackingSavingTarget?: boolean,
+  isTrackingFund?: boolean,
   name?: string                      // ← new
 ): Promise<...>
 ```
 
 The new item pushed to `bucketItems` includes `name` when provided:
 ```ts
-bucketItems.push({ category, amount, isTrackingSavingTarget, ...(name ? { name } : {}) });
+bucketItems.push({ category, amount, isTrackingFund, ...(name ? { name } : {}) });
 ```
 
 ### 6. `useAddCSPItem` hook (modified)
@@ -165,7 +165,7 @@ Location: `easy-csp-shared-types/src/firestore.types.ts`
 export interface CSPCategoryBudget {
   category: string;
   amount: number;
-  isTrackingSavingTarget?: boolean;
+  isTrackingFund?: boolean;
   name?: string;   // ← new: human-readable label for user-created categories
 }
 ```
@@ -204,7 +204,7 @@ Add `name` fields to each entry so new users get readable labels from day one. E
 |---|---|---|---|
 | `category` | `string` | yes | camelCase identifier (e.g. `rentMortgage`, `myCustomCategory`) |
 | `amount` | `number` | yes | Budget target amount |
-| `isTrackingSavingTarget` | `boolean` | no | True when this entry mirrors a saving target |
+| `isTrackingFund` | `boolean` | no | True when this entry mirrors a saving target |
 | `name` | `string` | no | Human-readable label. Falls back to `camelCaseToSentence(category)` when absent |
 
 ### Category name resolution order
@@ -265,7 +265,7 @@ Duplicate check: case-insensitive comparison of the derived ID against existing 
 
 ### Property 6: Saving-target-backed categories cannot be deleted via CSP
 
-*For any* `CSPCategoryBudget` entry where `isTrackingSavingTarget === true`, the delete action should not be available in the UI (the menu item is absent), and any direct call to `deleteCSPItem` for such a category should be rejected.
+*For any* `CSPCategoryBudget` entry where `isTrackingFund === true`, the delete action should not be available in the UI (the menu item is absent), and any direct call to `deleteCSPItem` for such a category should be rejected.
 
 **Validates: Requirements 2.5**
 
@@ -342,7 +342,7 @@ Tag format: `// Feature: csp-category-management, Property N: <property text>`
 | P3 | Generate random CSP state; mock `updateDoc` to throw; call `addCSPItem`; verify `success: false` and unchanged Firestore state |
 | P4 | Same as P3 but for `deleteCSPItem` |
 | P5 | Generate random category names; call `addCSPItem` with `CSPBucket.Savings`; verify rejection |
-| P6 | Generate random CSP entries with `isTrackingSavingTarget: true`; verify delete action is absent in rendered menu |
+| P6 | Generate random CSP entries with `isTrackingFund: true`; verify delete action is absent in rendered menu |
 | P7 | Generate random CSP documents and saving target lists; call `useCategoryMap`; verify key set equals union |
 | P8 | Generate random `CSPCategoryBudget` entries with and without `name`; verify map value follows resolution order |
 | P9 | Generate random whitespace-only strings; submit to `AddCategoryRow`; verify no mutation and error shown |

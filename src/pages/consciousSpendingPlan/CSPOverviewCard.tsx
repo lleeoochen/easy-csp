@@ -45,7 +45,7 @@ export function CSPOverviewCard({ incomeBudgets, expenseBuckets, currentMonthStr
     // Regular expenses (FixedCost and GuildFreeSpending buckets only)
     const regularExpenses = sumTransactions(transactions, {
       includeBuckets: [CSPBucket.FixedCost, CSPBucket.GuildFreeSpending],
-      excludeWithSavingTarget: true,
+      excludeWithFund: true,
       includeHidden: false,
       outflowOnly: true,
       csp

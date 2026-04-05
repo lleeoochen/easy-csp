@@ -91,14 +91,14 @@ Implement custom category add/remove for CSP buckets, dynamic category map from 
 
 - [x] 8. Add "Remove Category" action to `CSPBudgetActionMenu`
   - [x] 8.1 Add delete action to `easy-csp/src/pages/consciousSpendingPlan/CSPBudgetActionMenu.tsx`
-    - Add a "Remove Category" `DropdownMenuItem` that is hidden when `budget.isTrackingSavingTarget === true`
+    - Add a "Remove Category" `DropdownMenuItem` that is hidden when `budget.isTrackingFund === true`
     - On click: show a confirmation dialog; on confirm call `useDeleteCSPItem({ bucket, category: budget.category })`
     - Show inline/toast error on mutation failure
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
   - [ ]* 8.2 Write property test for saving-target delete protection (Property 6)
     - **Property 6: Saving-target-backed categories cannot be deleted via CSP**
-    - Generate random `CSPCategoryBudget` entries with `isTrackingSavingTarget: true`; render menu; assert delete item is absent
+    - Generate random `CSPCategoryBudget` entries with `isTrackingFund: true`; render menu; assert delete item is absent
     - **Validates: Requirements 2.5**
 
   - [ ]* 8.3 Write property test for write failure on delete (Property 4)

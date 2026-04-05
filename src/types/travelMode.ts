@@ -18,5 +18,5 @@ export interface TravelModeConfig {
   /** Array of CSP category values to match for travel mode */
   categories: string[];
   /** ID of the saving fund to mark transactions to */
-  savingTargetId: string;
+  fundId: string;
 }

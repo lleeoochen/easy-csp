@@ -1,37 +1,38 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { SavingTargetsService } from '../../services/savingTargetsService';
+import { FundsService } from '../../services/fundsService';
 import { useFinancialInstitutions } from './useFinancialInstitutions';
 import { parseAccountOptionValue } from '../../utils/accountUtils';
 import { removeItemFromCache } from './cacheUtils';
 import { MANUAL_ACCOUNT_VALUE } from '../../components/common/AccountSelector';
+import { FundType } from '@easy-csp/shared-types';
 
-export const SAVING_TARGETS_QUERY_KEY = ['savingTargets'];
+export const FUNDS_QUERY_KEY = ['funds'];
 
-export const useSavingTargets = () => {
+export const useFunds = () => {
   return useQuery({
-    queryKey: SAVING_TARGETS_QUERY_KEY,
+    queryKey: FUNDS_QUERY_KEY,
     queryFn: async () => {
-      const result = await SavingTargetsService.listSavingTargets();
-      if (!result.success) throw new Error(result.message ?? 'Failed to fetch saving targets');
-      return result.savingTargets!;
+      const result = await FundsService.listFunds();
+      if (!result.success) throw new Error(result.message ?? 'Failed to fetch funds');
+      return result.funds!;
     },
     staleTime: 1000 * 60 * 5,
   });
 };
 
-export const useAddSavingTarget = () => {
+export const useAddFund = () => {
   const queryClient = useQueryClient();
   const { data: institutions = [] } = useFinancialInstitutions();
 
   return useMutation({
-    mutationFn: async ({ name, targetAmount, selectedAccount }: { name: string; targetAmount: number; selectedAccount?: string }) => {
+    mutationFn: async ({ name, type, targetAmount, selectedAccount }: { name: string; type: FundType; targetAmount: number; selectedAccount?: string }) => {
       // If selectedAccount is undefined, empty, or "manual", create manual fund
       if (!selectedAccount || selectedAccount === MANUAL_ACCOUNT_VALUE) {
-        const result = await SavingTargetsService.addSavingTarget(name, targetAmount);
-        if (!result.success) throw new Error(result.message ?? 'Failed to add saving target');
+        const result = await FundsService.addFund(name, type, targetAmount);
+        if (!result.success) throw new Error(result.message ?? 'Failed to add fund');
 
         return {
-          ...result.savingTarget!,
+          ...result.fund!,
           institutionName: '',
           accountName: '',
           currentAmount: 0,
@@ -45,41 +46,42 @@ export const useAddSavingTarget = () => {
 
       if (!institution || !account) throw new Error('Invalid institution selected');
 
-      const result = await SavingTargetsService.addSavingTarget(name, targetAmount, institution.institutionId, accountId);
-      if (!result.success) throw new Error(result.message ?? 'Failed to add saving target');
+      const result = await FundsService.addFund(name, type, targetAmount, institution.institutionId, accountId);
+      if (!result.success) throw new Error(result.message ?? 'Failed to add fund');
 
       return {
-        ...result.savingTarget!,
+        ...result.fund!,
         institutionName: institution.institutionName,
         accountName: account.accountName,
         currentAmount: account.balance,
       };
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: SAVING_TARGETS_QUERY_KEY }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: FUNDS_QUERY_KEY }),
   });
 };
 
-export const useUpdateSavingTarget = () => {
+export const useUpdateFund = () => {
   const queryClient = useQueryClient();
   const { data: institutions = [] } = useFinancialInstitutions();
 
   return useMutation({
-    mutationFn: async ({ id, name, targetAmount, selectedAccount }: { id: string; name: string; targetAmount: number; selectedAccount: string }) => {
+    mutationFn: async ({ id, name, type, targetAmount, selectedAccount }: { id: string; name: string; type: FundType; targetAmount: number; selectedAccount: string }) => {
       // If selectedAccount is "manual", update to manual fund
       if (selectedAccount === MANUAL_ACCOUNT_VALUE) {
-        const result = await SavingTargetsService.updateSavingTarget(id, {
+        const result = await FundsService.updateFund(id, {
           name,
+          type,
           targetAmount,
           financialInstitutionId: undefined,
           accountId: undefined,
         });
-        if (!result.success) throw new Error(result.message ?? 'Failed to update saving target');
+        if (!result.success) throw new Error(result.message ?? 'Failed to update fund');
 
         return {
-          ...result.savingTarget!,
+          ...result.fund!,
           institutionName: '',
           accountName: '',
-          currentAmount: result.savingTarget!.currentBalance ?? 0,
+          currentAmount: result.fund!.currentBalance ?? 0,
         };
       }
 
@@ -90,34 +92,35 @@ export const useUpdateSavingTarget = () => {
 
       if (!institution || !account) throw new Error('Invalid institution selected');
 
-      const result = await SavingTargetsService.updateSavingTarget(id, {
+      const result = await FundsService.updateFund(id, {
         name,
+        type,
         targetAmount,
         financialInstitutionId: institution.institutionId,
         accountId,
       });
-      if (!result.success) throw new Error(result.message ?? 'Failed to update saving target');
+      if (!result.success) throw new Error(result.message ?? 'Failed to update fund');
 
       return {
-        ...result.savingTarget!,
+        ...result.fund!,
         institutionName: institution.institutionName,
         accountName: account.accountName,
         currentAmount: account.balance,
       };
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: SAVING_TARGETS_QUERY_KEY }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: FUNDS_QUERY_KEY }),
   });
 };
 
-export const useDeleteSavingTarget = () => {
+export const useDeleteFund = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const result = await SavingTargetsService.removeSavingTarget(id);
-      if (!result.success) throw new Error(result.message ?? 'Failed to delete saving target');
+      const result = await FundsService.removeFund(id);
+      if (!result.success) throw new Error(result.message ?? 'Failed to delete fund');
     },
     onSuccess: (_data, id) => {
-      removeItemFromCache(queryClient, SAVING_TARGETS_QUERY_KEY, id);
+      removeItemFromCache(queryClient, FUNDS_QUERY_KEY, id);
     },
   });
 };

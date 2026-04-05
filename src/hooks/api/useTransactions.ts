@@ -72,7 +72,7 @@ export const useCreateTransaction = () => {
       TransactionsService.createTransaction(transaction),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['savingTargets'] });
+      queryClient.invalidateQueries({ queryKey: ['funds'] });
     },
   });
 };
@@ -84,7 +84,7 @@ export const useDeleteTransaction = () => {
       TransactionsService.deleteTransaction(transactionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['savingTargets'] });
+      queryClient.invalidateQueries({ queryKey: ['funds'] });
     },
   });
 };

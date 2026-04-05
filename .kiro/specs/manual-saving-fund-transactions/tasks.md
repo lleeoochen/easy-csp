@@ -104,7 +104,7 @@ This implementation plan breaks down the manual saving fund transactions feature
     - _Requirements: 5.3_
 
   - [x] 4.3 Extend `useAddSavingTarget` hook to support manual funds
-    - Modify existing hook in `src/hooks/api/useSavingTargets.ts`
+    - Modify existing hook in `src/hooks/api/useFunds.ts`
     - Make `selectedAccount` parameter optional
     - If `selectedAccount` is undefined, call `addSavingTarget` without institution/account IDs
     - Return UI_SavingTargetAndBalance with "Manual Entry" for institution and account names

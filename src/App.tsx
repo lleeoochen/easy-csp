@@ -1,5 +1,5 @@
 import ConsciousSpendingPlanPage from "./pages/consciousSpendingPlan/ConsciousSpendingPlanPage";
-import SavingTargetsPage from "./pages/savingTargets/SavingTargetsPage";
+import FundsPage from "./pages/funds/FundsPage";
 import TransactionsPage from "./pages/transactions/TransactionsPage";
 import RulesPage from "./pages/rules/RulesPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -59,10 +59,10 @@ function App() {
               showInNav: true
             },
             {
-              path: "/savingTargets",
-              name: "Savings",
+              path: "/funds",
+              name: "Funds",
               icon: Target,
-              element: <SavingTargetsPage />,
+              element: <FundsPage />,
               showInNav: true
             },
             {

@@ -5,11 +5,10 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "../../components/common/dialog";
+import { DialogActionPanel } from "../../components/common/DialogActionPanel";
 import { Label } from "../../components/common/label";
 import { Input } from "../../components/common/input";
-import { Button } from "../../components/common/button";
 import { useUpdateCSPItem } from "../../hooks/api/useCSP";
 import type { CSPCategoryBudget, CSPBucket } from "@easy-csp/shared-types";
 import { camelCaseToSentence } from "../../utils/stringUtils";
@@ -39,8 +38,7 @@ export function CSPBudgetEditDialog({
     }
   }, [open, budget.amount]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     if (!amount || isLoading) return;
 
     const numericAmount = parseFloat(amount);
@@ -79,7 +77,7 @@ export function CSPBudgetEditDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="amount">Target Amount</Label>
             <Input
@@ -95,24 +93,19 @@ export function CSPBudgetEditDialog({
             />
           </div>
 
-          <DialogFooter className="flex gap-2 justify-end">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleClose}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              type="submit"
-              disabled={!amount || isLoading}
-            >
-              {isLoading ? "Updating..." : "Update"}
-            </Button>
-          </DialogFooter>
-        </form>
+          <DialogActionPanel
+            cancel={{
+              label: 'Cancel',
+              onClick: handleClose,
+            }}
+            submit={{
+              label: 'Update',
+              onClick: handleSubmit,
+              disabled: !amount,
+            }}
+            isLoading={isLoading}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );
