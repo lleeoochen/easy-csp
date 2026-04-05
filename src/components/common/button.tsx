@@ -12,10 +12,19 @@ const variantClassNames: Record<ButtonProps["variant"], string> = {
 };
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, ...props }, ref) => {
+  ({ className, variant, disabled, ...props }, ref) => {
     return (
       <button
-        className={cn("rounded-lg px-4 py-2 shadow-md", className, variantClassNames[variant])}
+        className={
+          cn(
+            "rounded-lg px-4 py-2 shadow-md",
+            className,
+            variantClassNames[variant],
+            {
+              "bg-gray-400 text-gray-600": disabled
+            }
+          )
+        }
         ref={ref}
         {...props}
       />

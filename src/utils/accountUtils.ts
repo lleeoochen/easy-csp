@@ -39,10 +39,14 @@ export function generateAccountOptions(institutions: FinancialInstitution[]) {
 /**
  * Finds the account option value for a given saving target
  * @param savingTarget - The saving target with institutionId and accountId
- * @returns The account option value string
+ * @returns The account option value string, "manual" for manual funds, or empty string
  */
 export function getAccountOptionValueForSavingTarget(
-  savingTarget: { financialInstitutionId: string; accountId: string }
+  savingTarget: { financialInstitutionId?: string; accountId?: string }
 ): string {
+  // Return "manual" for manual funds (no accountId)
+  if (!savingTarget.accountId || !savingTarget.financialInstitutionId) {
+    return 'manual';
+  }
   return generateAccountOptionValue(savingTarget.financialInstitutionId, savingTarget.accountId);
 }

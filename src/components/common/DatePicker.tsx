@@ -10,9 +10,10 @@ interface DatePickerProps {
   onChange: (date: Date) => void;
   label?: string;
   id?: string;
+  disabled?: boolean;
 }
 
-export function DatePicker({ value, onChange, label, id }: DatePickerProps) {
+export function DatePicker({ value, onChange, label, id, disabled = false }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleSelect = (date: Date | undefined) => {
@@ -33,10 +34,12 @@ export function DatePicker({ value, onChange, label, id }: DatePickerProps) {
         id={id}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
+        disabled={disabled}
         className={cn(
           "flex h-10 w-full items-center justify-between px-3 py-2 bg-gray-100 rounded-lg",
           "hover:bg-gray-200 focus-visible:outline-2 focus-visible:outline-gray-400",
-          "text-left"
+          "text-left",
+          disabled && "opacity-50 cursor-not-allowed hover:bg-gray-100"
         )}
       >
         <span>{format(value, "PPP")}</span>

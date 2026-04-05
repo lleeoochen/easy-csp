@@ -1,9 +1,10 @@
 import type { Transaction } from "@easy-csp/shared-types";
+import { isManualTransaction } from "@easy-csp/shared-types";
 import { useCategoryMap, useSavingTargetCategoryIds, useIgnoredCategoryIds } from "../../hooks/useCategoryMap";
 import { useSavingTargets } from "../../hooks/api/useSavingTargets";
 import { cn } from "../../components/common/utils";
 import { formatCurrency, getTransactionSignPrefix } from "../../utils/financialUtils";
-import { Split, Target } from "lucide-react";
+import { Split, Target, PenLine } from "lucide-react";
 
 const SAVING_TARGET_COLORS = [
   "text-blue-600",
@@ -55,6 +56,8 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
   const ignoredCategoryIds = useIgnoredCategoryIds();
   const { data: savingTargets = [] } = useSavingTargets();
 
+  const isManual = isManualTransaction(transaction);
+
   const savingTarget = transaction.savingTargetId
     ? savingTargets.find(st => st.id === transaction.savingTargetId)
     : null;
@@ -78,7 +81,10 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
         <div className="flex items-start justify-between gap-5">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className="min-w-0 flex-1">
-              <div className="truncate flex items-center">
+              <div className="truncate flex items-center gap-1">
+                {isManual && (
+                  <PenLine className="text-gray-500 shrink-0" size={14} strokeWidth={2} />
+                )}
                 {displayName}
               </div>
               <div className={cn(

@@ -62,7 +62,9 @@ export function SavingTargetDialog({
   const [formData, setFormData] = useState<FormData>(initialFormData);
 
   const handleSubmit = () => {
-    if (formData.name && formData.targetAmount > 0 && formData.selectedAccount) {
+    // Allow submission if name and target amount are valid
+    // selectedAccount can be empty for manual funds or MANUAL_ACCOUNT_VALUE
+    if (formData.name && formData.targetAmount > 0) {
       if (mode === "add") {
         onAdd(formData);
       } else if (mode === "edit" && existingSavingTarget) {
@@ -88,7 +90,7 @@ export function SavingTargetDialog({
     }
   };
 
-  const isFormValid = formData.name && formData.targetAmount > 0 && formData.selectedAccount;
+  const isFormValid = formData.name && formData.targetAmount > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -131,6 +133,7 @@ export function SavingTargetDialog({
             <AccountSelector
               value={formData.selectedAccount}
               onChange={(value) => setFormData({ ...formData, selectedAccount: value })}
+              includeManualOption={true}
             />
           </div>
         </div>

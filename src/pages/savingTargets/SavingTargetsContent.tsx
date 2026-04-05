@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Plus, Edit2, Target } from "lucide-react";
+import { Plus, Edit2, Target, PlusCircle, HandCoins } from "lucide-react";
 import { Progress } from "../../components/common/progress";
 import { Button } from "../../components/common/button";
 import { Card, CardContent, CardHeader } from "../../components/common/card";
 import type { UI_SavingTargetAndBalance } from "../../types/uiTypes";
 import { formatCurrency } from "../../utils/financialUtils";
 import { SavingTargetDialog } from "./SavingTargetDialog";
+import { isManualFund } from "@easy-csp/shared-types";
+import { TransactionEditDialog } from "../transactions/TransactionEditDialog";
 
 interface SavingTargetsContentProps {
   savingTargets: UI_SavingTargetAndBalance[];
@@ -22,6 +24,8 @@ export function SavingTargetsContent({
 }: SavingTargetsContentProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingSavingTarget, setEditingSavingTarget] = useState<UI_SavingTargetAndBalance | undefined>(undefined);
+  const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
+  const [prefilledSavingTargetId, setPrefilledSavingTargetId] = useState<string | undefined>(undefined);
 
   const handleEdit = (savingTarget: UI_SavingTargetAndBalance) => {
     setEditingSavingTarget(savingTarget);
@@ -29,6 +33,16 @@ export function SavingTargetsContent({
 
   const handleCloseEditDialog = () => {
     setEditingSavingTarget(undefined);
+  };
+
+  const handleAddTransaction = (savingTargetId: string) => {
+    setPrefilledSavingTargetId(savingTargetId);
+    setIsTransactionDialogOpen(true);
+  };
+
+  const handleCloseTransactionDialog = () => {
+    setIsTransactionDialogOpen(false);
+    setPrefilledSavingTargetId(undefined);
   };
 
   return (
@@ -61,26 +75,46 @@ export function SavingTargetsContent({
           ) : (
             savingTargets.map((savingTarget) => {
               const percentage = (savingTarget.currentAmount / savingTarget.targetAmount) * 100;
+              const isManual = isManualFund(savingTarget);
 
               return (
                 <div key={savingTarget.id}>
                   <div className="space-y-2 p-4">
                     <div className="flex gap-5">
                       <div className="flex flex-col items-start flex-1 m-auto truncate">
-                        <div className="font-semibold">{savingTarget.name}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="font-semibold">{savingTarget.name}</div>
+                          {isManual && (
+                            <span title="Manual Fund">
+                              <HandCoins className="size-4 text-muted-foreground" />
+                            </span>
+                          )}
+                        </div>
                         {savingTarget && (
                           <p className="text-sm text-gray-400 text-muted-foreground">
                             {savingTarget.institutionName} - {savingTarget.accountName}
                           </p>
                         )}
                       </div>
-                      <Button
-                        variant="secondary"
-                        className="h-8 w-8 p-0 flex"
-                        onClick={() => handleEdit(savingTarget)}
-                      >
-                        <Edit2 className="size-3.5 m-auto" />
-                      </Button>
+                      <div className="flex gap-2">
+                        {isManual && (
+                          <Button
+                            variant="secondary"
+                            className="h-8 w-8 p-0 flex"
+                            onClick={() => handleAddTransaction(savingTarget.id)}
+                            title="Add Transaction"
+                          >
+                            <PlusCircle className="size-3.5 m-auto" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="secondary"
+                          className="h-8 w-8 p-0 flex"
+                          onClick={() => handleEdit(savingTarget)}
+                        >
+                          <Edit2 className="size-3.5 m-auto" />
+                        </Button>
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Progress
@@ -124,6 +158,14 @@ export function SavingTargetsContent({
         onAdd={onAddSavingTarget}
         onUpdate={onUpdateSavingTarget}
         onDelete={onDeleteSavingTarget}
+      />
+
+      {/* Transaction Dialog */}
+      <TransactionEditDialog
+        open={isTransactionDialogOpen}
+        onOpenChange={handleCloseTransactionDialog}
+        transaction={null}
+        prefilledSavingTargetId={prefilledSavingTargetId}
       />
     </div>
   );

@@ -10,6 +10,7 @@ import {
   type Rule,
   type RuleTransformation
 } from "@easy-csp/shared-types";
+import { withoutUndefinedValue } from "../utils/firestoreHelpers";
 
 export class RulesService {
   private static getAuthenticatedUserId(): string {
@@ -57,7 +58,7 @@ export class RulesService {
         transformations
       };
 
-      await setDoc(ruleDocRef, ruleData);
+      await setDoc(ruleDocRef, withoutUndefinedValue(ruleData));
     } catch (error) {
       console.error("Error saving rules:", error);
       throw error;

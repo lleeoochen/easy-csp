@@ -11,6 +11,7 @@ import {
   CSPBucket,
   PROTECTED_CSP_CATEGORIES,
 } from "@easy-csp/shared-types";
+import { withoutUndefinedValue } from "../utils/firestoreHelpers";
 
 export class ConsciousSpendingPlanService {
   private static getAuthenticatedUserId(): string {
@@ -109,7 +110,7 @@ export class ConsciousSpendingPlanService {
       };
 
       // Update the document
-      await updateDoc(docRef, updatedCSP);
+      await updateDoc(docRef, withoutUndefinedValue(updatedCSP));
 
       return {
         success: true,
@@ -179,7 +180,7 @@ export class ConsciousSpendingPlanService {
       };
 
       // Update the document
-      await updateDoc(docRef, updatedCSP);
+      await updateDoc(docRef, withoutUndefinedValue(updatedCSP));
 
       return {
         success: true,
@@ -234,7 +235,7 @@ export class ConsciousSpendingPlanService {
       };
 
       // Update the document
-      await updateDoc(docRef, updatedCSP);
+      await updateDoc(docRef, withoutUndefinedValue(updatedCSP));
 
       return {
         success: true,

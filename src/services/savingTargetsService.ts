@@ -19,6 +19,7 @@ import {
 import type { SavingTarget, FinancialInstitution } from "@easy-csp/shared-types";
 import type { UI_SavingTargetAndBalance } from "../types/uiTypes";
 import { ConsciousSpendingPlanService } from "./consciousSpendingPlanService";
+import { withoutUndefinedValue } from "../utils/firestoreHelpers";
 
 // Extended SavingTarget interface with current balance information
 
@@ -38,25 +39,30 @@ export class SavingTargetsService {
   public static async addSavingTarget(
     name: string,
     targetAmount: number,
-    financialInstitutionId: string,
-    accountId: string
+    financialInstitutionId?: string,
+    accountId?: string
   ): Promise<{ success: boolean; savingTarget?: SavingTarget & { id: string }; message?: string }> {
     try {
       const uid = this.getAuthenticatedUserId();
       const firestore = getFirestore();
 
-      const savingTarget: SavingTarget = {
+      const savingTarget: SavingTarget = withoutUndefinedValue({
         uid,
         name,
         targetAmount,
         financialInstitutionId,
         accountId,
-      };
+      });
+
+      // If accountId is undefined, initialize currentBalance to 0 (manual fund)
+      if (accountId === undefined) {
+        savingTarget.currentBalance = 0;
+      }
 
       // Add to Firestore with auto-generated document ID
       const docRef = await addDoc(
         collection(firestore, SAVING_TARGETS_COLLECTION),
-        savingTarget
+        withoutUndefinedValue(savingTarget)
       );
 
       // Add CSP budget under savings bucket with category set to document ID
@@ -117,8 +123,8 @@ export class SavingTargetsService {
         };
       }
 
-      // Update the document
-      await updateDoc(docRef, updates);
+      // Update the document (filter out undefined values)
+      await updateDoc(docRef, withoutUndefinedValue(updates));
 
       // Return updated data
       const updatedSavingTarget = {
@@ -189,9 +195,9 @@ export class SavingTargetsService {
         const transactionsSnapshot = await getDocs(transactionsQuery);
 
         const updatePromises = transactionsSnapshot.docs.map(transactionDoc =>
-          updateDoc(doc(firestore, "transactions", transactionDoc.id), {
+          updateDoc(doc(firestore, "transactions", transactionDoc.id), withoutUndefinedValue({
             savingTargetId: null
-          })
+          }))
         );
 
         await Promise.all(updatePromises);
@@ -253,17 +259,25 @@ export class SavingTargetsService {
         let institutionName = '';
         let accountName = '';
 
-        // Calculate current balance from tracked account
-        if (savingTarget.financialInstitutionId && savingTarget.accountId) {
-          const institution = financialInstitutions.find((fi) => fi.institutionId === savingTarget.financialInstitutionId);
+        // Check if fund is manual (no accountId)
+        if (savingTarget.accountId === undefined) {
+          // Manual fund - use currentBalance field
+          currentAmount = savingTarget.currentBalance ?? 0;
+          institutionName = '';
+          accountName = '';
+        } else {
+          // Account-based fund - calculate current balance from tracked account
+          if (savingTarget.financialInstitutionId && savingTarget.accountId) {
+            const institution = financialInstitutions.find((fi) => fi.institutionId === savingTarget.financialInstitutionId);
 
-          if (institution) {
-            const account = institution.accounts.find((acc) => acc.accountId === savingTarget.accountId);
+            if (institution) {
+              const account = institution.accounts.find((acc) => acc.accountId === savingTarget.accountId);
 
-            if (account) {
-              currentAmount = account.balance;
-              institutionName = institution.institutionName;
-              accountName = account.accountName;
+              if (account) {
+                currentAmount = account.balance;
+                institutionName = institution.institutionName;
+                accountName = account.accountName;
+              }
             }
           }
         }

@@ -22,6 +22,7 @@ import {
 } from "@easy-csp/shared-types";
 import { TRAVEL_MODE_RULE_NAME, type TravelModeConfig } from "../types/travelMode";
 import { getTravelModeRules } from "../utils/travelModeUtils";
+import { withoutUndefinedValue } from "../utils/firestoreHelpers";
 
 /**
  * Custom error class for Travel Mode service errors
@@ -237,10 +238,10 @@ export class TravelModeService {
         transformations.push(...travelModeRules);
 
         // Save updated rules
-        transaction.set(ruleDocRef, {
+        transaction.set(ruleDocRef, withoutUndefinedValue({
           uid,
           transformations
-        });
+        }));
       });
     } catch (error) {
       this.handleFirestoreError(error, "create or update travel mode rule");
@@ -304,10 +305,10 @@ export class TravelModeService {
         });
 
         // Save updated rules
-        transaction.set(ruleDocRef, {
+        transaction.set(ruleDocRef, withoutUndefinedValue({
           uid,
           transformations
-        });
+        }));
       });
     } catch (error) {
       this.handleFirestoreError(error, "toggle travel mode");

@@ -7,7 +7,7 @@ import { TransactionEditDialog } from "./TransactionEditDialog";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useTransactions } from "../../hooks/api/useTransactions";
 import type { ListTransactionsRequest } from "../../types/firestoreTypes";
-import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, SlidersHorizontal, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, SlidersHorizontal, X, Plus } from "lucide-react";
 import { CategorySelector } from "../../components/common/CategorySelector";
 import { SavingTargetSelector } from "../../components/common/SavingTargetSelector";
 import { MonthSelector } from "../../components/MonthSelector";
@@ -99,6 +99,21 @@ const TransactionsPage = () => {
   return (
     <Page title="Transactions">
       <div className="space-y-4">
+        {/* Add Transaction Button */}
+        <div className="flex justify-end">
+          <Button
+            variant="primary"
+            onClick={() => {
+              setSelectedTransaction(null);
+              setIsEditDialogOpen(true);
+            }}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add Transaction
+          </Button>
+        </div>
+
         <div className="flex flex-col gap-4 mb-2">
           <MonthSelector
             selectedMonth={selectedMonth}

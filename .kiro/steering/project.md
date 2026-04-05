@@ -97,6 +97,14 @@ src/
 - Document shapes are defined in `easy-csp-shared-types/src/firestore.types.ts`
 - Always use typed converters when reading/writing documents
 - Keep security rules in `easy-csp-cloud/firestore.rules`
+- **Always filter out `undefined` values before Firestore writes** — Firestore rejects `undefined` but accepts `null`
+  - Import and use `withoutUndefinedValue` from `src/utils/firestoreHelpers.ts`
+  - Apply to all `addDoc`, `updateDoc`, `setDoc`, and transaction write calls
+  ```typescript
+  import { withoutUndefinedValue } from "../utils/firestoreHelpers";
+
+  await updateDoc(docRef, withoutUndefinedValue(data));
+  ```
 
 ---
 

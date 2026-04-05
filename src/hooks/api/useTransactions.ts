@@ -64,3 +64,27 @@ export const useUpdateTransaction = () => {
     },
   });
 };
+
+export const useCreateTransaction = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (transaction: Omit<Transaction, 'id' | 'uid'>) =>
+      TransactionsService.createTransaction(transaction),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['savingTargets'] });
+    },
+  });
+};
+
+export const useDeleteTransaction = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (transactionId: string) =>
+      TransactionsService.deleteTransaction(transactionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['savingTargets'] });
+    },
+  });
+};

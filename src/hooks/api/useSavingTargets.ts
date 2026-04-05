@@ -3,6 +3,7 @@ import { SavingTargetsService } from '../../services/savingTargetsService';
 import { useFinancialInstitutions } from './useFinancialInstitutions';
 import { parseAccountOptionValue } from '../../utils/accountUtils';
 import { removeItemFromCache } from './cacheUtils';
+import { MANUAL_ACCOUNT_VALUE } from '../../components/common/AccountSelector';
 
 export const SAVING_TARGETS_QUERY_KEY = ['savingTargets'];
 
@@ -23,7 +24,21 @@ export const useAddSavingTarget = () => {
   const { data: institutions = [] } = useFinancialInstitutions();
 
   return useMutation({
-    mutationFn: async ({ name, targetAmount, selectedAccount }: { name: string; targetAmount: number; selectedAccount: string }) => {
+    mutationFn: async ({ name, targetAmount, selectedAccount }: { name: string; targetAmount: number; selectedAccount?: string }) => {
+      // If selectedAccount is undefined, empty, or "manual", create manual fund
+      if (!selectedAccount || selectedAccount === MANUAL_ACCOUNT_VALUE) {
+        const result = await SavingTargetsService.addSavingTarget(name, targetAmount);
+        if (!result.success) throw new Error(result.message ?? 'Failed to add saving target');
+
+        return {
+          ...result.savingTarget!,
+          institutionName: '',
+          accountName: '',
+          currentAmount: 0,
+        };
+      }
+
+      // Otherwise, create account-based fund (existing logic)
       const { institutionId, accountId } = parseAccountOptionValue(selectedAccount);
       const institution = institutions.find(i => i.institutionId === institutionId);
       const account = institution?.accounts.find(a => a.accountId === accountId);
@@ -50,6 +65,25 @@ export const useUpdateSavingTarget = () => {
 
   return useMutation({
     mutationFn: async ({ id, name, targetAmount, selectedAccount }: { id: string; name: string; targetAmount: number; selectedAccount: string }) => {
+      // If selectedAccount is "manual", update to manual fund
+      if (selectedAccount === MANUAL_ACCOUNT_VALUE) {
+        const result = await SavingTargetsService.updateSavingTarget(id, {
+          name,
+          targetAmount,
+          financialInstitutionId: undefined,
+          accountId: undefined,
+        });
+        if (!result.success) throw new Error(result.message ?? 'Failed to update saving target');
+
+        return {
+          ...result.savingTarget!,
+          institutionName: '',
+          accountName: '',
+          currentAmount: result.savingTarget!.currentBalance ?? 0,
+        };
+      }
+
+      // Otherwise, update to account-based fund
       const { institutionId, accountId } = parseAccountOptionValue(selectedAccount);
       const institution = institutions.find(i => i.institutionId === institutionId);
       const account = institution?.accounts.find(a => a.accountId === accountId);
