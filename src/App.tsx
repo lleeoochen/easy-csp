@@ -4,7 +4,8 @@ import TransactionsPage from "./pages/transactions/TransactionsPage";
 import RulesPage from "./pages/rules/RulesPage";
 import SettingsPage from "./pages/SettingsPage";
 import FinancialInstitutionsPage from "./pages/financialInstitutions/FinancialInstitutionsPage";
-import { DollarSign, Target, BarChart3, Settings, Building2, Filter } from "lucide-react";
+import NetWorthPage from "./pages/netWorth/NetWorthPage";
+import { DollarSign, Target, BarChart3, Settings, Building2, Filter, TrendingUp } from "lucide-react";
 import { initializeApp } from "firebase/app";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
@@ -63,6 +64,13 @@ function App() {
               name: "Funds",
               icon: Target,
               element: <FundsPage />,
+              showInNav: true
+            },
+            {
+              path: "/net-worth",
+              name: "Net Worth",
+              icon: TrendingUp,
+              element: <NetWorthPage />,
               showInNav: true
             },
             {

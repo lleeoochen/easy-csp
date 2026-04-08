@@ -7,7 +7,7 @@ import { TransactionEditDialog } from "./TransactionEditDialog";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useTransactions } from "../../hooks/api/useTransactions";
 import type { ListTransactionsRequest } from "../../types/firestoreTypes";
-import { ArrowDown, ArrowUp, ChevronDown, ChevronUp, SlidersHorizontal, X, Plus } from "lucide-react";
+import { ChevronDown, ChevronUp, SlidersHorizontal, X, Plus } from "lucide-react";
 import { CategorySelector } from "../../components/common/CategorySelector";
 import { FundFilter } from "../../components/common/FundFilter";
 import { MonthSelector } from "../../components/MonthSelector";
@@ -50,7 +50,6 @@ const TransactionsPage = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    refetch,
     isLoading
   } = useTransactions(baseRequest);
 
@@ -93,8 +92,6 @@ const TransactionsPage = () => {
   const handleFetchMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) fetchNextPage();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
-
-  const handleRefresh = useCallback(() => { refetch(); }, [refetch]);
 
   return (
     <Page title="Transactions">
@@ -187,21 +184,6 @@ const TransactionsPage = () => {
           next={handleFetchMore}
           hasMore={!!hasNextPage}
           loader=""
-          refreshFunction={handleRefresh}
-          pullDownToRefresh
-          pullDownToRefreshThreshold={50}
-          pullDownToRefreshContent={
-            <div className="flex items-center gap-3 justify-center">
-              <ArrowDown className="w-3 h-3" />
-              <div>Pull down to refresh</div>
-            </div>
-          }
-          releaseToRefreshContent={
-            <div className="flex items-center gap-3 justify-center">
-              <ArrowUp className="w-3 h-3" />
-              <div>Release to refresh</div>
-            </div>
-          }
         >
           <TransactionsList
             hasNextPage={hasNextPage}

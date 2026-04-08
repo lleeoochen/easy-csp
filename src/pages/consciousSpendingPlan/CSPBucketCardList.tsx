@@ -25,7 +25,7 @@ export function CSPBucketCardList({ selectedMonth, selectedYear }: CSPBucketCard
   if (isLoading) {
     return (
       <div className="p-8 text-center">
-        <div className="animate-pulse">Loading consciousSpendingPlan...</div>
+        <div className="animate-pulse">Loading conscious spending plan...</div>
       </div>
     );
   }
@@ -33,7 +33,7 @@ export function CSPBucketCardList({ selectedMonth, selectedYear }: CSPBucketCard
   if (error) {
     return (
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg mx-4">
-        <p className="text-red-600">Error loading consciousSpendingPlan: {error.message}</p>
+        <p className="text-red-600">Error loading conscious spending plan: {error.message}</p>
         <button
           onClick={() => refetch()}
           className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
