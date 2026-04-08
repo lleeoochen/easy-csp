@@ -45,7 +45,7 @@ export const useAddCSPItem = () => {
 
 /**
  * Returns a map of category ID → display name derived from CSP data.
- * For saving-target-linked categories, uses the saving target's name.
+ * For fund-linked categories, uses the fund's name.
  * Use `categoryNameMap.get(id) ?? camelCaseToSentence(id)` at the call site.
  */
 export const useCategoryNameMap = (): ReadonlyMap<string, string> => {
@@ -70,7 +70,7 @@ export const useCategoryNameMap = (): ReadonlyMap<string, string> => {
 };
 
 /**
- * Returns a map of category ID → display name, excluding saving target IDs.
+ * Returns a map of category ID → display name, excluding fund IDs.
  * Use this for category selectors where users assign transaction categories.
  */
 export const useRegularCategoryNameMap = (): ReadonlyMap<string, string> => {
@@ -81,7 +81,7 @@ export const useRegularCategoryNameMap = (): ReadonlyMap<string, string> => {
     if (!csp) return map;
     for (const items of Object.values(csp)) {
       for (const item of items) {
-        // Exclude saving target categories
+        // Exclude fund categories
         if (!item.isTrackingFund) {
           map.set(item.category, item.name ?? camelCaseToSentence(item.category));
         }

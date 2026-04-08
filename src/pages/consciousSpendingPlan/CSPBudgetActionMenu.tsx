@@ -57,7 +57,7 @@ export const CSPBudgetActionMenu = ({
       onViewTransactions();
       return;
     }
-    // For saving targets, filter by fund; for regular categories, filter by category and no fund
+    // For funds, filter by fund; for regular categories, filter by category and no fund
     if (budget.isTrackingFund) {
       navigate(`/transactions?fund=${encodeURIComponent(budget.category)}&month=${currentMonth}`);
     } else {

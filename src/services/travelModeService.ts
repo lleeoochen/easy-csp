@@ -146,7 +146,7 @@ export class TravelModeService {
   /**
    * Creates or updates travel mode rules in Firestore
    * @param uid User ID
-   * @param config Travel mode configuration (categories and saving target)
+   * @param config Travel mode configuration (categories and fund)
    * @throws {TravelModeError} If configuration is invalid or Firestore operation fails
    */
   public static async createOrUpdateTravelModeRule(
@@ -197,7 +197,7 @@ export class TravelModeService {
 
       if (!config.fundId || typeof config.fundId !== "string" || config.fundId.trim() === "") {
         throw new TravelModeError(
-          "Saving target must be selected",
+          "Fund must be selected",
           TravelModeErrorCode.INVALID_CONFIG
         );
       }

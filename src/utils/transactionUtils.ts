@@ -9,7 +9,7 @@ export interface TransactionSumOptions {
   outflowOnly?: boolean;
   /** Filter by specific category */
   category?: string;
-  /** Filter by saving target ID. Use 'any' to match transactions with any saving target, or a specific ID */
+  /** Filter by fund ID. Use 'any' to match transactions with any fund, or a specific ID */
   fundId?: string | 'any';
   /** Exclude transactions that have any fundId (useful for non-Savings buckets) */
   excludeWithFund?: boolean;
@@ -42,7 +42,7 @@ export interface TransactionSumOptions {
  * });
  *
  * @example
- * // Sum only inflow transactions (negative amounts) excluding saving targets
+ * // Sum only inflow transactions (negative amounts) excluding funds
  * const inflows = sumTransactions(transactions, {
  *   inflowOnly: true,
  *   excludeFunds: true
@@ -79,7 +79,7 @@ export function sumTransactions(
       const bucketType = bucket as CSPBucket;
       for (const budget of budgets) {
         if (budget.isTrackingFund) {
-          // For saving target budgets, map by fundId (stored in category field)
+          // For fund budgets, map by fundId (stored in category field)
           fundToBucket.set(budget.category, bucketType);
         } else {
           // For regular budgets, map by category
@@ -96,7 +96,7 @@ export function sumTransactions(
         return false;
       }
 
-      // Exclude transactions with saving targets if requested
+      // Exclude transactions with funds if requested
       if (excludeWithFund && transaction.fundId) {
         return false;
       }
@@ -146,10 +146,10 @@ export function sumTransactions(
         return false;
       }
 
-      // Filter by saving target ID
+      // Filter by fund ID
       if (fundId !== undefined) {
         if (fundId === 'any') {
-          // Match any transaction with a saving target
+          // Match any transaction with a fund
           if (!transaction.fundId) {
             return false;
           }
@@ -214,7 +214,7 @@ export const TransactionSummaries = {
     }),
 
   /**
-   * Sum transactions for a specific saving target
+   * Sum transactions for a specific fund
    */
   byFund: (transactions: Transaction[], fundId: string) =>
     sumTransactions(transactions, {

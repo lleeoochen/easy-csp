@@ -84,7 +84,7 @@ function useTravelModeConfigDialogContent() {
     return CSP_BUCKET_ORDER.map((bucket) => ({
       bucket,
       categories: (csp[bucket] || [])
-        .filter((budget) => !budget.isTrackingFund) // Exclude saving target categories
+        .filter((budget) => !budget.isTrackingFund) // Exclude fund categories
         .map((budget) => ({
           id: budget.category,
           name: budget.name || camelCaseToSentence(budget.category),

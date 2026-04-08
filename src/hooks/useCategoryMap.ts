@@ -4,7 +4,7 @@ import type { CSPCategoryBudget } from "@easy-csp/shared-types";
 
 /**
  * Returns a flat dictionary of categoryId → display name,
- * derived from the user's CSP document and saving targets.
+ * derived from the user's CSP document and funds.
  */
 export const useCategoryMap = (): Record<string, string> => {
   const map = useCategoryNameMap();
@@ -12,7 +12,7 @@ export const useCategoryMap = (): Record<string, string> => {
 };
 
 /**
- * Returns the set of category IDs that are tracking a saving target.
+ * Returns the set of category IDs that are tracking a fund.
  * Prefer this over isFundCategory — it reads directly from CSP data.
  */
 export const useFundCategoryIds = (): ReadonlySet<string> => {
