@@ -39,10 +39,10 @@ export const NetWorthSummary = ({ breakdown }: NetWorthSummaryProps) => {
           {accountTypes.map(({ label, value, icon: Icon, color }) => (
             <div key={label} className="bg-card rounded-lg p-4 shadow">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{label}</span>
+                <span className="text-xs font-medium">{label}</span>
                 <Icon className={`w-4 h-4 ${color}`} />
               </div>
-              <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              <div className="text-lg font-semibold">
                 {formatCurrency(value)}
               </div>
             </div>

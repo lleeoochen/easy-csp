@@ -149,7 +149,7 @@ function TravelModeConfigDialogInner({ onClose }: { onClose: () => void }) {
           <Label className="text-sm font-medium text-gray-700 mb-2 block">
             Select categories to track during travel
           </Label>
-          <div className="space-y-4 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-3">
+          <div className="space-y-4 max-h-96 overflow-y-auto rounded-lg p-3">
             {categoriesByBucket.map(({ bucket, categories }) => (
               <div key={bucket} className="space-y-2">
                 <h4 className="text-sm font-semibold text-gray-600">

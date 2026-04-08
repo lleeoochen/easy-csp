@@ -9,6 +9,9 @@ export default defineConfig({
   server: {
     watch: {
       usePolling: true,
+    },
+    forwardConsole: {
+      logLevels: ['log', 'error', 'warn', 'info'] // Ensure 'log' is included
     }
   },
   optimizeDeps: {

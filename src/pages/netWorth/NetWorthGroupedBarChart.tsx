@@ -34,25 +34,24 @@ export const NetWorthGroupedBarChart = ({ breakdown }: NetWorthGroupedBarChartPr
   ].filter(item => item.value !== 0);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
-      <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">Account Balances</h2>
+    <div className="bg-white rounded-lg p-4 shadow">
+      <h2 className="text-lg font-semibold mb-4">Account Balances</h2>
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data} layout="vertical" margin={{ left: 10, right: 20, top: 10, bottom: 10 }}>
+        <BarChart data={data} margin={{ left: 10, right: 10, top: 10, bottom: 10 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
+            type="category"
+            dataKey="name"
+            tick={{ fontSize: 12 }}
+          />
+          <YAxis
             type="number"
             tickFormatter={formatCurrency}
             tick={{ fontSize: 12 }}
           />
-          <YAxis
-            type="category"
-            dataKey="name"
-            width={50}
-            tick={{ fontSize: 12 }}
-          />
           <Tooltip formatter={(value) => formatCurrency(value as number)} />
-          <ReferenceLine x={0} stroke="#666" strokeWidth={2} />
-          <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+          <ReferenceLine y={0} stroke="#666" strokeWidth={2} />
+          <Bar dataKey="value" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}

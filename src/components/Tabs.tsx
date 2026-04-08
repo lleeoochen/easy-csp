@@ -38,7 +38,7 @@ export const TabMenuItem = ({ path, icon, name }: TabMenuItemProps) => {
       }
     >
       <IconElement className="size-7" strokeWidth={strokeWidth}/>
-      <span className="text-xs mt-1">{name}</span>
+      <span className="text-[10px] mt-1">{name}</span>
     </Link>
   );
 }
@@ -49,8 +49,8 @@ export const Tabs = ({ paths }: TabsProps) => {
 
   return (
     <Router>
-      <div className="flex flex-col min-h-screen">
-        <main className="flex-1 pb-16 w-full">
+      <div className="flex flex-col h-screen overflow-hidden">
+        <main className="flex-1 pb-0 w-full overflow-hidden">
           <Routes>
             {
               paths.map(({ path, element }) => {
@@ -61,7 +61,7 @@ export const Tabs = ({ paths }: TabsProps) => {
         </main>
 
         {/* Bottom Navigation */}
-        <nav className="fixed grid grid-cols-4 bottom-5 left-0 right-0 bg-tabs-bar-bg z-10 backdrop-blur-lg rounded-2xl shadow-xl/30 w-fit mx-auto mb-[env(safe-area-inset-bottom)]">
+        <nav className="fixed grid grid-cols-5 bottom-5 left-0 right-0 bg-tabs-bar-bg z-10 backdrop-blur-lg rounded-2xl shadow-xl/30 w-fit mx-5 mb-[env(safe-area-inset-bottom)]">
           {
             navPaths.map(path => (
               <TabMenuItem key={path.path} {...path} />
