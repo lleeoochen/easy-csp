@@ -94,41 +94,120 @@ const TransactionsPage = () => {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
-    <Page title="Transactions">
+    <Page title="Transactions" maxWidth="half-xl">
       <div className="space-y-4">
-        <div className="flex flex-col gap-4 mb-2">
-          <MonthSelector
-            selectedMonth={selectedMonth}
-            selectedYear={selectedYear}
-            onMonthSelect={handleMonthSelect}
-          />
+        {/* Month Selector - Always at top */}
+        <MonthSelector
+          selectedMonth={selectedMonth}
+          selectedYear={selectedYear}
+          onMonthSelect={handleMonthSelect}
+        />
 
-          {/* Filter toggle row */}
-          <div className="flex flex-col gap-2">
-            <div className="flex justify-between">
-              <div className="flex gap-2">
-                <Button
-                  variant="icon"
-                  onClick={() => setFiltersOpen(o => !o)}
-                  className="flex items-center gap-1.5"
-                >
-                  <SlidersHorizontal className="w-4 h-4" />
-                  Filters
+        {/* Desktop: Two-column layout, Mobile: Stacked */}
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* Left Column: Filters (Desktop) / Collapsible (Mobile) */}
+          <div className="lg:w-80 lg:shrink-0">
+            {/* Mobile: Filter toggle */}
+            <div className="lg:hidden flex flex-col gap-2">
+              <div className="flex justify-between">
+                <div className="flex gap-2">
+                  <Button
+                    variant="icon"
+                    onClick={() => setFiltersOpen(o => !o)}
+                    className="flex items-center gap-1.5"
+                  >
+                    <SlidersHorizontal className="w-4 h-4" />
+                    Filters
+                    {hasActiveFilters && (
+                      <span className="bg-primary-bg text-white text-xs rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                        •
+                      </span>
+                    )}
+                    {filtersOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                  </Button>
                   {hasActiveFilters && (
-                    <span className="bg-primary-bg text-white text-xs rounded-full w-4 h-4 flex items-center justify-center leading-none">
-                      •
-                    </span>
-                  )}
-                  {filtersOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                </Button>
-                {hasActiveFilters && (
-                  <div className="flex">
                     <Button variant="icon" onClick={handleReset} className="flex items-center gap-1 text-sm">
                       <X className="w-3 h-3" />
                       Reset
                     </Button>
+                  )}
+                </div>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setSelectedTransaction(null);
+                    setIsEditDialogOpen(true);
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add
+                </Button>
+              </div>
+
+              {/* Expandable filter panel (mobile) */}
+              {filtersOpen && (
+                <Card className="flex flex-col gap-2 p-3 bg-card">
+                  <Input
+                    type="text"
+                    placeholder="Search transactions..."
+                    value={searchText}
+                    onChange={e => setSearchText(e.target.value)}
+                    className="w-full px-3 py-2 text-sm"
+                  />
+                  <div className="flex gap-2">
+                    <div className="flex-1 min-w-0">
+                      <CategorySelector
+                        value={categoryFilter ?? ''}
+                        onValueChange={(v) => handleSetFilter('category', v)}
+                        placeholder="Filter by category"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <FundFilter
+                        value={fundFilter ?? ''}
+                        onValueChange={(v) => handleSetFilter('fund', v)}
+                        placeholder="Filter by fund"
+                        includeAllOption
+                        includeNoneOption
+                      />
+                    </div>
                   </div>
+                </Card>
+              )}
+            </div>
+
+            {/* Desktop: Always visible filter panel */}
+            <Card className="hidden lg:flex flex-col gap-3 p-4 bg-card sticky top-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-lg">Filters</h3>
+                {hasActiveFilters && (
+                  <Button variant="icon" onClick={handleReset} className="flex items-center gap-1 text-sm">
+                    <X className="w-3 h-3" />
+                    Reset
+                  </Button>
                 )}
+              </div>
+              <Input
+                type="text"
+                placeholder="Search transactions..."
+                value={searchText}
+                onChange={e => setSearchText(e.target.value)}
+                className="w-full px-3 py-2 text-sm"
+              />
+              <div className="flex flex-col gap-2">
+                <CategorySelector
+                  value={categoryFilter ?? ''}
+                  onValueChange={(v) => handleSetFilter('category', v)}
+                  placeholder="Filter by category"
+                />
+                <FundFilter
+                  value={fundFilter ?? ''}
+                  onValueChange={(v) => handleSetFilter('fund', v)}
+                  placeholder="Filter by fund"
+                  includeAllOption
+                  includeNoneOption
+                />
               </div>
               <Button
                 variant="primary"
@@ -136,62 +215,35 @@ const TransactionsPage = () => {
                   setSelectedTransaction(null);
                   setIsEditDialogOpen(true);
                 }}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-2 w-full"
               >
                 <Plus className="w-4 h-4" />
-                Add
+                Add Transaction
               </Button>
-            </div>
+            </Card>
+          </div>
 
-            {/* Expandable filter panel */}
-            {filtersOpen && (
-              <Card className="flex flex-col gap-2 p-3 bg-card">
-                <Input
-                  type="text"
-                  placeholder="Search transactions..."
-                  value={searchText}
-                  onChange={e => setSearchText(e.target.value)}
-                  className="w-full px-3 py-2 text-sm"
-                />
-                <div className="flex gap-2">
-                  <div className="flex-1 min-w-0">
-                    <CategorySelector
-                      value={categoryFilter ?? ''}
-                      onValueChange={(v) => handleSetFilter('category', v)}
-                      placeholder="Filter by category"
-                    />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <FundFilter
-                      value={fundFilter ?? ''}
-                      onValueChange={(v) => handleSetFilter('fund', v)}
-                      placeholder="Filter by fund"
-                      includeAllOption
-                      includeNoneOption
-                    />
-                  </div>
-                </div>
-              </Card>
-            )}
+          {/* Right Column: Transactions List */}
+          <div className="flex-1 min-w-0">
+            {error && <p className="text-red-600 mb-4">Error loading transactions: {error.message}</p>}
+
+            <InfiniteScroll
+              className="flex flex-col gap-1"
+              dataLength={transactions.length}
+              next={handleFetchMore}
+              hasMore={!!hasNextPage}
+              loader=""
+            >
+              <TransactionsList
+                hasNextPage={hasNextPage}
+                transactions={transactions}
+                handleTransactionClick={handleTransactionClick}
+              />
+            </InfiniteScroll>
+
+            {isLoading && <div className="animate-pulse mt-4">Loading transactions...</div>}
           </div>
         </div>
-
-        {error ? <p className="text-red-600">Error loading transactions: {error.message}</p> : ""}
-
-        <InfiniteScroll
-          className="flex flex-col gap-1"
-          dataLength={transactions.length}
-          next={handleFetchMore}
-          hasMore={!!hasNextPage}
-          loader=""
-        >
-          <TransactionsList
-            hasNextPage={hasNextPage}
-            transactions={transactions}
-            handleTransactionClick={handleTransactionClick}/>
-        </InfiniteScroll>
-
-        {isLoading ? <div className="animate-pulse">Loading transactions...</div> : ""}
 
         <TransactionEditDialog
           open={isEditDialogOpen}

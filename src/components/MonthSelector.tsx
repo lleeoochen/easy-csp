@@ -78,7 +78,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
           const isCurrent = year === currentYear && month === currentMonth;
 
           return (
-            <button
+            <Button
               key={key}
               ref={(el) => { if (el) btnRefs.current.set(key, el); else btnRefs.current.delete(key); }}
               onClick={() => onMonthSelect(year, month)}
@@ -93,7 +93,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
               )}
             >
               {displayName}
-            </button>
+            </Button>
           );
         })}
       </div>

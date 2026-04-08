@@ -7,7 +7,7 @@ const ConsciousSpendingPlanPage = () => {
   const { selectedYear, selectedMonth, handleMonthSelect } = useMonthFilter();
 
   return (
-    <Page title="Conscious Spending Plan">
+    <Page title="Conscious Spending Plan" maxWidth="full">
       <MonthSelector
         selectedMonth={selectedMonth}
         selectedYear={selectedYear}

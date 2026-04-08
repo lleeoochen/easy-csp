@@ -68,6 +68,77 @@ Never call Plaid APIs directly from the frontend. The frontend initiates the Pla
 - Use `lucide-react` for icons (already installed)
 - Use `clsx` + `tailwind-merge` for conditional class composition
 
+### Responsive Design
+
+**Use Tailwind's built-in responsive utilities — avoid duplicating components.**
+
+#### Mobile-First Approach
+- Write base styles for mobile, then add responsive prefixes for larger screens
+- Tailwind breakpoints: `sm:` (640px), `md:` (768px), `lg:` (1024px), `xl:` (1280px), `2xl:` (1536px)
+
+#### Best Practices
+
+**1. Responsive utilities in className (preferred 95% of cases)**
+```tsx
+// ✅ Good - Single component with responsive classes
+<div className="
+  p-4 md:p-6 lg:p-8
+  grid-cols-1 md:grid-cols-2 lg:grid-cols-3
+  flex-col md:flex-row
+">
+```
+
+**2. Show/hide for different layouts**
+```tsx
+// ✅ Acceptable for fundamentally different layouts (e.g., mobile bottom nav vs desktop sidebar)
+<nav className="md:hidden">{/* Mobile bottom nav */}</nav>
+<nav className="hidden md:block">{/* Desktop sidebar */}</nav>
+```
+
+**3. Use `cn()` for complex conditionals**
+```tsx
+import { cn } from "./common/utils";
+
+<div className={cn(
+  "base-classes",
+  isExpanded && "expanded-classes",
+  "md:desktop-classes lg:large-desktop-classes"
+)}>
+```
+
+**4. Container widths**
+```tsx
+// Page containers should scale appropriately
+<div className="
+  w-full           // mobile: full width
+  md:max-w-2xl     // tablet: 672px
+  lg:max-w-4xl     // desktop: 896px
+  xl:max-w-6xl     // large: 1152px
+">
+```
+
+#### When to Duplicate Components
+
+Only duplicate components if:
+- The component logic is fundamentally different (rare)
+- Using a library that requires different components (e.g., mobile vs desktop chart libraries)
+- Conditional rendering makes code unreadable
+
+```tsx
+// ❌ Avoid - unnecessary duplication
+{isMobile ? <MobileCard /> : <DesktopCard />}
+
+// ✅ Better - single component with responsive classes
+<Card className="p-4 md:p-6 flex-col md:flex-row" />
+
+// ✅ Acceptable - fundamentally different interactions
+{isMobile ? (
+  <MobileSwipeableList items={items} />
+) : (
+  <DesktopDataTable items={items} />
+)}
+```
+
 ### File Structure
 
 ```

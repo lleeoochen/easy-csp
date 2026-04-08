@@ -34,7 +34,7 @@ export const NetWorthGroupedBarChart = ({ breakdown }: NetWorthGroupedBarChartPr
   ].filter(item => item.value !== 0);
 
   return (
-    <div className="bg-white rounded-lg p-4 shadow">
+    <div className="bg-white rounded-lg p-4 shadow lg:min-w-[500px]">
       <h2 className="text-lg font-semibold mb-4">Account Balances</h2>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data} margin={{ left: 10, right: 10, top: 10, bottom: 10 }}>

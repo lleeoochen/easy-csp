@@ -5,8 +5,19 @@ import App from './src/App'
 import './src/styles/auth.css'
 import { ThemeProvider } from './src/contexts/ThemeContext'
 
-// Create a client for React Query
-const queryClient = new QueryClient();
+// Create a client for React Query with optimized settings for Firestore
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes - data stays fresh longer
+      gcTime: 1000 * 60 * 10, // 10 minutes - keep unused data in cache
+      refetchOnWindowFocus: false, // Don't refetch when switching tabs
+      refetchOnReconnect: false, // Don't refetch on network reconnect
+      retry: 1, // Only retry once instead of 3 times
+      retryDelay: 1000, // Wait 1 second before retry
+    },
+  },
+});
 
 // This code is only for TypeScript
 // declare global {

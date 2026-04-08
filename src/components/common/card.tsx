@@ -6,7 +6,7 @@ interface CardProps {
 }
 
 export function Card({ className = '', children }: CardProps) {
-  const baseClasses = 'shadow-sm rounded-2xl';
+  const baseClasses = 'shadow-sm rounded-2xl h-fit';
   const combinedClasses = `${baseClasses} ${className}`.trim();
 
   return (

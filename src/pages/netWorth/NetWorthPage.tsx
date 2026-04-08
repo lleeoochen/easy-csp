@@ -8,7 +8,7 @@ const NetWorthPage = () => {
 
   if (isLoading) {
     return (
-      <Page title="Net Worth">
+      <Page title="Net Worth" maxWidth="full">
         <div className="p-8 text-center">
           <div className="animate-pulse">Loading net worth data...</div>
         </div>
@@ -18,7 +18,7 @@ const NetWorthPage = () => {
 
   if (error) {
     return (
-      <Page title="Net Worth">
+      <Page title="Net Worth" maxWidth="full">
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-600">Error loading net worth: {(error as Error).message}</p>
         </div>
@@ -27,9 +27,9 @@ const NetWorthPage = () => {
   }
 
   return (
-    <Page title="Net Worth">
+    <Page title="Net Worth" maxWidth="full">
       {breakdown && (
-        <div className='flex flex-col gap-5'>
+        <div className='flex flex-col lg:flex-row gap-5 justify-center'>
           <NetWorthSummary breakdown={breakdown} />
           <NetWorthGroupedBarChart breakdown={breakdown} />
         </div>

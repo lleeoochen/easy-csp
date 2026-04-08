@@ -91,7 +91,7 @@ const FinancialInstitutionsPage = () => {
   }
 
   return (
-    <Page title="Financial Institutions">
+    <Page title="Financial Institutions" maxWidth="full">
       {institutions.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-600 mb-4">No financial institutions connected yet.</p>
@@ -113,52 +113,54 @@ const FinancialInstitutionsPage = () => {
               <LinkFinancialInstitutionButton />
             </div>
           </div>
-          {institutions.map((institution, index) => {
-            const statusDisplay = getFinancialInstitutionStatusDisplay(institution.status);
-            return (
-              <Card key={`${institution.institutionId}-${index}`}>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h2 className="text-lg">{institution.institutionName}</h2>
-                      <p className="text-sm text-gray-300">
-                        Last synced: {moment(new Date(institution.lastSyncTimestamp)).fromNow()}
-                      </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {institutions.map((institution, index) => {
+              const statusDisplay = getFinancialInstitutionStatusDisplay(institution.status);
+              return (
+                <Card key={`${institution.institutionId}-${index}`}>
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h2 className="text-lg">{institution.institutionName}</h2>
+                        <p className="text-sm text-gray-300">
+                          Last synced: {moment(new Date(institution.lastSyncTimestamp)).fromNow()}
+                        </p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusDisplay.color}`}>
+                        {statusDisplay.text}
+                      </span>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusDisplay.color}`}>
-                      {statusDisplay.text}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent className="py-2 px-4">
-                  <InstitutionErrorBanner institution={institution} />
-                  {institution.accounts.length === 0 ? (
-                    <p className="text-gray-500 text-md">No accounts found for this institution.</p>
-                  ) : (
-                    <div className="flex flex-col gap-4">
-                      {institution.accounts.map((account, accountIndex) => (
-                        <div
-                          key={`${account.accountId}-${accountIndex}`}
-                          className="flex justify-between items-center rounded-lg"
-                        >
-                          <div>
-                            <h4 className="font-medium text-gray-900">{account.accountName}</h4>
-                            <p className="text-gray-600">{getAccountTypeDisplay(account.accountType)}</p>
+                  </CardHeader>
+                  <CardContent className="py-2 px-4">
+                    <InstitutionErrorBanner institution={institution} />
+                    {institution.accounts.length === 0 ? (
+                      <p className="text-gray-500 text-md">No accounts found for this institution.</p>
+                    ) : (
+                      <div className="flex flex-col gap-4">
+                        {institution.accounts.map((account, accountIndex) => (
+                          <div
+                            key={`${account.accountId}-${accountIndex}`}
+                            className="flex justify-between items-center rounded-lg"
+                          >
+                            <div>
+                              <h4 className="font-medium text-gray-900">{account.accountName}</h4>
+                              <p className="text-gray-600">{getAccountTypeDisplay(account.accountType)}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className={`font-semibold ${account.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {formatCurrency(account.balance)}
+                              </p>
+                              <p className="text-xs text-gray-500">Current Balance</p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className={`font-semibold ${account.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {formatCurrency(account.balance)}
-                            </p>
-                            <p className="text-xs text-gray-500">Current Balance</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         </div>
       )}
     </Page>

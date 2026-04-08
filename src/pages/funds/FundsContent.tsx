@@ -102,37 +102,39 @@ export function FundsContent({
         </Button>
       </div>
 
-      {/* Funds List */}
-      {
-        Object.entries(filteredFundsByType).map(([type, funds]) => (
-          <Card key={type} className="mt-3">
-            <CardHeader className="text-lg">
-              {type === 'all' ? 'All Funds' : type === FundType.Saving ? 'Saving Funds' : 'Investment Funds'}
-            </CardHeader>
-            <CardContent className=" p-0! divide-y divide-gray-200">
-              {funds.length === 0 ? (
-                <div className="text-center py-16 bg-card border rounded-lg">
-                  <Target className="size-12 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground">No funds yet</p>
-                  <p className="text-muted-foreground mt-1">
-                    Create your first fund
-                  </p>
-                </div>
-              ) : (
-                funds.map((fund) => (
-                  <div key={fund.id}>
-                    <FundRow
-                      fund={fund}
-                      onEdit={handleEdit}
-                      onSetBalance={handleSetBalance}
-                    />
+      {/* Funds List - Horizontal on desktop */}
+      <div className="flex flex-col lg:grid lg:grid-cols-2 lg:w-auto gap-3 mt-3">
+        {
+          Object.entries(filteredFundsByType).map(([type, funds]) => (
+            <Card key={type}>
+              <CardHeader className="text-lg">
+                {type === 'all' ? 'All Funds' : type === FundType.Saving ? 'Saving Funds' : 'Investment Funds'}
+              </CardHeader>
+              <CardContent className=" p-0! divide-y divide-gray-200">
+                {funds.length === 0 ? (
+                  <div className="text-center py-16 bg-card border rounded-lg">
+                    <Target className="size-12 mx-auto text-muted-foreground mb-3" />
+                    <p className="text-muted-foreground">No funds yet</p>
+                    <p className="text-muted-foreground mt-1">
+                      Create your first fund
+                    </p>
                   </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
-        ))
-      }
+                ) : (
+                  funds.map((fund) => (
+                    <div key={fund.id}>
+                      <FundRow
+                        fund={fund}
+                        onEdit={handleEdit}
+                        onSetBalance={handleSetBalance}
+                      />
+                    </div>
+                  ))
+                )}
+              </CardContent>
+            </Card>
+          ))
+        }
+      </div>
 
       {/* Add Dialog */}
       <FundDialog

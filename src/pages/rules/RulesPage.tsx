@@ -30,7 +30,7 @@ const RulesPage = () => {
   };
 
   return (
-    <Page title="Transaction Rules">
+    <Page title="Transaction Rules" maxWidth="full">
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <BackButton to="/settings" />

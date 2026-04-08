@@ -16,7 +16,7 @@ const FundsPage = () => {
 
   if (isLoading) {
     return (
-      <Page title="Funds">
+      <Page title="Funds" maxWidth="full">
         <div className="p-8 text-center">
           <div className="animate-pulse">Loading funds...</div>
         </div>
@@ -26,7 +26,7 @@ const FundsPage = () => {
 
   if (error) {
     return (
-      <Page title="Funds">
+      <Page title="Funds" maxWidth="half-xl">
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg mx-4">
           <p className="text-red-600">Error loading funds: {error.message}</p>
           <button
@@ -41,7 +41,7 @@ const FundsPage = () => {
   }
 
   return (
-    <Page title="Funds">
+    <Page title="Funds" maxWidth="half-xl">
       <FundsContent
         funds={sortedFunds}
         onAddFund={(data) => addMutation.mutate(data)}
