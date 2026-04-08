@@ -139,6 +139,20 @@ This feature extends the Easy CSP app's saving fund functionality to support man
 4. THE Firestore SHALL enforce user ownership by storing the uid field on all Manual_Transaction documents
 5. THE Firestore SHALL support querying Manual_Transaction entries by uid, savingTargetId, category, and date range
 
+### Requirement 11: Set Manual Fund Balance Directly
+
+**User Story:** As a user, I want to set the balance of a manual fund directly to any value, so that I can initialize or adjust the balance without creating individual transactions.
+
+#### Acceptance Criteria
+
+1. THE Saving_Fund_UI SHALL display a "Set Balance" or "Adjust Balance" action button on each Manual_Saving_Fund row
+2. WHEN a user clicks the "Set Balance" button, THE Saving_Fund_UI SHALL open a dialog prompting for a new balance amount
+3. THE dialog SHALL accept any numeric value (positive, negative, or zero) as the new balance
+4. WHEN a user saves the new balance, THE Firestore SHALL update the Manual_Saving_Fund currentBalance field to the specified value
+5. THE Saving_Fund_UI SHALL NOT display the "Set Balance" action for Account_Based_Saving_Fund entries (only manual funds)
+6. WHEN the balance is set directly, THE system SHALL preserve all existing transactions without modification
+7. WHEN transactions are created, edited, or deleted after a manual balance adjustment, THE system SHALL add or subtract transaction amounts from the manually-set balance value
+
 ---
 
 ## Shared Types Update Required

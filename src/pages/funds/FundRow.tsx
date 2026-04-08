@@ -1,4 +1,4 @@
-import { Edit2, PlusCircle } from "lucide-react";
+import { Edit2, DollarSign } from "lucide-react";
 import { Progress } from "../../components/common/progress";
 import { Button } from "../../components/common/button";
 import type { UI_FundAndBalance } from "../../types/uiTypes";
@@ -8,10 +8,10 @@ import { isManualFund, FundType } from "@easy-csp/shared-types";
 interface FundRowProps {
   fund: UI_FundAndBalance;
   onEdit: (fund: UI_FundAndBalance) => void;
-  onAddTransaction: (fundId: string) => void;
+  onSetBalance: (fund: UI_FundAndBalance) => void;
 }
 
-export function FundRow({ fund, onEdit, onAddTransaction }: FundRowProps) {
+export function FundRow({ fund, onEdit, onSetBalance }: FundRowProps) {
   const percentage = (fund.currentAmount / fund.targetAmount) * 100;
   const isManual = isManualFund(fund);
 
@@ -38,14 +38,16 @@ export function FundRow({ fund, onEdit, onAddTransaction }: FundRowProps) {
         </div>
         <div className="flex gap-2">
           {isManual && (
-            <Button
-              variant="secondary"
-              className="h-8 w-8 p-0 flex"
-              onClick={() => onAddTransaction(fund.id)}
-              title="Add Transaction"
-            >
-              <PlusCircle className="size-3.5 m-auto" />
-            </Button>
+            <>
+              <Button
+                variant="secondary"
+                className="h-8 w-8 p-0 flex"
+                onClick={() => onSetBalance(fund)}
+                title="Set Balance"
+              >
+                <DollarSign className="size-3.5 m-auto" />
+              </Button>
+            </>
           )}
           <Button
             variant="secondary"

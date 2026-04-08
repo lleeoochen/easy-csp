@@ -6,6 +6,7 @@ import type { UI_FundAndBalance } from "../../types/uiTypes";
 import { FundDialog } from "./FundDialog";
 import { FundType } from "@easy-csp/shared-types";
 import { TransactionEditDialog } from "../transactions/TransactionEditDialog";
+import { SetBalanceDialog } from "../../components/SetBalanceDialog";
 import { FundRow } from "./FundRow";
 
 interface FundsContentProps {
@@ -25,6 +26,8 @@ export function FundsContent({
   const [editingFund, setEditingFund] = useState<UI_FundAndBalance | undefined>(undefined);
   const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
   const [prefilledFundId, setPrefilledFundId] = useState<string | undefined>(undefined);
+  const [isSetBalanceDialogOpen, setIsSetBalanceDialogOpen] = useState(false);
+  const [fundForBalanceSet, setFundForBalanceSet] = useState<UI_FundAndBalance | null>(null);
   const [filterType, setFilterType] = useState<'all' | FundType>('all');
 
   const handleEdit = (fund: UI_FundAndBalance) => {
@@ -35,14 +38,19 @@ export function FundsContent({
     setEditingFund(undefined);
   };
 
-  const handleAddTransaction = (fundId: string) => {
-    setPrefilledFundId(fundId);
-    setIsTransactionDialogOpen(true);
-  };
-
   const handleCloseTransactionDialog = () => {
     setIsTransactionDialogOpen(false);
     setPrefilledFundId(undefined);
+  };
+
+  const handleSetBalance = (fund: UI_FundAndBalance) => {
+    setFundForBalanceSet(fund);
+    setIsSetBalanceDialogOpen(true);
+  };
+
+  const handleCloseSetBalanceDialog = () => {
+    setIsSetBalanceDialogOpen(false);
+    setFundForBalanceSet(null);
   };
 
   // Filter funds based on selected type
@@ -116,7 +124,7 @@ export function FundsContent({
                     <FundRow
                       fund={fund}
                       onEdit={handleEdit}
-                      onAddTransaction={handleAddTransaction}
+                      onSetBalance={handleSetBalance}
                     />
                   </div>
                 ))
@@ -153,6 +161,13 @@ export function FundsContent({
         onOpenChange={handleCloseTransactionDialog}
         transaction={null}
         prefilledFundId={prefilledFundId}
+      />
+
+      {/* Set Balance Dialog */}
+      <SetBalanceDialog
+        open={isSetBalanceDialogOpen}
+        onOpenChange={handleCloseSetBalanceDialog}
+        fund={fundForBalanceSet}
       />
     </div>
   );

@@ -243,6 +243,60 @@ export class FundsService {
   }
 
   /**
+   * Sets the balance of a manual fund directly
+   * Only works for manual funds (accountId is undefined)
+   */
+  public static async setFundBalance(
+    fundId: string,
+    newBalance: number
+  ): Promise<{ success: boolean; message?: string }> {
+    try {
+      const uid = this.getAuthenticatedUserId();
+      const firestore = getFirestore();
+      const fundRef = doc(firestore, FUNDS_COLLECTION, fundId);
+
+      // Verify the fund exists and belongs to the user
+      const fundSnap = await getDoc(fundRef);
+      if (!fundSnap.exists()) {
+        return {
+          success: false,
+          message: "Fund not found",
+        };
+      }
+
+      const fundData = fundSnap.data() as Fund;
+
+      if (fundData.uid !== uid) {
+        return {
+          success: false,
+          message: "Unauthorized access to fund",
+        };
+      }
+
+      // Verify fund is manual (accountId is undefined)
+      if (fundData.accountId !== undefined) {
+        return {
+          success: false,
+          message: "Cannot set balance for account-based funds",
+        };
+      }
+
+      // Update the currentBalance field
+      await updateDoc(fundRef, prepareFirestoreData({ currentBalance: newBalance }));
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      console.error("Error setting fund balance:", error);
+      return {
+        success: false,
+        message: "Failed to set fund balance",
+      };
+    }
+  }
+
+  /**
    * Lists all funds for a user with current balance information
    */
   public static async listFunds(): Promise<{

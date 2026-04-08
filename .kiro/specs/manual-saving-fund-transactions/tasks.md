@@ -13,7 +13,7 @@ This implementation plan breaks down the manual saving fund transactions feature
   - Rebuild shared types package and reinstall in both `easy-csp` and `easy-csp-cloud/functions` using `npm run install:special`
   - _Requirements: 1.2, 1.5, 10.2_
 
-- [ ] 2. Implement service layer for manual transaction operations
+- [x] 2. Implement service layer for manual transaction operations
   - [x] 2.1 Create `createTransaction` method in TransactionsService
     - Implement method signature: `createTransaction(transaction: Omit<Transaction, 'id' | 'uid'>): Promise<{ success: boolean; transaction?: Transaction & { id: string }; message?: string }>`
     - Add user authentication check and set `uid` field
@@ -64,7 +64,7 @@ This implementation plan breaks down the manual saving fund transactions feature
     - Verify balance updates for all scenarios: manual→manual, manual→account, account→manual
     - Run 100 iterations per property
 
-- [ ] 3. Extend SavingTargetsService for manual funds
+- [x] 3. Extend SavingTargetsService for manual funds
   - [x] 3.1 Extend `addSavingTarget` method to support manual funds
     - Modify method signature to make `financialInstitutionId` and `accountId` optional
     - If `accountId` is undefined, initialize `currentBalance` to 0 in the document
@@ -88,7 +88,7 @@ This implementation plan breaks down the manual saving fund transactions feature
     - Verify fund type classification and balance source
     - Run 100 iterations per property
 
-- [ ] 4. Create React Query hooks for manual transactions
+- [x] 4. Create React Query hooks for manual transactions
   - [x] 4.1 Implement `useCreateTransaction` hook
     - Create hook in `src/hooks/api/useTransactions.ts`
     - Use `useMutation` with `TransactionsService.createTransaction` as mutation function
@@ -110,7 +110,7 @@ This implementation plan breaks down the manual saving fund transactions feature
     - Return UI_SavingTargetAndBalance with "Manual Entry" for institution and account names
     - _Requirements: 1.1_
 
-- [ ] 5. Extend TransactionEditDialog for manual transaction support
+- [x] 5. Extend TransactionEditDialog for manual transaction support
   - [x] 5.1 Add create mode support to TransactionEditDialog
     - Modify component to accept `transaction: Transaction | null` (null for create mode)
     - Add `prefilledSavingTargetId?: string` prop for pre-populating fund selection
@@ -157,7 +157,7 @@ This implementation plan breaks down the manual saving fund transactions feature
     - Test delete button only shows for manual transactions
     - Test validation prevents saving invalid data
 
-- [ ] 6. Add "Add Transaction" button to TransactionsPage
+- [x] 6. Add "Add Transaction" button to TransactionsPage
   - [x] 6.1 Add button to page header
     - Add "Add Transaction" button in TransactionsPage header
     - Use existing button component styling
@@ -181,17 +181,67 @@ This implementation plan breaks down the manual saving fund transactions feature
     - Display "Manual Entry" as institution/account name for manual funds
     - _Requirements: 1.4_
 
-- [x] 8. Checkpoint - Ensure all tests pass and core functionality works
+- [x] 8. Implement direct balance setting for manual funds
+  - [x] 8.1 Add setFundBalance method to SavingTargetsService
+    - Implement method signature: `setFundBalance(savingTargetId: string, newBalance: number): Promise<{ success: boolean; message?: string }>`
+    - Add user authentication check
+    - Read fund document and verify it exists and belongs to user
+    - Verify fund is manual (accountId is undefined)
+    - Return error if fund is account-based
+    - Use `updateDoc` with `prepareFirestoreData` to set currentBalance field to exact value
+    - Return success result
+    - _Requirements: 11.4, 11.5_
+
+  - [x] 8.2 Create useSetFundBalance React Query hook
+    - Create hook in `src/hooks/api/useFunds.ts`
+    - Use `useMutation` with `SavingTargetsService.setFundBalance` as mutation function
+    - On success, invalidate `['savingTargets']` query key
+    - Return mutation object with loading, error, and success states
+    - _Requirements: 11.4_
+
+  - [x] 8.3 Create SetBalanceDialog component
+    - Create new component in `src/components/SetBalanceDialog.tsx`
+    - Accept props: `open`, `onOpenChange`, `savingTarget`
+    - Display current balance as read-only reference field
+    - Add numeric input field for new balance (labeled "New Balance")
+    - Validate input is a valid number (not NaN, not empty, not Infinity)
+    - Allow positive, negative, and zero values
+    - Display error message for invalid input
+    - Disable save button when validation fails
+    - On save, call `useSetFundBalance` mutation with savingTargetId and newBalance
+    - Show success toast notification on successful save
+    - Show error toast notification on failure
+    - Close dialog automatically on successful save
+    - _Requirements: 11.2, 11.3, 11.4_
+
+  - [x] 8.4 Add "Set Balance" button to SavingFundRow
+    - Add "Set Balance" button to each manual fund row
+    - Only show button when `isManualFund(savingTarget)` returns true (accountId is undefined)
+    - On click, open SetBalanceDialog with the fund's data
+    - Button should be visually distinct from "Add Transaction" button
+    - _Requirements: 11.1, 11.5_
+
+  - [ ]* 8.5 Write property tests for direct balance setting
+    - **Property 22: Direct Balance Set Updates Field**
+    - **Validates: Requirements 11.4**
+    - **Property 23: Balance Set Preserves Transactions**
+    - **Validates: Requirements 11.6**
+    - Generate random balance values (positive, negative, zero)
+    - Create manual fund with transactions, set balance, verify transactions unchanged
+    - Verify balance is set to exact value provided
+    - Run 100 iterations per property
+
+- [x] 9. Checkpoint - Ensure all tests pass and core functionality works
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 9. Implement property-based tests for correctness properties
-  - [ ]* 9.1 Write property test for account-based fund balance immutability
+- [ ] 10. Implement property-based tests for correctness properties
+  - [ ]* 10.1 Write property test for account-based fund balance immutability
     - **Property 12: Account-Based Fund Balance Immutability**
     - **Validates: Requirements 7.6**
     - Create account-based fund, perform transaction operations, verify currentBalance field is never modified
     - Run 100 iterations
 
-  - [ ]* 9.2 Write property test for validation rules
+  - [ ]* 10.2 Write property test for validation rules
     - **Property 13: Non-Empty Name Validation**
     - **Validates: Requirements 8.1**
     - **Property 14: Valid Date Validation**
@@ -201,27 +251,27 @@ This implementation plan breaks down the manual saving fund transactions feature
     - Generate invalid inputs and verify rejection
     - Run 100 iterations per property
 
-  - [ ]* 9.3 Write property test for filter parity
+  - [ ]* 10.3 Write property test for filter parity
     - **Property 10: Filter Parity for Manual Transactions**
     - **Validates: Requirements 7.3, 9.1, 9.2, 9.3, 9.4**
     - Generate random transaction sets with manual and Plaid transactions
     - Apply filters (category, fund, date range, search) and verify manual transactions included correctly
     - Run 100 iterations
 
-  - [ ]* 9.4 Write property test for CSP bucket totals
+  - [ ]* 10.4 Write property test for CSP bucket totals
     - **Property 16: CSP Bucket Total Inclusion**
     - **Validates: Requirements 9.5**
     - Generate random manual transactions across categories
     - Calculate bucket totals and verify manual transaction amounts included
     - Run 100 iterations
 
-  - [ ]* 9.5 Write property test for round-trip balance consistency
+  - [ ]* 10.5 Write property test for round-trip balance consistency
     - **Property 21: Balance Invariant (Round-Trip)**
     - **Validates: Requirements 2.5, 5.4**
     - Create manual fund, record balance, create transaction, delete same transaction, verify balance unchanged
     - Run 100 iterations
 
-  - [ ]* 9.6 Write property tests for transaction operations
+  - [ ]* 10.6 Write property tests for transaction operations
     - **Property 3: Transaction Update Preserves Data**
     - **Validates: Requirements 4.3**
     - **Property 6: Transaction Deletion Removes Document**
@@ -231,7 +281,7 @@ This implementation plan breaks down the manual saving fund transactions feature
     - Generate random transaction updates and verify correctness
     - Run 100 iterations per property
 
-  - [ ]* 9.7 Write property tests for data integrity
+  - [ ]* 10.7 Write property tests for data integrity
     - **Property 17: Manual Transaction Source Indicator**
     - **Validates: Requirements 10.2**
     - **Property 18: Transaction ID Uniqueness**
@@ -243,7 +293,7 @@ This implementation plan breaks down the manual saving fund transactions feature
     - Verify data integrity constraints across random inputs
     - Run 100 iterations per property
 
-- [x] 10. Final checkpoint - Verify all functionality and tests
+- [x] 11. Final checkpoint - Verify all functionality and tests
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

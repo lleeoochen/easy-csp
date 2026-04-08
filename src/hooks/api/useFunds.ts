@@ -124,3 +124,16 @@ export const useDeleteFund = () => {
     },
   });
 };
+
+export const useSetFundBalance = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ fundId, newBalance }: { fundId: string; newBalance: number }) => {
+      const result = await FundsService.setFundBalance(fundId, newBalance);
+      if (!result.success) throw new Error(result.message ?? 'Failed to set fund balance');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: FUNDS_QUERY_KEY });
+    },
+  });
+};

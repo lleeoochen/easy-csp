@@ -32,18 +32,26 @@ Key design decisions:
 │  │                  │        │                  │          │
 │  │ - Add Txn Button │        │ - Fund Rows      │          │
 │  │ - Txn List       │        │ - Add Txn Button │          │
-│  └────────┬─────────┘        └────────┬─────────┘          │
+│  └────────┬─────────┘        │ - Set Balance Btn│          │
+│           │                  └────────┬─────────┘          │
 │           │                           │                     │
 │           └───────────┬───────────────┘                     │
-│                       │                                     │
-│              ┌────────▼────────┐                            │
-│              │ TransactionEdit │                            │
-│              │     Dialog      │                            │
-│              │                 │                            │
-│              │ - Create/Edit   │                            │
-│              │ - Delete        │                            │
-│              │ - Validation    │                            │
-│              └────────┬────────┘                            │
+│                       │               │                     │
+│              ┌────────▼────────┐     │                     │
+│              │ TransactionEdit │     │                     │
+│              │     Dialog      │     │                     │
+│              │                 │     │                     │
+│              │ - Create/Edit   │     │                     │
+│              │ - Delete        │     │                     │
+│              │ - Validation    │     │                     │
+│              └────────┬────────┘     │                     │
+│                       │              │                     │
+│              ┌────────▼──────────────▼──┐                  │
+│              │   SetBalanceDialog       │                  │
+│              │                          │                  │
+│              │ - Input new balance      │                  │
+│              │ - Validation             │                  │
+│              └────────┬─────────────────┘                  │
 │                       │                                     │
 │         ┌─────────────┴─────────────┐                      │
 │         │                           │                      │
@@ -57,7 +65,7 @@ Key design decisions:
 │    │                    │   │                    │        │
 │    │ - createTransaction│   │ - listSavingTargets│        │
 │    │ - updateTransaction│   │ - addSavingTarget  │        │
-│    │ - deleteTransaction│   │ - updateSavingTarget│       │
+│    │ - deleteTransaction│   │ - setFundBalance   │        │
 │    └────┬───────────────┘   └────────┬───────────┘        │
 │         │                            │                     │
 └─────────┼────────────────────────────┼─────────────────────┘
@@ -111,6 +119,32 @@ Key design decisions:
 6. React Query invalidates cache
 7. UI removes transaction from list
 
+#### Setting Manual Fund Balance Directly
+
+1. User clicks "Set Balance" button on a manual fund row (only visible for manual funds)
+2. SetBalanceDialog opens showing current balance as reference
+3. User enters new balance value (can be positive, negative, or zero)
+4. User clicks "Save"
+5. SetBalanceDialog validates input:
+   - Must be a valid number (not NaN, not empty)
+   - Can be any numeric value including negative
+6. useSetFundBalance mutation calls SavingTargetsService.setFundBalance()
+7. Service layer validates:
+   - User is authenticated
+   - Fund exists and belongs to user
+   - Fund is manual (accountId is undefined)
+8. Service layer updates fund's currentBalance field directly using updateDoc
+9. React Query invalidates savingTargets cache and refetches data
+10. UI updates to show new balance
+11. Existing transactions remain unchanged (no transaction documents modified)
+12. Future transaction operations add/subtract from the new balance value
+
+**Key Difference from Transaction-Based Updates:**
+- Direct balance set uses simple `updateDoc` (single document update)
+- Transaction-based updates use Firestore `runTransaction` (atomic multi-document update)
+- Direct balance set does not create, modify, or delete any transaction documents
+- This allows users to initialize or adjust fund balance without creating historical transactions
+
 ## Components and Interfaces
 
 ### Frontend Components
@@ -149,10 +183,55 @@ interface TransactionEditDialogProps {
 
 **Purpose**: Display individual saving fund with progress and actions
 
-**New Feature**:
+**New Features**:
 - Add "Add Transaction" button for manual funds
-- Button opens TransactionEditDialog with `prefilledSavingTargetId`
-- Visual indicator to distinguish manual vs account-based funds
+- Add "Set Balance" button for manual funds only (not shown for account-based funds)
+- "Add Transaction" button opens TransactionEditDialog with pre-populated savingTargetId
+- "Set Balance" button opens SetBalanceDialog for direct balance adjustment
+- Visual indicator to distinguish manual vs account-based funds (e.g., icon or badge)
+
+**Conditional Rendering**:
+- "Set Balance" button: `if (isManualFund(savingTarget))` → show button
+- "Add Transaction" button: shown for manual funds (optional for account-based funds)
+- Button visibility logic uses `accountId === undefined` to detect manual funds
+
+#### SetBalanceDialog (New)
+
+**Purpose**: Modal dialog for directly setting a manual fund's balance
+
+**Props**:
+```typescript
+interface SetBalanceDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  savingTarget: UI_SavingTargetAndBalance;  // The manual fund to update
+}
+```
+
+**Behavior**:
+- Display current balance as reference
+- Accept any numeric input (positive, negative, or zero)
+- Validate that input is a valid number
+- On save, call service layer to update `currentBalance` field
+- Show success/error feedback
+- Close dialog on successful save
+
+**Fields**:
+- Current Balance (read-only, for reference)
+- New Balance (numeric input, required)
+
+**Validation**:
+- Must be a valid number (not NaN, not empty, not Infinity)
+- Can be positive, negative, or zero
+- Display error message if validation fails
+- Disable save button until valid input provided
+
+**User Experience**:
+- Clear labeling: "Current Balance: $X.XX" (read-only)
+- Input label: "New Balance" with currency formatting
+- Success feedback: Toast notification "Balance updated successfully"
+- Error feedback: Toast notification with specific error message
+- Dialog closes automatically on successful save
 
 #### TransactionsPage (Extended)
 
@@ -231,6 +310,65 @@ class SavingTargetsService {
     savingTargets?: UI_SavingTargetAndBalance[];
     message?: string
   }>; // Signature already exists, will extend implementation
+
+  /**
+   * Sets the balance of a manual fund directly (new method)
+   * Only works for manual funds (accountId is undefined)
+   * Updates currentBalance field to the specified value
+   */
+  public static async setFundBalance(
+    savingTargetId: string,
+    newBalance: number
+  ): Promise<{ success: boolean; message?: string }>;
+}
+```
+
+**Implementation Details for setFundBalance**:
+- Verify the fund exists and belongs to the authenticated user
+- Verify the fund is manual (accountId is undefined)
+- Update the `currentBalance` field to the exact value provided
+- Return error if fund is account-based or doesn't exist
+- **No Firestore transaction needed** (single document update, no balance calculation)
+- Use `updateDoc` with `prepareFirestoreData` to handle the update
+- This is simpler than transaction-based balance updates because:
+  - Only one document is modified (the fund document)
+  - No transaction documents are created, modified, or deleted
+  - No atomic multi-document coordination required
+  - Direct field replacement, not delta calculation
+
+**Example Implementation**:
+```typescript
+public static async setFundBalance(
+  savingTargetId: string,
+  newBalance: number
+): Promise<{ success: boolean; message?: string }> {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (!user) {
+    return { success: false, message: 'User not authenticated' };
+  }
+
+  const fundRef = doc(firestore, SAVING_TARGETS_COLLECTION, savingTargetId);
+  const fundSnap = await getDoc(fundRef);
+
+  if (!fundSnap.exists()) {
+    return { success: false, message: 'Saving fund not found' };
+  }
+
+  const fundData = fundSnap.data() as SavingTarget;
+
+  if (fundData.uid !== user.uid) {
+    return { success: false, message: 'Unauthorized access to saving fund' };
+  }
+
+  if (fundData.accountId !== undefined) {
+    return { success: false, message: 'Cannot set balance for account-based funds' };
+  }
+
+  await updateDoc(fundRef, prepareFirestoreData({ currentBalance: newBalance }));
+
+  return { success: true };
 }
 ```
 
@@ -305,6 +443,17 @@ export const useAddSavingTarget = () => {
       // ... existing implementation
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: SAVING_TARGETS_QUERY_KEY }),
+  });
+};
+
+export const useSetFundBalance = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ savingTargetId, newBalance }: { savingTargetId: string; newBalance: number }) =>
+      SavingTargetsService.setFundBalance(savingTargetId, newBalance),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: SAVING_TARGETS_QUERY_KEY });
+    },
   });
 };
 ```
@@ -419,17 +568,19 @@ await runTransaction(firestore, async (transaction) => {
 
 ### Balance Update Scenarios
 
-| Operation | Old Fund | New Fund | Balance Update |
-|-----------|----------|----------|----------------|
-| Create | N/A | Manual | Add amount to new fund |
-| Create | N/A | Account-based | No update |
-| Update (amount only) | Manual | Manual (same) | Add difference to fund |
-| Update (fund changed) | Manual | Manual | Subtract from old, add to new |
-| Update (fund changed) | Manual | Account-based | Subtract from old |
-| Update (fund changed) | Account-based | Manual | Add to new |
-| Update (fund changed) | Account-based | Account-based | No update |
-| Delete | Manual | N/A | Subtract amount from fund |
-| Delete | Account-based | N/A | No update |
+| Operation | Old Fund | New Fund | Balance Update Method | Notes |
+|-----------|----------|----------|----------------|-------|
+| Create | N/A | Manual | Firestore transaction: Add amount to new fund | Atomic with transaction creation |
+| Create | N/A | Account-based | No update | Account balance from Plaid |
+| Update (amount only) | Manual | Manual (same) | Firestore transaction: Add difference to fund | Atomic with transaction update |
+| Update (fund changed) | Manual | Manual | Firestore transaction: Subtract from old, add to new | Atomic multi-document update |
+| Update (fund changed) | Manual | Account-based | Firestore transaction: Subtract from old | Atomic with transaction update |
+| Update (fund changed) | Account-based | Manual | Firestore transaction: Add to new | Atomic with transaction update |
+| Update (fund changed) | Account-based | Account-based | No update | Both balances from Plaid |
+| Delete | Manual | N/A | Firestore transaction: Subtract amount from fund | Atomic with transaction deletion |
+| Delete | Account-based | N/A | No update | Account balance from Plaid |
+| **Set Balance Directly** | **Manual** | **N/A** | **Simple updateDoc: Set currentBalance to exact value** | **No transaction needed, no transaction documents affected** |
+| **Set Balance Directly** | **Account-based** | **N/A** | **Error: Not allowed** | **Account-based funds use Plaid balance** |
 
 
 ## Correctness Properties
@@ -571,6 +722,18 @@ The properties below represent the unique, non-redundant set of correctness guar
 
 **Validates: Requirements 2.5, 5.4** (Combined round-trip property)
 
+### Property 22: Direct Balance Set Updates Field
+
+*For any* manual saving fund and any numeric value, when the balance is set directly to that value, reading the fund's `currentBalance` field should return exactly that value.
+
+**Validates: Requirements 11.4**
+
+### Property 23: Balance Set Preserves Transactions
+
+*For any* manual saving fund with existing transactions, setting the balance directly should not modify, delete, or create any transaction documents.
+
+**Validates: Requirements 11.6**
+
 
 ## Error Handling
 
@@ -582,10 +745,21 @@ The properties below represent the unique, non-redundant set of correctness guar
 - Invalid date → Display error: "Please enter a valid date"
 - Missing required fields → Disable save button until fields are valid
 
+**Client-Side Validation** (SetBalanceDialog):
+- Non-numeric input → Display error: "Please enter a valid number"
+- Empty input → Display error: "Balance is required"
+- NaN or Infinity → Display error: "Please enter a valid number"
+
 **Service Layer Validation** (TransactionsService):
 - User not authenticated → Throw error: "User not authenticated"
 - Invalid transaction ID → Return error: "Transaction not found"
 - Unauthorized access (uid mismatch) → Return error: "Unauthorized access to transaction"
+
+**Service Layer Validation** (SavingTargetsService.setFundBalance):
+- User not authenticated → Return error: "User not authenticated"
+- Fund not found → Return error: "Saving fund not found"
+- Unauthorized access (uid mismatch) → Return error: "Unauthorized access to saving fund"
+- Fund is account-based (has accountId) → Return error: "Cannot set balance for account-based funds"
 
 ### Firestore Transaction Errors
 
@@ -617,6 +791,26 @@ The properties below represent the unique, non-redundant set of correctness guar
 - Manual funds can have negative `currentBalance` (e.g., tracking debt or overdrafts)
 - No validation prevents negative balances
 - UI should display negative balances clearly (e.g., "-$50.00" in red)
+- SetBalanceDialog accepts negative values explicitly
+
+**Direct Balance Set After Transactions**:
+- Setting balance directly does not modify or delete existing transactions
+- Transactions continue to add/subtract from the manually-set balance
+- Example: Fund has $100 balance from transactions → User sets balance to $500 → User adds $50 transaction → New balance is $550
+- This allows users to "initialize" a fund balance without creating individual historical transactions
+
+**Use Cases for Direct Balance Setting**:
+1. **Initial Balance**: User wants to start tracking a fund that already has money in it (e.g., existing cash savings of $1,000)
+2. **Reconciliation**: User discovers the balance is incorrect and wants to correct it to match reality
+3. **Bulk Adjustment**: User has many small transactions they don't want to enter individually, so they set the net result
+4. **Migration**: User is migrating from another system and wants to set the current balance without historical data
+5. **Reset**: User wants to reset a fund to zero or another value without deleting transactions
+
+**Why Not Just Create a Transaction?**:
+- Creating a transaction implies a specific event occurred (deposit/withdrawal)
+- Direct balance set is for adjustments, corrections, or initialization
+- Transactions show up in transaction history; balance adjustments don't
+- Semantically different: "I deposited $100" vs "The balance is $100"
 
 **Large Transaction Volumes**:
 - Firestore transactions have a limit of 500 document operations
@@ -636,15 +830,18 @@ This feature requires both unit tests and property-based tests for comprehensive
 
 **Unit Tests**: Focus on specific examples, edge cases, and integration points
 - Specific transaction creation scenarios (with/without fund, positive/negative amounts)
+- Direct balance setting scenarios (positive, negative, zero)
 - UI component rendering and interaction
 - Service layer error handling
 - Edge cases (zero balance, negative balance, missing fund)
 
 **Property-Based Tests**: Verify universal properties across all inputs
 - Balance update correctness across random transaction amounts
+- Direct balance set correctness across random balance values
 - Filter behavior across random transaction sets
 - Validation logic across random invalid inputs
 - Round-trip properties (create then delete preserves balance)
+- Transaction preservation after balance set
 
 Together, these approaches provide comprehensive coverage: unit tests catch concrete bugs in specific scenarios, while property tests verify general correctness across the input space.
 
@@ -691,6 +888,75 @@ describe('Feature: manual-saving-fund-transactions', () => {
       { numRuns: 100 }
     );
   });
+
+  it('Property 22: Direct Balance Set Updates Field', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.record({
+          fundName: fc.string({ minLength: 1 }),
+          targetAmount: fc.float({ min: 1, max: 1000000 }),
+          newBalance: fc.float({ min: -100000, max: 100000 }),
+        }),
+        async ({ fundName, targetAmount, newBalance }) => {
+          // Create manual fund
+          const fund = await createManualFund(fundName, targetAmount);
+
+          // Set balance directly
+          await setFundBalance(fund.id, newBalance);
+
+          // Verify balance is exactly the set value
+          const updatedFund = await getFund(fund.id);
+          expect(updatedFund.currentBalance).toBe(newBalance);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+
+  it('Property 23: Balance Set Preserves Transactions', async () => {
+    await fc.assert(
+      fc.asyncProperty(
+        fc.record({
+          fundName: fc.string({ minLength: 1 }),
+          targetAmount: fc.float({ min: 1, max: 1000000 }),
+          transactionCount: fc.integer({ min: 1, max: 10 }),
+          newBalance: fc.float({ min: -100000, max: 100000 }),
+        }),
+        async ({ fundName, targetAmount, transactionCount, newBalance }) => {
+          // Create manual fund
+          const fund = await createManualFund(fundName, targetAmount);
+
+          // Create multiple transactions
+          const transactionIds = [];
+          for (let i = 0; i < transactionCount; i++) {
+            const txn = await createTransaction({
+              name: `Transaction ${i}`,
+              amount: Math.random() * 100,
+              savingTargetId: fund.id,
+            });
+            transactionIds.push(txn.id);
+          }
+
+          // Get transaction snapshots before balance set
+          const transactionsBefore = await Promise.all(
+            transactionIds.map(id => getTransaction(id))
+          );
+
+          // Set balance directly
+          await setFundBalance(fund.id, newBalance);
+
+          // Get transaction snapshots after balance set
+          const transactionsAfter = await Promise.all(
+            transactionIds.map(id => getTransaction(id))
+          );
+
+          // Verify all transactions are unchanged
+          expect(transactionsAfter).toEqual(transactionsBefore);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
 });
 ```
 
@@ -705,11 +971,23 @@ describe('Feature: manual-saving-fund-transactions', () => {
 - `deleteTransaction()` updates balance correctly
 - Error handling for missing fund, unauthorized access, network errors
 
+**Service Layer Tests** (`savingTargetsService.test.ts`):
+- `setFundBalance()` updates currentBalance field correctly
+- `setFundBalance()` rejects account-based funds
+- `setFundBalance()` accepts positive, negative, and zero values
+- `setFundBalance()` validates fund ownership
+- `setFundBalance()` handles missing fund error
+
 **React Query Hook Tests** (`useTransactions.test.ts`):
 - `useCreateTransaction` invalidates correct query keys
 - `useDeleteTransaction` invalidates correct query keys
 - `useUpdateTransaction` updates cache optimistically
 - Error states propagate correctly to UI
+
+**React Query Hook Tests** (`useFunds.test.ts`):
+- `useSetFundBalance` invalidates saving targets query
+- `useSetFundBalance` handles success and error states
+- Error messages display correctly in UI
 
 **Component Tests** (`TransactionEditDialog.test.tsx`):
 - Renders in create mode with empty fields
@@ -720,10 +998,21 @@ describe('Feature: manual-saving-fund-transactions', () => {
 - Enables all fields for manual transactions
 - Pre-populates savingTargetId when provided
 
+**Component Tests** (`SetBalanceDialog.test.tsx`):
+- Renders with current balance displayed
+- Accepts numeric input (positive, negative, zero)
+- Validates non-numeric input
+- Validates empty input
+- Calls setFundBalance mutation on save
+- Closes dialog on successful save
+- Displays error message on failure
+
 **Integration Tests**:
 - End-to-end flow: Create manual fund → Add transaction → Verify balance
 - End-to-end flow: Create transaction → Edit amount → Verify balance delta
 - End-to-end flow: Create transaction → Delete → Verify balance restored
+- End-to-end flow: Create manual fund → Set balance → Add transaction → Verify balance includes both
+- End-to-end flow: Create manual fund with transactions → Set balance → Verify transactions unchanged
 - Filter manual transactions by category, fund, date range
 - Search manual transactions by name
 
@@ -799,18 +1088,23 @@ const transactionUpdatesArbitrary = fc.record({
 3. Add delete button for manual transactions
 4. Add validation for required fields
 5. Add transaction source indicator
+6. Create `SetBalanceDialog` component
+7. Add balance input field with validation
+8. Add current balance display for reference
 
 ### Phase 5: Page Integration
 1. Add "Add Transaction" button to `TransactionsPage`
 2. Add "Add Transaction" button to manual fund rows in `SavingFundsPage`
-3. Add visual indicators for manual transactions and funds
-4. Wire up dialog opening with pre-populated fields
+3. Add "Set Balance" button to manual fund rows in `SavingFundsPage`
+4. Add visual indicators for manual transactions and funds
+5. Wire up dialog opening with pre-populated fields
+6. Ensure "Set Balance" button only appears for manual funds
 
 ### Phase 6: Testing
-1. Write property-based tests for all 21 properties
-2. Write unit tests for service layer
-3. Write component tests for UI
-4. Write integration tests for end-to-end flows
+1. Write property-based tests for all 23 properties
+2. Write unit tests for service layer (including setFundBalance)
+3. Write component tests for UI (including SetBalanceDialog)
+4. Write integration tests for end-to-end flows (including balance set flows)
 
 ### Migration Considerations
 
