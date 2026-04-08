@@ -61,7 +61,7 @@ export const Tabs = ({ paths }: TabsProps) => {
         </main>
 
         {/* Bottom Navigation */}
-        <nav className="fixed grid grid-cols-5 bottom-5 left-0 right-0 bg-tabs-bar-bg z-10 backdrop-blur-lg rounded-2xl shadow-xl/30 w-fit mx-5 mb-[env(safe-area-inset-bottom)]">
+        <nav className="fixed grid grid-cols-5 bottom-5 left-5 right-5 bg-tabs-bar-bg z-10 backdrop-blur-lg rounded-2xl shadow-xl/30 w-fit mx-auto mb-[env(safe-area-inset-bottom)]">
           {
             navPaths.map(path => (
               <TabMenuItem key={path.path} {...path} />

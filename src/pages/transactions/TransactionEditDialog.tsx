@@ -420,7 +420,7 @@ export const TransactionEditDialog = ({ open, onOpenChange, transaction, prefill
                 message: 'Are you sure you want to delete this transaction? This action cannot be undone.'
               }
             } : undefined}
-            customActions={!isCreateMode && !isManual ? [{
+            customActions={!isCreateMode ? [{
               label: 'Split',
               onClick: () => setSplitDialogOpen(true),
               disabled: isLoading || isAlreadySplit,

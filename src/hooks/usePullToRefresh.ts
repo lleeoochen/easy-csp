@@ -22,14 +22,18 @@ export function usePullToRefresh({
     if (!element) return;
 
     let startY = 0;
+    let startX = 0;
     let currentY = 0;
+    let isPulling = false;
 
     const handleTouchStart = (e: TouchEvent) => {
       // Only trigger if we're at the top of the scroll
       if (element.scrollTop <= 500 && !isRefreshing) {
         startY = e.touches[0].clientY;
+        startX = e.touches[0].clientX;
         touchStartY.current = startY;
         canPullRef.current = true;
+        isPulling = false;
       } else {
         canPullRef.current = false;
       }
@@ -39,17 +43,27 @@ export function usePullToRefresh({
       if (!canPullRef.current || isRefreshing) return;
 
       currentY = e.touches[0].clientY;
-      const distance = currentY - startY;
+      const currentX = e.touches[0].clientX;
+      const deltaY = currentY - startY;
+      const deltaX = currentX - startX;
 
-      // Only pull down and only if still at top
-      if (distance > 0 && element.scrollTop <= 0) {
+      // Determine if this is a vertical or horizontal gesture
+      if (!isPulling && Math.abs(deltaY) > 5) {
+        // Check if movement is more vertical than horizontal
+        if (Math.abs(deltaY) > Math.abs(deltaX) * 1.5) {
+          isPulling = true;
+        } else {
+          // Horizontal movement detected, disable pull-to-refresh for this gesture
+          canPullRef.current = false;
+          return;
+        }
+      }
+
+      // Only pull down if we've determined this is a vertical gesture
+      if (isPulling && deltaY > 0 && element.scrollTop <= 0) {
         // Apply resistance
-        const resistedDistance = distance / resistance;
+        const resistedDistance = deltaY / resistance;
         setPullDistance(resistedDistance);
-      } else {
-        // // If scrolled away from top, stop pull
-        // canPullRef.current = false;
-        // setPullDistance(0);
       }
     };
 
