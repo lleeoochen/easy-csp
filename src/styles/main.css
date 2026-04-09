@@ -3,6 +3,35 @@
 
 html {
   font-size: 16px;
+  Disable pull-to-refresh on iOS Safari
+  overscroll-behavior-y: none;
+}
+
+body {
+  /* Disable pull-to-refresh on iOS Safari */
+  overscroll-behavior-y: none;
+}
+
+/* Safari mobile viewport height fix */
+body {
+  /* Use dvh (dynamic viewport height) which accounts for Safari's collapsing UI */
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+}
+
+html {
+  height: -webkit-fill-available;
+}
+
+/* Safari mobile viewport height fix */
+body {
+  /* Use dvh (dynamic viewport height) which accounts for Safari's collapsing UI */
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+}
+
+html {
+  height: -webkit-fill-available;
 }
 
 .w-fill {

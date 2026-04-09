@@ -77,6 +77,7 @@ export function formatCurrencyAbbreviated(
   }
 }
 
+
 /**
  * Parses a currency string and returns the numeric value
  * @param currencyString The currency string to parse (e.g., "$1,234.56")

@@ -2,6 +2,7 @@ import { HashRouter as Router, Routes, Route, Link, useLocation } from "react-ro
 import type { ComponentType, ReactNode } from "react";
 import { cn } from "./common/utils";
 import type { LucideProps } from "lucide-react";
+import { useHideOnScroll } from "../hooks/useHideOnScroll";
 
 
 type TabsProps = {
@@ -46,6 +47,7 @@ export const TabMenuItem = ({ path, icon, name }: TabMenuItemProps) => {
 export const Tabs = ({ paths }: TabsProps) => {
   // Filter paths for navigation display
   const navPaths = paths.filter(p => p.showInNav);
+  const isNavVisible = useHideOnScroll(50);
 
   return (
     <Router>
@@ -61,7 +63,10 @@ export const Tabs = ({ paths }: TabsProps) => {
         </main>
 
         {/* Bottom Navigation */}
-        <nav className="fixed grid grid-cols-5 bottom-5 left-5 right-5 bg-tabs-bar-bg z-10 backdrop-blur-lg rounded-2xl shadow-xl/30 w-fit mx-auto mb-[env(safe-area-inset-bottom)]">
+        <nav className={cn(
+          "fixed grid grid-cols-5 bottom-5 left-5 right-5 bg-tabs-bar-bg z-10 backdrop-blur-lg rounded-2xl shadow-xl/30 w-fit mx-auto mb-[env(safe-area-inset-bottom)] transition-transform duration-300",
+          !isNavVisible && "translate-y-[calc(100%+1.25rem+env(safe-area-inset-bottom))]"
+        )}>
           {
             navPaths.map(path => (
               <TabMenuItem key={path.path} {...path} />

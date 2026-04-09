@@ -24,7 +24,7 @@ export const Page = ({ children, title, maxWidth = 'half' }: PageProps) => {
   };
 
   return (
-    <PullToRefresh onRefresh={handleRefresh} className={`container ${widthClasses[maxWidth]} p-4 pb-32 m-auto pt-[env(safe-area-inset-top)]`}>
+    <PullToRefresh onRefresh={handleRefresh} className={`container ${widthClasses[maxWidth]} p-4 pb-24 m-auto pt-[env(safe-area-inset-top)]`}>
       <h1 className="text-xl text-primary-fg text-center py-5">{ title }</h1>
       { children }
     </PullToRefresh>
