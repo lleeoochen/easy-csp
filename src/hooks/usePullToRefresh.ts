@@ -16,6 +16,12 @@ export function usePullToRefresh({
   const touchStartY = useRef(0);
   const scrollableElement = useRef<HTMLDivElement | null>(null);
   const canPullRef = useRef(false);
+  const pullDistanceRef = useRef(0);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    pullDistanceRef.current = pullDistance;
+  }, [pullDistance]);
 
   useEffect(() => {
     const element = scrollableElement.current;
@@ -45,12 +51,12 @@ export function usePullToRefresh({
       currentY = e.touches[0].clientY;
       const currentX = e.touches[0].clientX;
       const deltaY = currentY - startY;
-      const deltaX = currentX - startX;
+      const deltaX = Math.abs(currentX - startX);
 
       // Determine if this is a vertical or horizontal gesture
       if (!isPulling && Math.abs(deltaY) > 5) {
         // Check if movement is more vertical than horizontal
-        if (Math.abs(deltaY) > Math.abs(deltaX) * 1.5) {
+        if (Math.abs(deltaY) > deltaX * 1.5) {
           isPulling = true;
         } else {
           // Horizontal movement detected, disable pull-to-refresh for this gesture
@@ -75,12 +81,14 @@ export function usePullToRefresh({
 
       canPullRef.current = false;
 
-      if (pullDistance >= threshold && !isRefreshing) {
+      if (pullDistanceRef.current >= threshold && !isRefreshing) {
         setIsRefreshing(true);
         setPullDistance(threshold);
 
         try {
           await onRefresh();
+          // Keep spinner visible for a bit longer for better UX
+          await new Promise(resolve => setTimeout(resolve, 200));
         } finally {
           setIsRefreshing(false);
           setPullDistance(0);
@@ -99,7 +107,7 @@ export function usePullToRefresh({
       element.removeEventListener('touchmove', handleTouchMove);
       element.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [pullDistance, threshold, resistance, onRefresh, isRefreshing]);
+  }, [threshold, resistance, onRefresh, isRefreshing]);
 
   return {
     pullDistance,

@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@/test/testUtils';
 import { Page } from './Page';
 import { useQueryClient } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 
 vi.mock('@tanstack/react-query', async () => {
   const actual = await vi.importActual('@tanstack/react-query');
@@ -12,7 +13,7 @@ vi.mock('@tanstack/react-query', async () => {
 });
 
 vi.mock('./PullToRefresh', () => ({
-  PullToRefresh: ({ children, className }: any) => (
+  PullToRefresh: ({ children, className }: { children: ReactNode; className?: string }) => (
     <div data-testid="pull-to-refresh" className={className}>
       {children}
     </div>
@@ -26,7 +27,7 @@ describe('Page', () => {
     vi.clearAllMocks();
     vi.mocked(useQueryClient).mockReturnValue({
       resetQueries: mockResetQueries,
-    } as any);
+    } as unknown as ReturnType<typeof useQueryClient>);
   });
 
   it('should render children', () => {

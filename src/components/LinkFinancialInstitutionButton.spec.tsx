@@ -28,6 +28,7 @@ describe('LinkFinancialInstitutionButton', () => {
       ready: true,
       error: null,
       exit: vi.fn(),
+      submit: vi.fn(),
     });
   });
 
@@ -43,9 +44,8 @@ describe('LinkFinancialInstitutionButton', () => {
 
   it('should show loading state when clicked', async () => {
     // Make the promise never resolve to keep loading state
-    let resolvePromise: any;
-    const pendingPromise = new Promise((resolve) => {
-      resolvePromise = resolve;
+    const pendingPromise = new Promise(() => {
+      // Never resolves
     });
     mockHttpsCallable.mockReturnValue(pendingPromise);
 

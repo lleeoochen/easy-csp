@@ -8,11 +8,14 @@ import NetWorthPage from "./pages/netWorth/NetWorthPage";
 import { DollarSign, Target, BarChart3, Settings, Building2, Filter, TrendingUp } from "lucide-react";
 import { initializeApp } from "firebase/app";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
-import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
+import { connectFirestoreEmulator, getFirestore, doc, getDoc } from "firebase/firestore";
 import SignInPage from "./pages/SignInPage";
 import { useAuthState } from "./hooks/useAuthState";
 import { Tabs } from "./components/Tabs";
 import { isDevEnvironment } from "./utils/envUtils";
+import { RequireMfaEnrollment } from "./components/RequireMfaEnrollment";
+import { USERS_COLLECTION, type User } from "@easy-csp/shared-types";
+import { useState, useEffect } from "react";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBERcnPQeqTU4VrJryfWAiqaFe4BPxDRXQ",
@@ -30,21 +33,53 @@ const firestore = getFirestore(app);
 const functions = getFunctions(app);
 
 // Connect to emulators
-if (isDevEnvironment) {
-  connectFirestoreEmulator(firestore, "localhost", 8080);
-  connectFunctionsEmulator(functions, "localhost", 5001);
-}
+// Temporarily disabled to test MFA against production
+// if (isDevEnvironment) {
+//   connectFirestoreEmulator(firestore, "localhost", 8080);
+//   connectFunctionsEmulator(functions, "localhost", 5001);
+// }
 
 function App() {
-  const { signedIn, loading } = useAuthState();
+  const { signedIn, loading, userId } = useAuthState();
+  const [mfaEnabled, setMfaEnabled] = useState<boolean | null>(null);
+  const [checkingMfa, setCheckingMfa] = useState(true);
 
-  if (loading) {
+  useEffect(() => {
+    const checkMfaStatus = async () => {
+      if (!signedIn || !userId) {
+        setCheckingMfa(false);
+        return;
+      }
+
+      try {
+        const firestore = getFirestore();
+        const userDoc = await getDoc(doc(firestore, USERS_COLLECTION, userId));
+        const userData = userDoc.data() as User | undefined;
+
+        setMfaEnabled(userData?.mfaEnabled || false);
+      } catch (error) {
+        console.error('Error checking MFA status:', error);
+        setMfaEnabled(false);
+      } finally {
+        setCheckingMfa(false);
+      }
+    };
+
+    checkMfaStatus();
+  }, [signedIn, userId]);
+
+  if (loading || checkingMfa) {
     return (
       <div className="loading-container">
         <div className="spinner"></div>
         <p>Loading authentication status...</p>
       </div>
     );
+  }
+
+  // Show MFA enrollment if user is signed in but hasn't enabled MFA
+  if (signedIn && mfaEnabled === false) {
+    return <RequireMfaEnrollment />;
   }
 
   return (

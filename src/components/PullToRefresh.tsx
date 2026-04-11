@@ -25,7 +25,11 @@ export function PullToRefresh({
   const opacity = Math.min(progress * 1.5, 1);
 
   return (
-    <div ref={scrollableElement} className={`relative h-full overflow-y-auto ${className}`}>
+    <div
+      ref={scrollableElement}
+      className={`relative h-full overflow-y-auto ${className}`}
+      style={{ overscrollBehavior: 'none' }}
+    >
       {/* Pull indicator */}
       <div
         className="absolute top-[env(safe-area-inset-top)] left-0 right-0 flex justify-center items-center transition-opacity z-50"
@@ -50,7 +54,7 @@ export function PullToRefresh({
       {/* Overlay during refresh */}
       {isRefreshing && (
         <div
-          className="absolute top-0 left-0 right-0 bottom-0 bg-background/20 z-40 pointer-events-none"
+          className="absolute top-0 left-0 right-0 bottom-0 bg-background/10 backdrop-blur-[2px] z-40 pointer-events-none"
           style={{
             transition: 'opacity 0.2s ease-in-out',
           }}

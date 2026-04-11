@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"name": "easy-csp-shared-types",
+			"path": "../easy-csp-shared-types"
+		},
+		{
+			"name": "easy-csp-cloud",
+			"path": "../easy-csp-cloud"
+		},
+		{
+			"name": "easy-csp",
+			"path": "."
+		}
+	],
+	"settings": {
+		"typescript.autoClosingTags": false
+	}
+}

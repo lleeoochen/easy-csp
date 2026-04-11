@@ -1,37 +1,21 @@
 @config "../../tailwind.config.js";
 @import "tailwindcss";
 
-html {
+html, body {
+  height: 100vh;
   font-size: 16px;
-  Disable pull-to-refresh on iOS Safari
-  overscroll-behavior-y: none;
-}
-
-body {
   /* Disable pull-to-refresh on iOS Safari */
-  overscroll-behavior-y: none;
+  overscroll-behavior: none;
 }
 
-/* Safari mobile viewport height fix */
-body {
-  /* Use dvh (dynamic viewport height) which accounts for Safari's collapsing UI */
-  min-height: 100dvh;
-  min-height: -webkit-fill-available;
-}
+/* Sign in page - prevent scrolling */
+body.signin-page {
 
-html {
-  height: -webkit-fill-available;
-}
-
-/* Safari mobile viewport height fix */
-body {
-  /* Use dvh (dynamic viewport height) which accounts for Safari's collapsing UI */
-  min-height: 100dvh;
-  min-height: -webkit-fill-available;
-}
-
-html {
-  height: -webkit-fill-available;
+  height: 100vh;
+  background-image: url('/easy-csp/background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .w-fill {

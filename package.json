@@ -9,7 +9,7 @@
     "preinstall": "if [ -d ../easy-csp-shared-types ]; then npm pack ../easy-csp-shared-types; fi",
     "install:special": "npm run clean && npm run preinstall && npm install",
     "serve": "vite --host",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",

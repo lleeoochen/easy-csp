@@ -224,12 +224,34 @@ src/
 
 ## Shared Types
 
-- Add new shared types to `easy-csp-shared-types/src/`
-- Export everything through `src/index.ts`
-- After changes, rebuild and reinstall in both packages:
-  ```
-  npm run install:special   # run in easy-csp and easy-csp-cloud/functions
-  ```
+**CRITICAL: Always use `npm run install:special` to update shared types!**
+
+When you modify `easy-csp-shared-types`:
+
+1. Add new types to `easy-csp-shared-types/src/`
+2. Export everything through `src/index.ts`
+3. **ALWAYS run `npm run install:special` in BOTH consuming packages:**
+   ```bash
+   # In easy-csp directory
+   npm run install:special
+
+   # In easy-csp-cloud/functions directory
+   npm run install:special
+   ```
+
+**What `install:special` does:**
+- Cleans old `@easy-csp` packages from node_modules
+- Runs `npm pack` in the shared-types directory (builds + creates .tgz)
+- Installs the fresh .tgz file
+
+**NEVER manually run:**
+- ❌ `npm run build` in shared-types
+- ❌ `npm pack` in shared-types
+- ❌ `npm install ./easy-csp-shared-types-1.0.0.tgz`
+
+**ALWAYS run:**
+- ✅ `npm run install:special` in easy-csp
+- ✅ `npm run install:special` in easy-csp-cloud/functions
 
 ---
 
