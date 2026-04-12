@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { TransactionsService } from '../../services/transactionsService';
 import type { ListTransactionsRequest, ListTransactionsResponse } from '../../types/firestoreTypes';
 import { NEXT_TOKEN_END } from '../../services/transactionsService';
@@ -10,6 +10,16 @@ import type { Transaction } from '@easy-csp/shared-types';
 //   pages: ListTransactionsResponse[];
 //   pageParams: (QueryDocumentSnapshot<DocumentData, DocumentData> | undefined)[];
 // };
+
+export const useTransaction = (transactionId: string | null) => {
+  return useQuery({
+    queryKey: ['transaction', transactionId],
+    queryFn: () => transactionId ? TransactionsService.getTransaction(transactionId) : null,
+    enabled: !!transactionId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 10, // 10 minutes
+  });
+};
 
 export const useTransactions = (baseRequest: Omit<ListTransactionsRequest, 'startAfter'>) => {
   return useInfiniteQuery({

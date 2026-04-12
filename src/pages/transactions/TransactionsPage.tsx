@@ -1,9 +1,8 @@
 import { TransactionsList } from "./TransactionsList";
 import { Page } from "../../components/Page";
 import { useCallback, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import type { Transaction } from "@easy-csp/shared-types";
-import { TransactionEditDialog } from "./TransactionEditDialog";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useTransactions } from "../../hooks/api/useTransactions";
 import type { ListTransactionsRequest } from "../../types/firestoreTypes";
@@ -21,10 +20,9 @@ const FETCH_LIMIT = 20;
 
 const TransactionsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { selectedYear, selectedMonth, handleMonthSelect } = useMonthFilter();
 
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
 
@@ -70,8 +68,7 @@ const TransactionsPage = () => {
   const hasActiveFilters = !!(categoryFilter || (fundFilter && fundFilter !== 'none') || searchText);
 
   const handleTransactionClick = (transaction: Transaction) => {
-    setSelectedTransaction(transaction);
-    setIsEditDialogOpen(true);
+    navigate(`/transactions/${transaction.id}/edit`);
   };
 
   const handleSetFilter = useCallback((filterType: 'category' | 'fund' | 'month', value: string) => {
@@ -135,8 +132,7 @@ const TransactionsPage = () => {
                 <Button
                   variant="primary"
                   onClick={() => {
-                    setSelectedTransaction(null);
-                    setIsEditDialogOpen(true);
+                    navigate('/transactions/new/edit');
                   }}
                   className="flex items-center gap-2"
                 >
@@ -212,8 +208,7 @@ const TransactionsPage = () => {
               <Button
                 variant="primary"
                 onClick={() => {
-                  setSelectedTransaction(null);
-                  setIsEditDialogOpen(true);
+                  navigate('/transactions/new/edit');
                 }}
                 className="flex items-center justify-center gap-2 w-full"
               >
@@ -244,12 +239,6 @@ const TransactionsPage = () => {
             {isLoading && <div className="animate-pulse mt-4">Loading transactions...</div>}
           </div>
         </div>
-
-        <TransactionEditDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          transaction={selectedTransaction}
-        />
       </div>
     </Page>
   );

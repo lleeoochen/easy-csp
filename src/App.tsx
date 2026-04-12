@@ -1,14 +1,19 @@
 import ConsciousSpendingPlanPage from "./pages/consciousSpendingPlan/ConsciousSpendingPlanPage";
 import FundsPage from "./pages/funds/FundsPage";
+import FundEditPage from "./pages/funds/FundEditPage";
 import TransactionsPage from "./pages/transactions/TransactionsPage";
+import TransactionEditPage from "./pages/transactions/TransactionEditPage";
 import RulesPage from "./pages/rules/RulesPage";
+import RuleEditPage from "./pages/rules/RuleEditPage";
 import SettingsPage from "./pages/SettingsPage";
+import TravelModeEditPage from "./pages/travelMode/TravelModeEditPage";
 import FinancialInstitutionsPage from "./pages/financialInstitutions/FinancialInstitutionsPage";
 import NetWorthPage from "./pages/netWorth/NetWorthPage";
 import { DollarSign, Target, BarChart3, Settings, Building2, Filter, TrendingUp } from "lucide-react";
 import { initializeApp } from "firebase/app";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { connectFirestoreEmulator, getFirestore, doc, getDoc } from "firebase/firestore";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
 import SignInPage from "./pages/SignInPage";
 import { useAuthState } from "./hooks/useAuthState";
 import { Tabs } from "./components/Tabs";
@@ -31,13 +36,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
 const functions = getFunctions(app);
+const auth = getAuth(app);
 
-// Connect to emulators
-// Temporarily disabled to test MFA against production
-// if (isDevEnvironment) {
-//   connectFirestoreEmulator(firestore, "localhost", 8080);
-//   connectFunctionsEmulator(functions, "localhost", 5001);
-// }
+// Connect to emulators in development
+if (isDevEnvironment) {
+  connectFirestoreEmulator(firestore, "localhost", 8080);
+  connectFunctionsEmulator(functions, "localhost", 5001);
+  connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
+}
 
 function App() {
   const { signedIn, loading, userId } = useAuthState();
@@ -102,6 +108,13 @@ function App() {
               showInNav: true
             },
             {
+              path: "/funds/:id/edit",
+              name: "Edit Fund",
+              icon: Target,
+              element: <FundEditPage />,
+              showInNav: false
+            },
+            {
               path: "/net-worth",
               name: "Net Worth",
               icon: TrendingUp,
@@ -123,10 +136,24 @@ function App() {
               showInNav: true
             },
             {
+              path: "/transactions/:id/edit",
+              name: "Edit Transaction",
+              icon: DollarSign,
+              element: <TransactionEditPage />,
+              showInNav: false
+            },
+            {
               path: "/rules",
               name: "Rules",
               icon: Filter,
               element: <RulesPage />,
+              showInNav: false
+            },
+            {
+              path: "/rules/:index/edit",
+              name: "Edit Rule",
+              icon: Filter,
+              element: <RuleEditPage />,
               showInNav: false
             },
             {
@@ -135,6 +162,13 @@ function App() {
               icon: Settings,
               element: <SettingsPage />,
               showInNav: true
+            },
+            {
+              path: "/travel-mode/edit",
+              name: "Travel Mode",
+              icon: Settings,
+              element: <TravelModeEditPage />,
+              showInNav: false
             },
           ]}
         />

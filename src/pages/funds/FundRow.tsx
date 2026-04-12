@@ -18,7 +18,7 @@ export function FundRow({ fund, onEdit, onSetBalance }: FundRowProps) {
   return (
     <div className="space-y-2 p-4">
       <div className="flex gap-5">
-        <div className="flex flex-col items-start flex-1 m-auto truncate">
+        <div className="flex flex-col items-start flex-1 m-auto truncate" onClick={() => onEdit(fund)}>
           <div className="flex items-center gap-2">
             <div className="font-semibold">{fund.name}</div>
             <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">

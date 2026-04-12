@@ -44,36 +44,43 @@ export const TabMenuItem = ({ path, icon, name }: TabMenuItemProps) => {
   );
 }
 
-export const Tabs = ({ paths }: TabsProps) => {
+const TabsContent = ({ paths }: TabsProps) => {
+  const location = useLocation();
   // Filter paths for navigation display
   const navPaths = paths.filter(p => p.showInNav);
-  const isNavVisible = useHideOnScroll(50);
+  const isNavVisible = useHideOnScroll(50, location.pathname);
 
   return (
-    <Router>
-      <div className="flex flex-col h-screen overflow-hidden">
-        <main className="flex-1 pb-0 w-full overflow-hidden">
-          <Routes>
-            {
-              paths.map(({ path, element }) => {
-                return <Route key={path} path={path} element={element} />;
-              })
-            }
-          </Routes>
-        </main>
-
-        {/* Bottom Navigation */}
-        <nav className={cn(
-          "fixed grid grid-cols-5 bottom-5 left-5 right-5 bg-tabs-bar-bg z-10 backdrop-blur-lg rounded-2xl shadow-xl/30 w-fit mx-auto mb-[env(safe-area-inset-bottom)] transition-transform duration-300",
-          !isNavVisible && "translate-y-[calc(100%+1.25rem+env(safe-area-inset-bottom))]"
-        )}>
+    <div className="flex flex-col h-screen overflow-hidden">
+      <main className="flex-1 pb-0 w-full overflow-hidden">
+        <Routes>
           {
-            navPaths.map(path => (
-              <TabMenuItem key={path.path} {...path} />
-            ))
+            paths.map(({ path, element }) => {
+              return <Route key={path} path={path} element={element} />;
+            })
           }
-        </nav>
-      </div>
+        </Routes>
+      </main>
+
+      {/* Bottom Navigation */}
+      <nav className={cn(
+        "fixed grid grid-cols-5 bottom-5 left-5 right-5 bg-tabs-bar-bg z-10 backdrop-blur-lg rounded-2xl shadow-xl/30 w-fit mx-auto mb-[env(safe-area-inset-bottom)] transition-transform duration-300",
+        !isNavVisible && "translate-y-[calc(100%+1.25rem+env(safe-area-inset-bottom))]"
+      )}>
+        {
+          navPaths.map(path => (
+            <TabMenuItem key={path.path} {...path} />
+          ))
+        }
+      </nav>
+    </div>
+  );
+}
+
+export const Tabs = ({ paths }: TabsProps) => {
+  return (
+    <Router>
+      <TabsContent paths={paths} />
     </Router>
   );
 }

@@ -82,7 +82,7 @@ export function RulesList({ rules, onRuleClick }: RulesListProps) {
           && categoryMap[rule.action.changeCategory] === undefined;
 
         return (
-          <div key={index} className="flex items-stretch gap-2" onClick={() => onRuleClick(rule, index)}>
+          <div key={index} className="flex items-stretch gap-2 cursor-pointer" onClick={() => onRuleClick(rule, index)}>
             <Card key={index} className="flex-1">
               <CardHeader className="flex justify-between">
                 <div className="flex items-center gap-3">

@@ -1,32 +1,23 @@
 import { Page } from "../../components/Page";
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useRules } from "../../hooks/api/useRules";
 import { RulesList } from "./RulesList";
-import { RuleEditDialog } from "./RuleEditDialog";
 import { Button } from "../../components/common/button";
 import { BackButton } from "../../components/common/BackButton";
-import type { RuleTransformation } from "@easy-csp/shared-types";
 import { TRAVEL_MODE_RULE_NAME } from "../../types/travelMode";
 
 const RulesPage = () => {
+  const navigate = useNavigate();
   const { data: rulesDoc, isLoading, error, refetch } = useRules();
   const transformations = (rulesDoc?.transformations ?? []).filter(
     transform => transform.name != TRAVEL_MODE_RULE_NAME);
 
-  const [selectedRule, setSelectedRule] = useState<RuleTransformation | null>(null);
-  const [selectedRuleIndex, setSelectedRuleIndex] = useState<number | null>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-
-  const handleRuleClick = (rule: RuleTransformation, index: number) => {
-    setSelectedRule(rule);
-    setSelectedRuleIndex(index);
-    setIsEditDialogOpen(true);
+  const handleRuleClick = (_rule: unknown, index: number) => {
+    navigate(`/rules/${index}/edit`);
   };
 
   const handleAddRule = () => {
-    setSelectedRule(null);
-    setSelectedRuleIndex(null);
-    setIsEditDialogOpen(true);
+    navigate('/rules/new/edit');
   };
 
   return (
@@ -50,13 +41,6 @@ const RulesPage = () => {
         )}
 
         <RulesList rules={transformations} onRuleClick={handleRuleClick} />
-
-        <RuleEditDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          rule={selectedRule}
-          ruleIndex={selectedRuleIndex}
-        />
       </div>
     </Page>
   );

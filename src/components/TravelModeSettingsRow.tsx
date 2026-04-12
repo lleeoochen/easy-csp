@@ -1,20 +1,19 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Plane, ChevronRight } from "lucide-react";
 import { Switch } from "./common/switch";
-import { TravelModeConfigDialog } from "./TravelModeConfigDialog";
 import { useUserRules, useToggleTravelMode } from "../hooks/useTravelMode";
 import { isTravelModeConfigured, isTravelModeEnabled } from "../utils/travelModeUtils";
 
 export function TravelModeSettingsRow() {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const { data: rule = null } = useUserRules();
+  const navigate = useNavigate();
+  const { data: rulesData = null } = useUserRules();
   const { mutate: toggleTravelMode, isPending: isToggling } = useToggleTravelMode();
 
-  const configured = isTravelModeConfigured(rule);
-  const enabled = isTravelModeEnabled(rule);
+  const configured = isTravelModeConfigured(rulesData);
+  const enabled = isTravelModeEnabled(rulesData);
 
   const handleRowClick = () => {
-    setDialogOpen(true);
+    navigate('/travel-mode/edit');
   };
 
   const handleToggle = (newEnabled: boolean) => {
@@ -56,11 +55,6 @@ export function TravelModeSettingsRow() {
           <ChevronRight className="w-5 h-5 text-gray-400" />
         </div>
       </div>
-
-      <TravelModeConfigDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-      />
     </>
   );
 }

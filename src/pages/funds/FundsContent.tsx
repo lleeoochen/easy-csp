@@ -1,9 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Plus, Target } from "lucide-react";
 import { Button } from "../../components/common/button";
 import { Card, CardContent, CardHeader } from "../../components/common/card";
 import type { UI_FundAndBalance } from "../../types/uiTypes";
-import { FundDialog } from "./FundDialog";
 import { FundType } from "@easy-csp/shared-types";
 import { TransactionEditDialog } from "../transactions/TransactionEditDialog";
 import { SetBalanceDialog } from "../../components/SetBalanceDialog";
@@ -11,19 +11,12 @@ import { FundRow } from "./FundRow";
 
 interface FundsContentProps {
   funds: UI_FundAndBalance[];
-  onAddFund: (data: { name: string; type: FundType; targetAmount: number; selectedAccount: string }) => void;
-  onUpdateFund: (data: { id: string; name: string; type: FundType; targetAmount: number; selectedAccount: string }) => void;
-  onDeleteFund: (id: string) => void;
 }
 
 export function FundsContent({
   funds,
-  onAddFund,
-  onUpdateFund,
-  onDeleteFund,
 }: FundsContentProps) {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingFund, setEditingFund] = useState<UI_FundAndBalance | undefined>(undefined);
+  const navigate = useNavigate();
   const [isTransactionDialogOpen, setIsTransactionDialogOpen] = useState(false);
   const [prefilledFundId, setPrefilledFundId] = useState<string | undefined>(undefined);
   const [isSetBalanceDialogOpen, setIsSetBalanceDialogOpen] = useState(false);
@@ -31,11 +24,7 @@ export function FundsContent({
   const [filterType, setFilterType] = useState<'all' | FundType>('all');
 
   const handleEdit = (fund: UI_FundAndBalance) => {
-    setEditingFund(fund);
-  };
-
-  const handleCloseEditDialog = () => {
-    setEditingFund(undefined);
+    navigate(`/funds/${fund.id}/edit`);
   };
 
   const handleCloseTransactionDialog = () => {
@@ -96,7 +85,7 @@ export function FundsContent({
         <Button
           variant="primary"
           className="bg-white hover:bg-white/70 active:bg-gray-300"
-          onClick={() => setIsAddDialogOpen(true)}
+          onClick={() => navigate('/funds/new/edit')}
         >
           <Plus />
         </Button>
@@ -135,27 +124,6 @@ export function FundsContent({
           ))
         }
       </div>
-
-      {/* Add Dialog */}
-      <FundDialog
-        open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
-        mode="add"
-        onAdd={onAddFund}
-        onUpdate={onUpdateFund}
-        onDelete={onDeleteFund}
-      />
-
-      {/* Edit Dialog */}
-      <FundDialog
-        open={editingFund !== undefined}
-        onOpenChange={(open) => !open && handleCloseEditDialog()}
-        mode="edit"
-        existingFund={editingFund}
-        onAdd={onAddFund}
-        onUpdate={onUpdateFund}
-        onDelete={onDeleteFund}
-      />
 
       {/* Transaction Dialog */}
       <TransactionEditDialog

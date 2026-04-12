@@ -42,7 +42,7 @@ export function DatePicker({ value, onChange, label, id, disabled = false }: Dat
           disabled && "opacity-50 cursor-not-allowed hover:bg-gray-100"
         )}
       >
-        <span>{format(value, "PPP")}</span>
+        <span>{format(value, "MM/dd/yyyy")}</span>
         <Calendar className="w-4 h-4 text-gray-500" />
       </button>
 

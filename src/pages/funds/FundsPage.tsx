@@ -1,12 +1,9 @@
 import { Page } from "../../components/Page";
 import { FundsContent } from "./FundsContent";
-import { useFunds, useAddFund, useUpdateFund, useDeleteFund } from "../../hooks/api/useFunds";
+import { useFunds } from "../../hooks/api/useFunds";
 
 const FundsPage = () => {
   const { data: funds = [], isLoading, error, refetch } = useFunds();
-  const addMutation = useAddFund();
-  const updateMutation = useUpdateFund();
-  const deleteMutation = useDeleteFund();
 
   // Sort funds by type: saving first, then investment
   const sortedFunds = [...funds].sort((a, b) => {
@@ -44,9 +41,6 @@ const FundsPage = () => {
     <Page title="Funds" maxWidth="half-xl">
       <FundsContent
         funds={sortedFunds}
-        onAddFund={(data) => addMutation.mutate(data)}
-        onUpdateFund={(data) => updateMutation.mutate(data)}
-        onDeleteFund={(id) => deleteMutation.mutate(id)}
       />
     </Page>
   );

@@ -30,6 +30,7 @@ export const MfaVerification: React.FC<MfaVerificationProps> = ({
   const [selectedFactorIndex, setSelectedFactorIndex] = useState(0);
   const [sendingSms, setSendingSms] = useState(false);
   const [verificationId, setVerificationId] = useState<string | null>(null);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const sendSmsCode = useCallback(async (factorIndex: number) => {
     setSendingSms(true);
@@ -63,6 +64,16 @@ export const MfaVerification: React.FC<MfaVerificationProps> = ({
 
       window.recaptchaVerifier = new RecaptchaVerifier(getAuth(), 'recaptcha-container-mfa', {
         size: 'invisible',
+        callback: () => {
+          console.log('reCAPTCHA solved');
+        },
+        'expired-callback': () => {
+          console.log('reCAPTCHA expired');
+          setError('reCAPTCHA expired. Please try again.');
+        },
+        'error-callback': (error: Error) => {
+          console.error('reCAPTCHA error:', error);
+        }
       });
 
       const verificationIdResult = await phoneAuthProvider.verifyPhoneNumber(
@@ -72,7 +83,15 @@ export const MfaVerification: React.FC<MfaVerificationProps> = ({
       setVerificationId(verificationIdResult);
     } catch (error) {
       console.error('Error sending SMS:', error);
-      setError('Failed to send SMS code. Please try again.');
+      const firebaseError = error as { code?: string; message?: string };
+
+      if (firebaseError.code === 'auth/invalid-app-credential') {
+        setError(
+          'reCAPTCHA verification failed. For development, please start Firebase emulators or add a test phone number in Firebase Console.'
+        );
+      } else {
+        setError('Failed to send SMS code. Please try again.');
+      }
       throw error;
     } finally {
       setSendingSms(false);
@@ -135,28 +154,39 @@ export const MfaVerification: React.FC<MfaVerificationProps> = ({
     setSelectedFactorIndex(newIndex);
     setVerificationCode('');
     setError(null);
+    setHasInitialized(false);
 
     if (resolver.hints[newIndex]?.factorId === PhoneMultiFactorGenerator.FACTOR_ID) {
+      setHasInitialized(true);
       await sendSmsCode(newIndex);
     }
   };
 
   // Auto-send SMS when component mounts with phone factor
   useEffect(() => {
-    if (
+    let isMounted = true;
+
+    const shouldSendSms =
+      !hasInitialized &&
       resolver.hints[selectedFactorIndex]?.factorId === PhoneMultiFactorGenerator.FACTOR_ID &&
       !verificationId &&
-      !sendingSms
-    ) {
-      const timer = setTimeout(() => {
-        sendSmsCode(selectedFactorIndex).catch(() => {
-          setError('Failed to send SMS code. Please try again.');
-        });
-      }, 100);
+      !sendingSms;
 
-      return () => clearTimeout(timer);
+    if (shouldSendSms) {
+      setHasInitialized(true);
+
+      sendSmsCode(selectedFactorIndex).catch(() => {
+        if (isMounted) {
+          setError('Failed to send SMS code. Please try again.');
+        }
+      });
     }
-  }, [resolver, selectedFactorIndex, verificationId, sendingSms, sendSmsCode]);
+
+    return () => {
+      isMounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasInitialized, selectedFactorIndex]);
 
   const selectedHint = resolver.hints[selectedFactorIndex];
   const isPhoneFactor = selectedHint?.factorId === PhoneMultiFactorGenerator.FACTOR_ID;

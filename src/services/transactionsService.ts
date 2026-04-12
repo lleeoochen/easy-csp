@@ -39,6 +39,38 @@ export class TransactionsService {
   }
 
   /**
+   * Gets a single transaction by ID
+   */
+  public static async getTransaction(transactionId: string): Promise<Transaction | null> {
+    try {
+      const uid = this.getAuthenticatedUserId();
+      const firestore = getFirestore();
+
+      const transactionRef = doc(firestore, TRANSACTIONS_COLLECTION, transactionId);
+      const transactionSnap = await getDoc(transactionRef);
+
+      if (!transactionSnap.exists()) {
+        return null;
+      }
+
+      const transaction = transactionSnap.data() as Transaction;
+
+      // Verify user owns this transaction
+      if (transaction.uid !== uid) {
+        throw new Error("Unauthorized access to transaction");
+      }
+
+      return {
+        ...transaction,
+        id: transactionSnap.id,
+      };
+    } catch (error) {
+      console.error("Error getting transaction:", error);
+      throw error;
+    }
+  }
+
+  /**
    * Lists transactions for the user from Firestore
    */
   public static async listTransactions(request?: ListTransactionsRequest): Promise<ListTransactionsResponse> {

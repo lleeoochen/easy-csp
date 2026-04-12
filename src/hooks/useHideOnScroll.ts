@@ -1,9 +1,16 @@
 import { useEffect, useState, useRef } from 'react';
 
-export const useHideOnScroll = (threshold = 10) => {
+export const useHideOnScroll = (threshold = 10, resetDependency?: any) => {
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
   const isAtBottom = useRef(false);
+
+  // Reset visibility when resetDependency changes (e.g., route change)
+  useEffect(() => {
+    setIsVisible(true);
+    lastScrollY.current = 0;
+    isAtBottom.current = false;
+  }, [resetDependency]);
 
   useEffect(() => {
     const handleScroll = (e: Event) => {
