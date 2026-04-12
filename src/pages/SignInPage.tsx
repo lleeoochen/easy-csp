@@ -3,7 +3,8 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  getMultiFactorResolver
+  getMultiFactorResolver,
+  sendEmailVerification
 } from 'firebase/auth';
 import { httpsCallable, getFunctions } from 'firebase/functions';
 import { Button } from '../components/common/button';
@@ -11,6 +12,7 @@ import { FormField } from '../components/auth/FormField';
 import { ErrorAlert } from '../components/auth/ErrorAlert';
 import { AuthCard } from '../components/auth/AuthCard';
 import { MfaVerification } from '../components/auth/MfaVerification';
+import { InfoAlert } from '../components/auth/InfoAlert';
 
 type MultiFactorResolver = ReturnType<typeof getMultiFactorResolver>;
 
@@ -25,6 +27,7 @@ const SignInPage: React.FC<SignInPageProps> = ({ onSuccess }) => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [mfaResolver, setMfaResolver] = useState<MultiFactorResolver | null>(null);
+  const [emailVerificationSent, setEmailVerificationSent] = useState(false);
 
   // Add/remove signin-page class to body
   useEffect(() => {
@@ -68,8 +71,14 @@ const SignInPage: React.FC<SignInPageProps> = ({ onSuccess }) => {
       const auth = getAuth();
 
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
-        await registerUser();
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+        // Send email verification
+        await sendEmailVerification(userCredential.user);
+        setEmailVerificationSent(true);
+
+        // Don't call registerUser during signup - it will be called later
+        // when the user sets up MFA or signs in again
         if (onSuccess) onSuccess();
       } else {
         await signInWithEmailAndPassword(auth, email, password);
@@ -139,6 +148,9 @@ const SignInPage: React.FC<SignInPageProps> = ({ onSuccess }) => {
   return (
     <AuthCard title={isSignUp ? 'Create Account' : 'Easy CSP'}>
       {error && <ErrorAlert message={error} />}
+      {emailVerificationSent && (
+        <InfoAlert message="Verification email sent! Please check your inbox and verify your email before setting up 2FA." />
+      )}
 
       <form onSubmit={handleSignIn} className="space-y-4">
         <FormField

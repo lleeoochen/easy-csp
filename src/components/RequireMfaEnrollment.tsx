@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { getAuth, multiFactor, PhoneAuthProvider, PhoneMultiFactorGenerator, RecaptchaVerifier, signOut } from 'firebase/auth';
-import { doc, updateDoc, getFirestore } from 'firebase/firestore';
+import { getAuth, multiFactor, PhoneAuthProvider, PhoneMultiFactorGenerator, RecaptchaVerifier } from 'firebase/auth';
+import { doc, getFirestore, getDoc, setDoc } from 'firebase/firestore';
+import { httpsCallable, getFunctions } from 'firebase/functions';
 import { USERS_COLLECTION } from '@easy-csp/shared-types';
-import { Shield, AlertCircle, CheckCircle, LogOut } from 'lucide-react';
+import { Shield, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from './common/button';
 import { Input } from './common/input';
+import { SignOutButton } from './auth/SignOutButton';
 
 export const RequireMfaEnrollment: React.FC = () => {
   const [verificationId, setVerificationId] = useState<string | null>(null);
@@ -12,13 +14,21 @@ export const RequireMfaEnrollment: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [enrolling, setEnrolling] = useState(false);
-  const [, setNeedsReauth] = useState(false);
+  const [needsReauth, setNeedsReauth] = useState(false);
   // const [password, setPassword] = useState('');
   const recaptchaVerifier = useRef<RecaptchaVerifier | null>(null);
 
   const auth = getAuth();
   const firestore = getFirestore();
   const user = auth.currentUser;
+
+  useEffect(() => {
+    // Add signin-page class to body for background
+    document.body.classList.add('signin-page');
+    return () => {
+      document.body.classList.remove('signin-page');
+    };
+  }, []);
 
   useEffect(() => {
     // Initialize reCAPTCHA when component mounts
@@ -42,14 +52,6 @@ export const RequireMfaEnrollment: React.FC = () => {
       }
     };
   }, [auth]);
-
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-    } catch (err) {
-      console.error('Error signing out:', err);
-    }
-  };
 
   // const reauthenticate = async () => {
   //   if (!user || !password) return;
@@ -106,16 +108,27 @@ export const RequireMfaEnrollment: React.FC = () => {
       setVerificationId(verificationIdResult);
     } catch (err) {
       console.error('Error starting SMS enrollment:', err);
-      console.error('Error code:', err.code);
-      console.error('Error message:', err.message);
-      console.error('Full error:', JSON.stringify(err, null, 2));
+      console.error('Error details:', {
+        code: err?.code,
+        message: err?.message,
+        name: err?.name,
+        stack: err?.stack
+      });
 
       if (err.code === 'auth/requires-recent-login') {
+        setError('Your session has expired. Please sign out and sign in again to set up 2FA.');
         setNeedsReauth(true);
-        setError('For security, please re-enter your password to continue.');
+      } else if (err.code === 'auth/invalid-phone-number') {
+        setError('Invalid phone number format. Please include country code (e.g., +1 for US).');
+      } else if (err.code === 'auth/quota-exceeded') {
+        setError('SMS quota exceeded. Please try again later or contact support.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Too many attempts. Please wait a few minutes and try again, or contact support.');
+      } else if (err.code === 'auth/captcha-check-failed') {
+        setError('reCAPTCHA verification failed. Please try again.');
       } else {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to start 2FA enrollment';
-        setError(errorMessage);
+        const errorMessage = err.message || 'Failed to start 2FA enrollment';
+        setError(`${errorMessage}${err.code ? ` (${err.code})` : ''}`);
       }
       setEnrolling(false);
     }
@@ -132,12 +145,25 @@ export const RequireMfaEnrollment: React.FC = () => {
 
       await multiFactor(user).enroll(multiFactorAssertion, 'Phone Number');
 
-      // Update Firestore
-      await updateDoc(doc(firestore, USERS_COLLECTION, user.uid), {
+      // Register user in backend if not already registered
+      try {
+        const userDoc = await getDoc(doc(firestore, USERS_COLLECTION, user.uid));
+        if (!userDoc.exists() || !userDoc.data()?.plaidUid) {
+          const functions = getFunctions();
+          const registerUserFn = httpsCallable(functions, 'registerUser');
+          await registerUserFn();
+        }
+      } catch (regError) {
+        console.warn('User registration failed (may already exist):', regError);
+        // Don't block MFA enrollment if registration fails
+      }
+
+      // Update Firestore - use setDoc with merge to create if doesn't exist
+      await setDoc(doc(firestore, USERS_COLLECTION, user.uid), {
         mfaEnabled: true,
         mfaEnrolledAt: Date.now(),
         mfaMethod: 'sms',
-      });
+      }, { merge: true });
 
       // Reload the page to trigger App.tsx to re-check MFA status
       window.location.reload();
@@ -149,7 +175,7 @@ export const RequireMfaEnrollment: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <style>{`
         /* Scale down reCAPTCHA challenge popup on mobile */
         @media screen and (max-width: 350px) {
@@ -159,22 +185,19 @@ export const RequireMfaEnrollment: React.FC = () => {
           }
         }
       `}</style>
-      <div className="max-w-lg w-full bg-surface rounded-lg shadow-lg p-6 bg-card overflow-visible">
+      <div className="max-w-lg w-full bg-surface rounded-lg shadow-lg p-6 bg-card overflow-visible flex flex-col">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Shield className="w-8 h-8 text-primary" />
             <h2 className="text-2xl font-bold">Two-Factor Authentication Required</h2>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="p-2 hover:bg-background rounded-lg transition-colors"
-            title="Sign out"
-          >
-            <LogOut className="w-5 h-5 text-muted" />
-          </button>
         </div>
 
-        <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+        <div className="ml-auto">
+          <SignOutButton />
+        </div>
+
+        <div className="my-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
           <p className="text-sm">
             For your security, Easy CSP requires two-factor authentication. This adds an extra layer of protection to your financial data.
           </p>
@@ -183,7 +206,14 @@ export const RequireMfaEnrollment: React.FC = () => {
         {error && (
           <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start gap-2">
             <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-            <p className="text-sm text-red-500">{error}</p>
+            <div className="flex-1">
+              <p className="text-sm text-red-500">{error}</p>
+              {needsReauth && (
+                <div className="mt-2">
+                  <SignOutButton />
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -228,8 +258,8 @@ export const RequireMfaEnrollment: React.FC = () => {
         )}
 
         {verificationId && (
-          <div className="space-y-4">
-            <div className="p-4 bg-background rounded-lg border border-border">
+          <div className="space-y-2">
+            <div className="py-4">
               <h4 className="font-semibold mb-2">Enter Verification Code</h4>
               <p className="text-sm text-muted mb-3">
                 We sent a 6-digit code to {phoneNumber}
@@ -244,17 +274,18 @@ export const RequireMfaEnrollment: React.FC = () => {
               />
             </div>
 
-            <button
+            <Button
+              variant='primary'
               onClick={completeEnrollment}
               disabled={verificationCode.length !== 6}
-              className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+              className='w-full'
             >
               Complete Setup
-            </button>
+            </Button>
           </div>
         )}
 
-        <div className="mt-6 pt-6 border-t border-border">
+        <div className="mt-4">
           <div className="flex items-start gap-2 text-xs text-muted">
             <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <p>

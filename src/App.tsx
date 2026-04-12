@@ -19,6 +19,7 @@ import { useAuthState } from "./hooks/useAuthState";
 import { Tabs } from "./components/Tabs";
 import { isDevEnvironment } from "./utils/envUtils";
 import { RequireMfaEnrollment } from "./components/RequireMfaEnrollment";
+import { EmailVerification } from "./components/auth/EmailVerification";
 import { USERS_COLLECTION, type User } from "@easy-csp/shared-types";
 import { useState, useEffect } from "react";
 
@@ -48,6 +49,7 @@ if (isDevEnvironment) {
 function App() {
   const { signedIn, loading, userId } = useAuthState();
   const [mfaEnabled, setMfaEnabled] = useState<boolean | null>(null);
+  const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
   const [checkingMfa, setCheckingMfa] = useState(true);
 
   useEffect(() => {
@@ -58,6 +60,12 @@ function App() {
       }
 
       try {
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
+
+        // Check email verification status
+        setEmailVerified(currentUser?.emailVerified || false);
+
         const firestore = getFirestore();
         const userDoc = await getDoc(doc(firestore, USERS_COLLECTION, userId));
         const userData = userDoc.data() as User | undefined;
@@ -83,8 +91,13 @@ function App() {
     );
   }
 
-  // Show MFA enrollment if user is signed in but hasn't enabled MFA
-  if (signedIn && mfaEnabled === false) {
+  // Show email verification screen if user is signed in but email not verified
+  if (signedIn && emailVerified === false) {
+    return <EmailVerification />;
+  }
+
+  // Show MFA enrollment if user is signed in, email verified, but hasn't enabled MFA
+  if (signedIn && emailVerified === true && mfaEnabled === false) {
     return <RequireMfaEnrollment />;
   }
 

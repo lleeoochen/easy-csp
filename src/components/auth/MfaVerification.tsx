@@ -45,7 +45,7 @@ export const MfaVerification: React.FC<MfaVerificationProps> = ({
 
       const phoneAuthProvider = new PhoneAuthProvider(getAuth());
 
-      // Clean up existing recaptcha verifier
+      // Clean up existing recaptcha verifier more thoroughly
       if (window.recaptchaVerifier) {
         try {
           window.recaptchaVerifier.clear();
@@ -55,13 +55,19 @@ export const MfaVerification: React.FC<MfaVerificationProps> = ({
         window.recaptchaVerifier = undefined;
       }
 
+      // Clear the container completely
       const container = document.getElementById('recaptcha-container-mfa');
       if (container) {
         container.innerHTML = '';
+        // Remove any data attributes that might prevent re-rendering
+        container.removeAttribute('data-sitekey');
+        container.removeAttribute('data-callback');
       }
 
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Wait a bit longer for cleanup
+      await new Promise(resolve => setTimeout(resolve, 200));
 
+      // Create fresh recaptcha verifier
       window.recaptchaVerifier = new RecaptchaVerifier(getAuth(), 'recaptcha-container-mfa', {
         size: 'invisible',
         callback: () => {
@@ -83,14 +89,31 @@ export const MfaVerification: React.FC<MfaVerificationProps> = ({
       setVerificationId(verificationIdResult);
     } catch (error) {
       console.error('Error sending SMS:', error);
+      console.error('Error details:', {
+        code: (error as any)?.code,
+        message: (error as any)?.message,
+        name: (error as any)?.name,
+        stack: (error as any)?.stack
+      });
       const firebaseError = error as { code?: string; message?: string };
 
       if (firebaseError.code === 'auth/invalid-app-credential') {
         setError(
           'reCAPTCHA verification failed. For development, please start Firebase emulators or add a test phone number in Firebase Console.'
         );
+      } else if (firebaseError.code === 'auth/quota-exceeded') {
+        setError('SMS quota exceeded. Please try again later.');
+      } else if (firebaseError.code === 'auth/too-many-requests') {
+        setError('Too many attempts. Please wait a few minutes and try again.');
+      } else if (firebaseError.code === 'auth/captcha-check-failed') {
+        setError('reCAPTCHA verification failed. Please try again.');
+      } else if (firebaseError.code === 'auth/invalid-phone-number') {
+        setError('Invalid phone number. Please contact support.');
+      } else if ((error as any)?.message?.includes('already been rendered')) {
+        setError('Please refresh the page and try again.');
       } else {
-        setError('Failed to send SMS code. Please try again.');
+        const errorMsg = firebaseError.message || 'Failed to send SMS code. Please try again.';
+        setError(`${errorMsg}${firebaseError.code ? ` (${firebaseError.code})` : ''}`);
       }
       throw error;
     } finally {
@@ -142,6 +165,8 @@ export const MfaVerification: React.FC<MfaVerificationProps> = ({
     const container = document.getElementById('recaptcha-container-mfa');
     if (container) {
       container.innerHTML = '';
+      container.removeAttribute('data-sitekey');
+      container.removeAttribute('data-callback');
     }
   };
 
@@ -187,6 +212,13 @@ export const MfaVerification: React.FC<MfaVerificationProps> = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasInitialized, selectedFactorIndex]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanupRecaptcha();
+    };
+  }, []);
 
   const selectedHint = resolver.hints[selectedFactorIndex];
   const isPhoneFactor = selectedHint?.factorId === PhoneMultiFactorGenerator.FACTOR_ID;

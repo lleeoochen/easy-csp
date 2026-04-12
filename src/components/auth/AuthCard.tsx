@@ -15,7 +15,7 @@ export const AuthCard: React.FC<AuthCardProps> = ({
 
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 overflow-hidden">
-      <div className={`${widthClass} w-full bg-white/30 backdrop-blur-xl rounded-2xl shadow-2xl p-6 relative z-10 border border-white/20`}>
+      <div className={`${widthClass} w-full bg-white/40 backdrop-blur-xl rounded-2xl shadow-2xl p-6 relative z-10 border border-white/20`}>
         <h2 className="text-2xl font-bold mb-6 text-center">{title}</h2>
         {children}
       </div>
