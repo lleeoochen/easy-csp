@@ -4,7 +4,7 @@ import { Page } from "../../components/Page";
 import { Card, CardHeader, CardContent } from "../../components/common/card";
 import { Button } from "../../components/common/button";
 import { Label } from "../../components/common/label";
-import { FundSelector } from "../../components/common/FundSelector";
+import { AccountSelector } from "../../components/common/AccountSelector";
 import { DialogActionPanel } from "../../components/common/DialogActionPanel";
 import { useCSP } from "../../hooks/api/useCSP";
 import { useSaveTravelMode, useUserRules } from "../../hooks/useTravelMode";
@@ -32,10 +32,10 @@ const TravelModeEditPage = () => {
   const defaultCategories = useMemo(() => getDefaultTravelCategories(csp), [csp]);
 
   const initialCategories = existingConfig?.categories ?? defaultCategories;
-  const initialFundId = existingConfig?.fundId ?? "";
+  const initialAccountId = existingConfig?.accountId ?? "";
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategories);
-  const [fundId, setFundId] = useState<string>(initialFundId);
+  const [accountId, setAccountId] = useState<string>(initialAccountId);
 
   // Sync state when initial values change (e.g., when CSP data loads)
   useEffect(() => {
@@ -43,8 +43,8 @@ const TravelModeEditPage = () => {
   }, [initialCategories]);
 
   useEffect(() => {
-    setFundId(initialFundId);
-  }, [initialFundId]);
+    setAccountId(initialAccountId);
+  }, [initialAccountId]);
 
   const handleCategoryToggle = (category: string) => {
     setSelectedCategories((prev) =>
@@ -55,10 +55,10 @@ const TravelModeEditPage = () => {
   };
 
   const handleSave = async () => {
-    if (selectedCategories.length === 0 || !fundId) return;
+    if (selectedCategories.length === 0 || !accountId) return;
 
     saveConfig(
-      { categories: selectedCategories, fundId: fundId },
+      { categories: selectedCategories, accountId: accountId },
       {
         onSuccess: () => {
           navigate('/settings');
@@ -67,7 +67,7 @@ const TravelModeEditPage = () => {
     );
   };
 
-  const isValid = selectedCategories.length > 0 && fundId !== "";
+  const isValid = selectedCategories.length > 0 && accountId !== "";
 
   // Group categories by bucket
   const categoriesByBucket = useMemo(() => {
@@ -76,7 +76,7 @@ const TravelModeEditPage = () => {
     return CSP_BUCKET_ORDER.map((bucket) => ({
       bucket,
       categories: (csp[bucket] || [])
-        .filter((budget) => !budget.isTrackingFund) // Exclude fund categories
+        .filter((budget) => !budget.isTrackingAccount)
         .map((budget) => ({
           id: budget.category,
           name: budget.name || camelCaseToSentence(budget.category),
@@ -86,7 +86,7 @@ const TravelModeEditPage = () => {
 
   if (loadingRules) {
     return (
-      <Page maxWidth="half-xl">
+      <Page maxWidth="cozy">
         <div className="animate-pulse">Loading...</div>
       </Page>
     );
@@ -94,7 +94,7 @@ const TravelModeEditPage = () => {
 
   return (
     <>
-      <Page maxWidth="half-xl" title="Configure Travel Mode">
+      <Page maxWidth="cozy" title="Configure Travel Mode">
         {/* Header with back button */}
         <div className="mb-6">
           <Button
@@ -144,16 +144,17 @@ const TravelModeEditPage = () => {
           </CardContent>
         </Card>
 
-        {/* Fund Selector Card */}
         <Card className="mt-2">
           <CardHeader>
-            Assign a Travel Fund
+            Assign an Account
           </CardHeader>
           <CardContent className="py-4">
-            <FundSelector
-              value={fundId}
-              onValueChange={setFundId}
-              placeholder="Select a fund"
+            <AccountSelector
+              value={accountId}
+              onValueChange={setAccountId}
+              label="Travel Account"
+              placeholder="Select an account"
+              includeNoneOption={false}
             />
 
             {isError && error && (

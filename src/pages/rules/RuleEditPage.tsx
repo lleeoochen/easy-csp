@@ -12,10 +12,11 @@ import type { RuleTransformation, RuleMatchingCriteria, RuleAction } from "@easy
 import { CSPCategory, RuleCondition, SplitFrequency } from "@easy-csp/shared-types";
 import { useRules, useAddRule, useUpdateRule, useDeleteRule } from "../../hooks/api/useRules";
 import { cn } from "../../components/common/utils";
-import { generateAccountOptionValue, parseAccountOptionValue } from "../../utils/accountUtils";
 import { AccountSelector } from "../../components/common/AccountSelector";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "../../components/common/button";
+import { FundAccountDropdown } from "../../components/FundAccountDropdown";
+import { RulesService } from "../../services/rulesService";
 
 const RuleEditPage = () => {
   const { index } = useParams<{ index: string }>();
@@ -59,6 +60,8 @@ const RuleEditPage = () => {
   const [autoSplitEnabled, setAutoSplitEnabled] = useState(false);
   const [autoSplitCount, setAutoSplitCount] = useState(2);
   const [autoSplitFrequency, setAutoSplitFrequency] = useState<SplitFrequency>(SplitFrequency.Monthly);
+  const [assignFundEnabled, setAssignFundEnabled] = useState(false);
+  const [assignFundValue, setAssignFundValue] = useState<string>("");
 
   // Reset form when rule changes
   useEffect(() => {
@@ -71,14 +74,11 @@ const RuleEditPage = () => {
       setNameValue(rule.matchingCriteria.name?.value || "");
       setNameCondition(rule.matchingCriteria.name?.condition || RuleCondition.Contains);
 
-      const hasAccount = !!rule.matchingCriteria.institutionId || !!rule.matchingCriteria.accountId;
+      const hasAccount = !!rule.matchingCriteria.accountId;
       setAccountEnabled(hasAccount);
       setSelectedAccountOption(
         hasAccount
-          ? generateAccountOptionValue(
-              rule.matchingCriteria.institutionId?.value || "",
-              rule.matchingCriteria.accountId?.value || ""
-            )
+          ? rule.matchingCriteria.accountId!.value
           : ""
       );
 
@@ -97,6 +97,8 @@ const RuleEditPage = () => {
       setAutoSplitEnabled(!!rule.action.autoSplit);
       setAutoSplitCount(rule.action.autoSplit?.splitCount ?? 2);
       setAutoSplitFrequency(rule.action.autoSplit?.frequency ?? SplitFrequency.Monthly);
+      setAssignFundEnabled(!!rule.action.assignFund);
+      setAssignFundValue(rule.action.assignFund || "");
     } else if (isCreateMode) {
       // Reset to defaults for new rule
       setName("");
@@ -118,6 +120,8 @@ const RuleEditPage = () => {
       setAutoSplitEnabled(false);
       setAutoSplitCount(2);
       setAutoSplitFrequency(SplitFrequency.Monthly);
+      setAssignFundEnabled(false);
+      setAssignFundValue("");
     }
   }, [rule, isCreateMode]);
 
@@ -128,9 +132,7 @@ const RuleEditPage = () => {
       criteria.name = { value: nameValue, condition: nameCondition };
     }
     if (accountEnabled && selectedAccountOption) {
-      const { institutionId, accountId } = parseAccountOptionValue(selectedAccountOption);
-      if (institutionId) criteria.institutionId = { value: institutionId, condition: RuleCondition.Exact };
-      if (accountId) criteria.accountId = { value: accountId, condition: RuleCondition.Exact };
+      criteria.accountId = { value: selectedAccountOption, condition: RuleCondition.Exact };
     }
     if (amountEnabled && amountValue) {
       criteria.amount = { value: parseFloat(amountValue), condition: amountCondition };
@@ -153,6 +155,9 @@ const RuleEditPage = () => {
     }
     if (autoSplitEnabled) {
       action.autoSplit = { splitCount: autoSplitCount, frequency: autoSplitFrequency };
+    }
+    if (assignFundEnabled && assignFundValue) {
+      action.assignFund = assignFundValue;
     }
 
     return action;
@@ -177,6 +182,15 @@ const RuleEditPage = () => {
     if (Object.keys(action).length === 0) {
       alert("Please set at least one action");
       return;
+    }
+
+    // Validate fund assignment if enabled
+    if (assignFundEnabled && assignFundValue) {
+      const validation = await RulesService.validateFundAssignmentRule(assignFundValue);
+      if (!validation.valid) {
+        alert(`Invalid fund account: ${validation.message}`);
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -218,7 +232,7 @@ const RuleEditPage = () => {
 
   if (loadingRules) {
     return (
-      <Page maxWidth="half-xl">
+      <Page maxWidth="cozy">
         <div className="animate-pulse">Loading...</div>
       </Page>
     );
@@ -226,7 +240,7 @@ const RuleEditPage = () => {
 
   if (!isCreateMode && !rule) {
     return (
-      <Page maxWidth="half-xl">
+      <Page maxWidth="cozy">
         <div className="text-center py-8">
           <p className="text-gray-600 mb-4">Rule not found</p>
           <Button
@@ -243,7 +257,7 @@ const RuleEditPage = () => {
 
   return (
     <>
-      <Page maxWidth="half-xl" title={isCreateMode ? "Create Rule" : "Edit Rule"}>
+      <Page maxWidth="cozy" title={isCreateMode ? "Create Rule" : "Edit Rule"}>
         {/* Header with back button */}
         <div className="mb-6">
           <Button
@@ -319,8 +333,9 @@ const RuleEditPage = () => {
                 <div className={cn("w-full", { "hidden": !accountEnabled })}>
                   <AccountSelector
                     value={selectedAccountOption}
-                    onChange={setSelectedAccountOption}
+                    onValueChange={setSelectedAccountOption}
                     disabled={!accountEnabled}
+                    label=""
                   />
                 </div>
               </div>
@@ -441,6 +456,22 @@ const RuleEditPage = () => {
                     value={autoSplitFrequency}
                     onValueChange={(value) => setAutoSplitFrequency(value as SplitFrequency)}
                     isDisabled={!autoSplitEnabled}
+                  />
+                </div>
+              </div>
+
+              {/* Assign Fund Action */}
+              <div className="flex flex-col items-start gap-2">
+                <div className="flex flex-row gap-2 justify-between w-full">
+                  <Label className={cn({ "text-gray-300": !assignFundEnabled })}>Assign to Fund</Label>
+                  <Switch checked={assignFundEnabled} onCheckedChange={setAssignFundEnabled} />
+                </div>
+                <div className={cn("w-full", { "hidden": !assignFundEnabled })}>
+                  <FundAccountDropdown
+                    value={assignFundValue}
+                    onValueChange={(value) => setAssignFundValue(value || "")}
+                    label=""
+                    disabled={!assignFundEnabled}
                   />
                 </div>
               </div>

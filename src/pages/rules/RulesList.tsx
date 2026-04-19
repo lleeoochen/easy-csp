@@ -30,9 +30,6 @@ export function RulesList({ rules, onRuleClick }: RulesListProps) {
     if (criteria.name) {
       parts.push(`Name ${criteria.name.condition} "${criteria.name.value}"`);
     }
-    if (criteria.institutionId) {
-      parts.push(`Institution ${criteria.institutionId.condition} "${criteria.institutionId.value}"`);
-    }
     if (criteria.accountId) {
       parts.push(`Account ${criteria.accountId.condition} "${criteria.accountId.value}"`);
     }
@@ -103,9 +100,9 @@ export function RulesList({ rules, onRuleClick }: RulesListProps) {
                   />
                 </div>
               </CardHeader>
-              <CardContent className="flex items-center justify-between px-4 py-2">
+              <CardContent className="flex items-center justify-between p-4!">
                 <div className="flex-1 space-y-2">
-                  <div className="grid columns-2 text-sm">
+                  <div className="grid columns-2 text-md">
                     <div className="font-bold">
                       Condition
                     </div>

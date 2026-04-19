@@ -3,7 +3,7 @@
  *
  * Service layer for managing Travel Mode rules in Firestore.
  * Travel Mode automatically marks transactions from selected categories
- * to a designated saving fund using the rules system.
+ * to a designated account using the rules system.
  */
 
 import {
@@ -146,7 +146,7 @@ export class TravelModeService {
   /**
    * Creates or updates travel mode rules in Firestore
    * @param uid User ID
-   * @param config Travel mode configuration (categories and fund)
+   * @param config Travel mode configuration (categories and account)
    * @throws {TravelModeError} If configuration is invalid or Firestore operation fails
    */
   public static async createOrUpdateTravelModeRule(
@@ -195,9 +195,9 @@ export class TravelModeService {
         );
       }
 
-      if (!config.fundId || typeof config.fundId !== "string" || config.fundId.trim() === "") {
+      if (!config.accountId || typeof config.accountId !== "string" || config.accountId.trim() === "") {
         throw new TravelModeError(
-          "Fund must be selected",
+          "Account must be selected",
           TravelModeErrorCode.INVALID_CONFIG
         );
       }
@@ -230,7 +230,7 @@ export class TravelModeService {
             }
           },
           action: {
-            assignFundId: config.fundId
+            assignFund: config.accountId
           }
         }));
 

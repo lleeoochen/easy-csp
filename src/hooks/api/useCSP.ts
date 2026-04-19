@@ -3,7 +3,7 @@ import { ConsciousSpendingPlanService } from '../../services/consciousSpendingPl
 import type { CSPBucket } from '@easy-csp/shared-types';
 import { useMemo } from 'react';
 import { camelCaseToSentence } from '../../utils/stringUtils';
-import { useFunds } from './useFunds';
+import { useAccounts } from './useAccounts';
 
 export const CSP_QUERY_KEY = ['csp'];
 
@@ -34,8 +34,8 @@ export const useUpdateCSPItem = () => {
 export const useAddCSPItem = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ bucket, category, amount, isTrackingFund, name }: { bucket: CSPBucket; category: string; amount: number; isTrackingFund?: boolean; name?: string }) =>
-      ConsciousSpendingPlanService.addCSPItem(bucket, category, amount, isTrackingFund, name).then(r => {
+    mutationFn: ({ bucket, category, amount, isTrackingAccount, name }: { bucket: CSPBucket; category: string; amount: number; isTrackingAccount?: boolean; name?: string }) =>
+      ConsciousSpendingPlanService.addCSPItem(bucket, category, amount, isTrackingAccount, name).then(r => {
         if (!r.success) throw new Error(r.message ?? 'Failed to add CSP item');
         return r.csp!;
       }),
@@ -45,32 +45,33 @@ export const useAddCSPItem = () => {
 
 /**
  * Returns a map of category ID → display name derived from CSP data.
- * For fund-linked categories, uses the fund's name.
+ * For account-linked categories, uses the account's display name.
  * Use `categoryNameMap.get(id) ?? camelCaseToSentence(id)` at the call site.
  */
 export const useCategoryNameMap = (): ReadonlyMap<string, string> => {
   const { data: csp } = useCSP();
-  const { data: funds = [] } = useFunds();
+  const { data: accounts = [] } = useAccounts();
 
   return useMemo(() => {
     const map = new Map<string, string>();
     if (!csp) return map;
     for (const items of Object.values(csp)) {
       for (const item of items) {
-        if (item.isTrackingFund) {
-          const target = funds.find(t => t.id === item.category);
-          map.set(item.category, target?.name ?? item.name ?? camelCaseToSentence(item.category));
+        if (item.isTrackingAccount) {
+          const account = accounts.find(a => a.id === item.category);
+          const displayName = account?.nickname || account?.accountName;
+          map.set(item.category, displayName ?? item.name ?? camelCaseToSentence(item.category));
         } else {
           map.set(item.category, item.name ?? camelCaseToSentence(item.category));
         }
       }
     }
     return map;
-  }, [csp, funds]);
+  }, [csp, accounts]);
 };
 
 /**
- * Returns a map of category ID → display name, excluding fund IDs.
+ * Returns a map of category ID → display name, excluding account IDs.
  * Use this for category selectors where users assign transaction categories.
  */
 export const useRegularCategoryNameMap = (): ReadonlyMap<string, string> => {
@@ -81,8 +82,8 @@ export const useRegularCategoryNameMap = (): ReadonlyMap<string, string> => {
     if (!csp) return map;
     for (const items of Object.values(csp)) {
       for (const item of items) {
-        // Exclude fund categories
-        if (!item.isTrackingFund) {
+        // Exclude account-tracking categories
+        if (!item.isTrackingAccount) {
           map.set(item.category, item.name ?? camelCaseToSentence(item.category));
         }
       }

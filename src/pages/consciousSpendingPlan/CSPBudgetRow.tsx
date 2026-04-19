@@ -1,16 +1,12 @@
 import { useMemo } from "react";
-import { CSPBucket, type CSPCategoryBudget, type Fund } from "@easy-csp/shared-types";
+import { CSPBucket, type CSPCategoryBudget } from "@easy-csp/shared-types";
 import { CSPBudgetActionMenu } from "./CSPBudgetActionMenu";
-import { useBudgetFromFund, useRegularBudget } from "../../hooks/useCSPBudgetRow";
+import { useRegularBudget } from "../../hooks/useCSPBudgetRow";
 import { useTransactions } from "../../hooks/api/useTransactions";
 import { getMonthBoundaries } from "../../utils/dateUtils";
 import { sumTransactions } from "../../utils/transactionUtils";
-import { useFunds } from "../../hooks/api/useFunds";
+import { useAccounts } from "../../hooks/api/useAccounts";
 import { useCSP } from "../../hooks/api/useCSP";
-
-const isManualFund = (fund: Fund) => {
-  return !fund.financialInstitutionId || !fund.accountId;
-};
 
 const POSITIVE_BUCKETS = [CSPBucket.Savings, CSPBucket.Income, CSPBucket.Investment];
 
@@ -24,7 +20,7 @@ export const CSPBudgetRow = ({ budget, bucket, currentMonthString }: CSPBudgetRo
   const [year, month] = currentMonthString.split('-').map(Number);
   const { startDate, endDate } = getMonthBoundaries(year, month - 1);
   const { data: transactionPages } = useTransactions({ startDate, endDate });
-  const { data: funds = [] } = useFunds();
+  const { data: accounts = [] } = useAccounts();
   const { data: csp } = useCSP();
 
   const transactions = useMemo(() =>
@@ -34,43 +30,44 @@ export const CSPBudgetRow = ({ budget, bucket, currentMonthString }: CSPBudgetRo
 
   // Calculate spending using our transaction utility
   const actualAmount = useMemo(() => {
-    if (!budget.isTrackingFund) {
+    if (!budget.isTrackingAccount) {
       return sumTransactions(transactions, {
-        excludeWithFund: true,
+        excludeFundAllocated: true,
         category: budget.category,
         csp,
-        includeHidden: false
+        includeHidden: false,
       });
     }
 
-    const fund = funds.find(st => st.id === budget.category);
-    if (!fund) {
+    // For tracking accounts, find the linked account
+    const account = accounts.find(a => a.id === budget.category);
+    if (!account) {
       return 0;
     }
 
-    if (isManualFund(fund)) {
+    // For manual accounts, sum transactions by accountId
+    if (account.isManual) {
       return Math.abs(sumTransactions(transactions, {
         csp,
-        fundId: fund.id,
+        accountId: account.id,
         includeHidden: false,
         inflowOnly: true
       }));
     }
 
+    // For linked accounts, sum by institutionId and accountId
     return Math.abs(sumTransactions(transactions, {
-      institutionId: fund.financialInstitutionId,
-      accountId: fund.accountId,
+      accountId: account.accountId,
       includeHidden: false,
-      inflowOnly: true
+      inflowOnly: true,
     }));
 
-  }, [budget.isTrackingFund, budget.category, transactions, csp, funds]);
+  }, [budget.isTrackingAccount, budget.category, transactions, csp, accounts]);
 
   // Use the hooks for category names only
   const { getCategoryName } = useRegularBudget(budget.category);
-  const { getCategoryName: getCategoryNameFromFund } = useBudgetFromFund(budget.category);
 
-  const categoryName = budget.isTrackingFund ? getCategoryNameFromFund() : getCategoryName();
+  const categoryName = getCategoryName();
   const budgetAmount = budget.amount;
 
   return (

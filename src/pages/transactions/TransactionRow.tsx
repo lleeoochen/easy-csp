@@ -1,7 +1,7 @@
 import type { Transaction } from "@easy-csp/shared-types";
 import { isManualTransaction } from "@easy-csp/shared-types";
-import { useCategoryMap, useFundCategoryIds, useIgnoredCategoryIds } from "../../hooks/useCategoryMap";
-import { useFunds } from "../../hooks/api/useFunds";
+import { useCategoryMap, useIgnoredCategoryIds } from "../../hooks/useCategoryMap";
+import { useAccounts } from "../../hooks/api/useAccounts";
 import { cn } from "../../components/common/utils";
 import { formatCurrency, getTransactionSignPrefix } from "../../utils/financialUtils";
 import { Split, Target, PenLine } from "lucide-react";
@@ -52,26 +52,22 @@ function SplitIndicator({ transaction }: { transaction: Transaction }) {
 
 export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
   const categoryMap = useCategoryMap();
-  const fundCategoryIds = useFundCategoryIds();
   const ignoredCategoryIds = useIgnoredCategoryIds();
-  const { data: funds = [] } = useFunds();
+  const { data: accounts = [] } = useAccounts();
 
-  const isManual = isManualTransaction(transaction);
-
-  const fund = transaction.fundId
-    ? funds.find(st => st.id === transaction.fundId)
+  const account = transaction.accountId
+    ? accounts.find(acc => acc.id === transaction.accountId)
     : null;
 
-  const targetColor = transaction.fundId
-    ? SAVING_TARGET_COLORS[hashStringToIndex(transaction.fundId, SAVING_TARGET_COLORS.length)]
+  const isManual = account ? isManualTransaction(account) : false;
+
+  const targetColor = transaction.accountId
+    ? SAVING_TARGET_COLORS[hashStringToIndex(transaction.accountId, SAVING_TARGET_COLORS.length)]
     : "text-blue-600";
 
   const categoryText = categoryMap[transaction.category] ?? transaction.category;
 
-  const categoryInfo = {
-    isFund: fundCategoryIds.has(transaction.category),
-    isIgnored: ignoredCategoryIds.has(transaction.category) || transaction.hidden
-  };
+  const isIgnored = ignoredCategoryIds.has(transaction.category) || transaction.hidden
 
   const displayName = transaction.nickname || transaction.name;
 
@@ -89,9 +85,9 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
               </div>
               <div className={cn(
                 "flex flex-row gap-1 items-center text-sm flex-wrap",
-                categoryInfo.isFund ? `${targetColor} font-medium` : "text-gray-400"
+                transaction.allocatedFundId ? `${targetColor} font-medium` : "text-gray-400"
               )}>
-                {fund && (
+                {transaction.allocatedFundId && (
                   <Target className={targetColor} size={18} strokeWidth={2} />
                 )}
                 <SplitIndicator transaction={transaction} />
@@ -102,8 +98,8 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
           <div className="flex flex-col items-end">
             <div className={cn(
               "font-bold",
-              categoryInfo.isIgnored && "text-gray-400",
-              !categoryInfo.isIgnored && transaction.amount < 0 && "text-green-600"
+              isIgnored && "text-gray-400",
+              !isIgnored && transaction.amount < 0 && "text-green-600"
             )}>
               {getTransactionSignPrefix(transaction.amount) + formatCurrency(transaction.amount)}
             </div>

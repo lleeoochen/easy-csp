@@ -13,6 +13,7 @@ import { CSPCategory } from "@easy-csp/shared-types";
 import { upperCaseToSentence } from "../../utils/stringUtils";
 import { useFinancialInstitutions } from "../../hooks/api/useFinancialInstitutions";
 import { useUpdateTransaction, useDeleteTransaction, useCreateTransaction, useTransaction } from "../../hooks/api/useTransactions";
+import { useAccounts } from "../../hooks/api/useAccounts";
 import "../../components/common/datepicker.css";
 import { formatCurrency, getTransactionSignPrefix } from "../../utils/financialUtils";
 import { ArrowLeft, Split } from "lucide-react";
@@ -26,19 +27,23 @@ const TransactionEditPage = () => {
 
   const { data: transaction, isLoading: loadingTransaction } = useTransaction(isCreateMode ? null : id!);
   const { data: institutions = [] } = useFinancialInstitutions();
+  const { data: accounts = [] } = useAccounts();
   const updateTransaction = useUpdateTransaction();
   const deleteTransaction = useDeleteTransaction();
   const createTransaction = useCreateTransaction();
 
-  const isManual = isCreateMode || !transaction?.institutionId;
+  const account = transaction?.accountId
+    ? accounts.find(acc => acc.id === transaction.accountId)
+    : null;
+  const isManual = isCreateMode || account?.isManual;
 
   const [selectedCategory, setSelectedCategory] = useState<string>(CSPCategory.Others);
-  const [selectedFund, setSelectedFund] = useState<string>('');
   const [nickname, setNickname] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [transactionName, setTransactionName] = useState<string>('');
   const [transactionAmount, setTransactionAmount] = useState<string>('');
   const [transactionType, setTransactionType] = useState<'expense' | 'income'>('expense');
+  const [allocatedFundId, setAllocatedFundId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [splitDialogOpen, setSplitDialogOpen] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{
@@ -77,12 +82,12 @@ const TransactionEditPage = () => {
   useEffect(() => {
     if (transaction) {
       setSelectedCategory(transaction.category);
-      setSelectedFund(transaction.fundId || '');
       setNickname(transaction.nickname || '');
       setSelectedDate(new Date(transaction.datetime));
       setTransactionName(transaction.name);
       setTransactionAmount(Math.abs(transaction.amount).toString());
       setTransactionType(transaction.amount < 0 ? 'income' : 'expense');
+      setAllocatedFundId(transaction.allocatedFundId || '');
     }
   }, [transaction]);
 
@@ -100,12 +105,11 @@ const TransactionEditPage = () => {
           amount: finalAmount,
           datetime: selectedDate.getTime(),
           category: selectedCategory,
-          fundId: selectedFund || undefined,
           nickname: nickname || undefined,
-          institutionId: null as unknown as string,
           accountId: null as unknown as string,
           plaidCategory: 'Manual',
           hidden: false,
+          allocatedFundId: allocatedFundId || undefined,
         };
 
         await createTransaction.mutateAsync(newTransaction);
@@ -122,8 +126,8 @@ const TransactionEditPage = () => {
       try {
         const updates: Partial<Transaction> = {
           category: selectedCategory,
-          fundId: selectedFund || undefined,
           nickname: nickname || undefined,
+          allocatedFundId: allocatedFundId || undefined,
         };
 
         if (isManual) {
@@ -171,12 +175,13 @@ const TransactionEditPage = () => {
     }
   };
 
-  const institution = institutions.find(inst => inst.institutionId === transaction?.institutionId);
-  const account = institution?.accounts.find(acc => acc.accountId === transaction?.accountId);
+  const institution = account?.institutionId
+    ? institutions.find(inst => inst.institutionId === account.institutionId)
+    : null;
 
   if (loadingTransaction) {
     return (
-      <Page maxWidth="half-xl">
+      <Page maxWidth="cozy" title="Edit Transaction">
         <div className="animate-pulse">Loading...</div>
       </Page>
     );
@@ -184,7 +189,7 @@ const TransactionEditPage = () => {
 
   if (!isCreateMode && !transaction) {
     return (
-      <Page maxWidth="half-xl">
+      <Page maxWidth="cozy" title="Edit Transaction">
         <div className="text-center py-8">
           <p className="text-gray-600 mb-4">Transaction not found</p>
           <Button
@@ -201,8 +206,8 @@ const TransactionEditPage = () => {
 
   const hasChanges = isCreateMode ? true : (
     selectedCategory !== transaction!.category ||
-    (selectedFund || null) !== (transaction!.fundId || null) ||
     nickname !== (transaction!.nickname || '') ||
+    allocatedFundId !== (transaction!.allocatedFundId || '') ||
     selectedDate.getTime() !== transaction!.datetime ||
     (isManual && (
       transactionName !== transaction!.name ||
@@ -213,7 +218,7 @@ const TransactionEditPage = () => {
 
   return (
     <>
-      <Page maxWidth="half-xl">
+      <Page maxWidth="cozy" title="Edit Transaction">
         {/* Header with back button */}
         <div className="mb-6">
           <Button
@@ -331,7 +336,7 @@ const TransactionEditPage = () => {
                 </p>
               )}
             </div>
-            
+
             {/* Date Picker */}
             <div>
               <DatePicker
@@ -366,10 +371,11 @@ const TransactionEditPage = () => {
 
           {/* Fund Selector */}
           <FundSelector
-            value={selectedFund}
-            onValueChange={setSelectedFund}
-            label="Fund (Optional)"
-            placeholder="Excluded from funds"
+            value={allocatedFundId}
+            onValueChange={setAllocatedFundId}
+            label="Allocated Fund (Optional)"
+            placeholder="Select a fund to allocate to..."
+            disabled={false}
             includeNoneOption={true}
           />
           </CardContent>

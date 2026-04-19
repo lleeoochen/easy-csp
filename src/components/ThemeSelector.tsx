@@ -23,7 +23,7 @@ export const ThemeSelector = () => {
               <button
                 key={themeName}
                 onClick={() => setTheme(themeName)}
-                className={`w-16 h-16 rounded-lg transition-all ${
+                className={`w-16 h-16 rounded-lg transition-all cursor-pointer ${
                   isActive ? 'ring-4 ring-offset-2 ring-gray-400 scale-110' : 'hover:scale-105'
                 }`}
                 style={{ backgroundColor: theme.colors.primaryBg }}

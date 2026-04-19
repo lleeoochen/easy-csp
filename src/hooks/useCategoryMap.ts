@@ -4,7 +4,7 @@ import type { CSPCategoryBudget } from "@easy-csp/shared-types";
 
 /**
  * Returns a flat dictionary of categoryId → display name,
- * derived from the user's CSP document and funds.
+ * derived from the user's CSP document and accounts.
  */
 export const useCategoryMap = (): Record<string, string> => {
   const map = useCategoryNameMap();
@@ -12,17 +12,16 @@ export const useCategoryMap = (): Record<string, string> => {
 };
 
 /**
- * Returns the set of category IDs that are tracking a fund.
- * Prefer this over isFundCategory — it reads directly from CSP data.
+ * Returns the set of category IDs that are tracking an account.
  */
-export const useFundCategoryIds = (): ReadonlySet<string> => {
+export const useAccountCategoryIds = (): ReadonlySet<string> => {
   const { data: csp } = useCSP();
   return useMemo(() => {
     const ids = new Set<string>();
     if (!csp) return ids;
     for (const items of Object.values(csp)) {
       for (const item of items as CSPCategoryBudget[]) {
-        if (item.isTrackingFund) ids.add(item.category);
+        if (item.isTrackingAccount) ids.add(item.category);
       }
     }
     return ids;

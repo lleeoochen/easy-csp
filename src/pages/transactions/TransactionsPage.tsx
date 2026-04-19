@@ -1,9 +1,8 @@
 import { TransactionsList } from "./TransactionsList";
 import { Page } from "../../components/Page";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import type { Transaction } from "@easy-csp/shared-types";
-import InfiniteScroll from "react-infinite-scroll-component";
 import { useTransactions } from "../../hooks/api/useTransactions";
 import type { ListTransactionsRequest } from "../../types/firestoreTypes";
 import { ChevronDown, ChevronUp, SlidersHorizontal, X, Plus } from "lucide-react";
@@ -19,12 +18,13 @@ import { useMonthFilter } from "../../hooks/useMonthFilter";
 const FETCH_LIMIT = 20;
 
 const TransactionsPage = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { selectedYear, selectedMonth, handleMonthSelect } = useMonthFilter();
 
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const categoryFilter = searchParams.get('category');
   const fundFilter = searchParams.get('fund');
@@ -33,14 +33,13 @@ const TransactionsPage = () => {
     const request: Omit<ListTransactionsRequest, 'startAfter'> = { limit: FETCH_LIMIT };
 
     if (categoryFilter) request.category = categoryFilter;
-    if (fundFilter && fundFilter !== 'none') request.fundId = fundFilter;
 
     const { startDate, endDate } = getMonthBoundaries(selectedYear, selectedMonth);
     request.startDate = startDate;
     request.endDate = endDate;
 
     return request;
-  }, [categoryFilter, fundFilter, selectedYear, selectedMonth]);
+  }, [categoryFilter, selectedYear, selectedMonth]);
 
   const {
     data,
@@ -52,17 +51,23 @@ const TransactionsPage = () => {
   } = useTransactions(baseRequest);
 
   const transactions = useMemo(() => {
-    let all = data?.pages.flatMap(page => page.transactions ?? []) ?? [];
+    let filtered = data?.pages.flatMap(page => page.transactions ?? []) ?? [];
 
-    // Filter out transactions with funds when fund=none is specified
-    if (fundFilter === 'none') {
-      all = all.filter(t => !t.fundId);
+    // Apply fund filter
+    if (fundFilter && fundFilter !== 'none') {
+      filtered = filtered.filter(t => t.allocatedFundId === fundFilter);
+    } else if (fundFilter === 'none') {
+      // Show only transactions with no fund allocated
+      filtered = filtered.filter(t => !t.allocatedFundId);
     }
 
     // Apply search text filter
-    if (!searchText.trim()) return all;
-    const lower = searchText.toLowerCase();
-    return all.filter(t => t.name?.toLowerCase().includes(lower));
+    if (searchText.trim()) {
+      const lower = searchText.toLowerCase();
+      filtered = filtered.filter(t => t.name?.toLowerCase().includes(lower));
+    }
+
+    return filtered;
   }, [data, searchText, fundFilter]);
 
   const hasActiveFilters = !!(categoryFilter || (fundFilter && fundFilter !== 'none') || searchText);
@@ -86,12 +91,33 @@ const TransactionsPage = () => {
     setSearchText('');
   }, [searchParams, setSearchParams]);
 
-  const handleFetchMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          console.log("Intersection triggered, fetching more...");
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   return (
-    <Page title="Transactions" maxWidth="half-xl">
+    <Page title="Transactions" maxWidth="half">
       <div className="space-y-4">
         {/* Month Selector - Always at top */}
         <MonthSelector
@@ -222,19 +248,24 @@ const TransactionsPage = () => {
           <div className="flex-1 min-w-0">
             {error && <p className="text-red-600 mb-4">Error loading transactions: {error.message}</p>}
 
-            <InfiniteScroll
-              className="flex flex-col gap-1"
-              dataLength={transactions.length}
-              next={handleFetchMore}
-              hasMore={!!hasNextPage}
-              loader=""
-            >
+            <div className="flex flex-col gap-1">
               <TransactionsList
                 hasNextPage={hasNextPage}
                 transactions={transactions}
                 handleTransactionClick={handleTransactionClick}
               />
-            </InfiniteScroll>
+
+              {/* Intersection observer target */}
+              {hasNextPage && (
+                <div ref={loadMoreRef} className="py-4 text-center">
+                  {isFetchingNextPage ? (
+                    <div className="animate-pulse text-gray-500">Loading more transactions...</div>
+                  ) : (
+                    <div className="h-4" />
+                  )}
+                </div>
+              )}
+            </div>
 
             {isLoading && <div className="animate-pulse mt-4">Loading transactions...</div>}
           </div>

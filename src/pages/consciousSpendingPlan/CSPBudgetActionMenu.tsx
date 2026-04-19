@@ -11,7 +11,8 @@ import { type CSPCategoryBudget, CSPBucket } from "@easy-csp/shared-types";
 import { formatCurrency } from "../../utils/financialUtils";
 import { cn } from "../../components/common/utils";
 import { CSPBudgetEditDialog } from "./CSPBudgetEditDialog";
-import { PenIcon, BarChart3Icon, Trash2Icon } from "lucide-react";
+import { UnlinkAccountDialog } from "./UnlinkAccountDialog";
+import { PenIcon, BarChart3Icon, Trash2Icon, UnlinkIcon } from "lucide-react";
 import { useDeleteCSPItem } from "../../hooks/api/useCSP";
 import { PROTECTED_CSP_CATEGORIES } from "@easy-csp/shared-types";
 
@@ -44,6 +45,7 @@ export const CSPBudgetActionMenu = ({
 }: CSPBudgetActionMenuProps) => {
   const navigate = useNavigate();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isUnlinkDialogOpen, setIsUnlinkDialogOpen] = useState(false);
   const deleteCSPItem = useDeleteCSPItem();
 
   const isOverBudget = actualAmount > budgetAmount;
@@ -57,8 +59,8 @@ export const CSPBudgetActionMenu = ({
       onViewTransactions();
       return;
     }
-    // For funds, filter by fund; for regular categories, filter by category and no fund
-    if (budget.isTrackingFund) {
+    // For accounts, filter by account; for regular categories, filter by category and no account
+    if (budget.isTrackingAccount) {
       navigate(`/transactions?fund=${encodeURIComponent(budget.category)}&month=${currentMonth}`);
     } else {
       navigate(`/transactions?category=${encodeURIComponent(budget.category)}&fund=none&month=${currentMonth}`);
@@ -73,6 +75,14 @@ export const CSPBudgetActionMenu = ({
       );
     }
   };
+
+  const handleUnlinkAccount = () => {
+    setIsUnlinkDialogOpen(true);
+  };
+
+  // Check if this is a linked account in Savings/Investment bucket
+  const isLinkedFundAccount = budget.isTrackingAccount &&
+    (bucket === CSPBucket.Savings || bucket === CSPBucket.Investment);
 
   return (
     <>
@@ -119,7 +129,16 @@ export const CSPBudgetActionMenu = ({
                 Edit
               </DropdownMenuItem>
             )}
-            {showDelete && bucket !== CSPBucket.Income && budget.isTrackingFund !== true && !PROTECTED_CSP_CATEGORIES.has(budget.category) && (
+            {isLinkedFundAccount && (
+              <DropdownMenuItem
+                onClick={handleUnlinkAccount}
+                className="text-orange-600 focus:text-orange-600"
+              >
+                <UnlinkIcon className="mr-2 h-4 w-4" />
+                Unlink Account
+              </DropdownMenuItem>
+            )}
+            {showDelete && bucket !== CSPBucket.Income && budget.isTrackingAccount !== true && !PROTECTED_CSP_CATEGORIES.has(budget.category) && (
               <DropdownMenuItem
                 onClick={handleRemoveCategory}
                 className="text-red-600 focus:text-red-600"
@@ -138,6 +157,14 @@ export const CSPBudgetActionMenu = ({
         budget={budget}
         bucket={bucket}
         categoryName={categoryName}
+      />
+
+      <UnlinkAccountDialog
+        open={isUnlinkDialogOpen}
+        onOpenChange={setIsUnlinkDialogOpen}
+        accountId={budget.category}
+        accountName={categoryName}
+        bucket={bucket}
       />
     </>
   );

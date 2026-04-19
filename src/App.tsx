@@ -1,19 +1,18 @@
 import ConsciousSpendingPlanPage from "./pages/consciousSpendingPlan/ConsciousSpendingPlanPage";
-import FundsPage from "./pages/funds/FundsPage";
-import FundEditPage from "./pages/funds/FundEditPage";
 import TransactionsPage from "./pages/transactions/TransactionsPage";
 import TransactionEditPage from "./pages/transactions/TransactionEditPage";
 import RulesPage from "./pages/rules/RulesPage";
 import RuleEditPage from "./pages/rules/RuleEditPage";
 import SettingsPage from "./pages/SettingsPage";
 import TravelModeEditPage from "./pages/travelMode/TravelModeEditPage";
-import FinancialInstitutionsPage from "./pages/financialInstitutions/FinancialInstitutionsPage";
 import NetWorthPage from "./pages/netWorth/NetWorthPage";
-import { DollarSign, Target, BarChart3, Settings, Building2, Filter, TrendingUp } from "lucide-react";
+import AddAccountPage from "./pages/netWorth/AddAccountPage";
+import AccountEditPage from "./pages/netWorth/AccountEditPage";
+import { DollarSign, BarChart3, Settings, Filter, TrendingUp } from "lucide-react";
 import { initializeApp } from "firebase/app";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { connectFirestoreEmulator, getFirestore, doc, getDoc } from "firebase/firestore";
-import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import SignInPage from "./pages/SignInPage";
 import { useAuthState } from "./hooks/useAuthState";
 import { Tabs } from "./components/Tabs";
@@ -22,6 +21,9 @@ import { RequireMfaEnrollment } from "./components/RequireMfaEnrollment";
 import { EmailVerification } from "./components/auth/EmailVerification";
 import { USERS_COLLECTION, type User } from "@easy-csp/shared-types";
 import { useState, useEffect } from "react";
+
+// Import migration helper for easy access in console
+import "./utils/migrationHelper";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBERcnPQeqTU4VrJryfWAiqaFe4BPxDRXQ",
@@ -37,13 +39,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const firestore = getFirestore(app);
 const functions = getFunctions(app);
-const auth = getAuth(app);
+// const auth = getAuth(app);
 
 // Connect to emulators in development
 if (isDevEnvironment) {
-  connectFirestoreEmulator(firestore, "localhost", 8080);
-  connectFunctionsEmulator(functions, "localhost", 5001);
-  connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
+  connectFirestoreEmulator(firestore, "127.0.0.1", 8080);
+  connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+  // connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
 }
 
 function App() {
@@ -113,20 +115,7 @@ function App() {
               element: <ConsciousSpendingPlanPage />,
               showInNav: true
             },
-            {
-              path: "/funds",
-              name: "Funds",
-              icon: Target,
-              element: <FundsPage />,
-              showInNav: true
-            },
-            {
-              path: "/funds/:id/edit",
-              name: "Edit Fund",
-              icon: Target,
-              element: <FundEditPage />,
-              showInNav: false
-            },
+
             {
               path: "/net-worth",
               name: "Net Worth",
@@ -135,10 +124,17 @@ function App() {
               showInNav: true
             },
             {
-              path: "/institutions",
-              name: "Institutions",
-              icon: Building2,
-              element: <FinancialInstitutionsPage />,
+              path: "/net-worth/add-account",
+              name: "Add Account",
+              icon: TrendingUp,
+              element: <AddAccountPage />,
+              showInNav: false
+            },
+            {
+              path: "/net-worth/account/:accountId/edit",
+              name: "Edit Account",
+              icon: TrendingUp,
+              element: <AccountEditPage />,
               showInNav: false
             },
             {

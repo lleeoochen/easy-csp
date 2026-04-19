@@ -8,9 +8,13 @@ import { getAuth } from "firebase/auth";
 import {
   RULES_COLLECTION,
   type Rule,
-  type RuleTransformation
+  type RuleTransformation,
+  type Transaction,
+  type RuleMatchingCriteria,
+  RuleCondition
 } from "@easy-csp/shared-types";
 import { prepareFirestoreData } from "../utils/firestoreHelpers";
+import { AccountService } from "./accountService";
 
 export class RulesService {
   private static getAuthenticatedUserId(): string {
@@ -137,6 +141,138 @@ export class RulesService {
     } catch (error) {
       console.error("Error reordering rules:", error);
       throw error;
+    }
+  }
+
+  /**
+   * Validates that a fund assignment rule references a valid fund account
+   * Called when creating or updating rules with assignFund action
+   * @param fundAccountId The fund account ID to validate
+   * @returns Object with valid flag and optional error message
+   */
+  public static async validateFundAssignmentRule(
+    fundAccountId: string
+  ): Promise<{ valid: boolean; message?: string }> {
+    try {
+      // Get all accounts to find the referenced fund account
+      const accounts = await AccountService.listAccounts();
+      const fundAccount = accounts.find(acc => acc.id === fundAccountId);
+
+      if (!fundAccount) {
+        return { valid: false, message: "Fund account not found" };
+      }
+
+      if (!fundAccount.isFundAccount) {
+        return { valid: false, message: "Referenced account is not a fund account" };
+      }
+
+      return { valid: true };
+    } catch (error) {
+      console.error("Error validating fund assignment rule:", error);
+      return { valid: false, message: "Error validating fund account" };
+    }
+  }
+
+  /**
+   * Evaluates if a transaction matches the rule criteria
+   * @param transaction The transaction to evaluate
+   * @param criteria The matching criteria to check against
+   * @returns True if the transaction matches all criteria
+   */
+  private static evaluateRuleCriteria(
+    transaction: Transaction,
+    criteria: RuleMatchingCriteria
+  ): boolean {
+    try {
+      // Check name criteria
+      if (criteria.name) {
+        const nameMatch = criteria.name.condition === RuleCondition.Exact ?
+          transaction.name === criteria.name.value :
+          transaction.name.toLowerCase().includes(criteria.name.value.toLowerCase());
+        if (!nameMatch) return false;
+      }
+
+      // Check accountId criteria
+      if (criteria.accountId) {
+        const accountMatch = criteria.accountId.condition === RuleCondition.Exact ?
+          transaction.accountId === criteria.accountId.value :
+          transaction.accountId.toLowerCase().includes(criteria.accountId.value.toLowerCase());
+        if (!accountMatch) return false;
+      }
+
+      // Check amount criteria
+      if (criteria.amount) {
+        let amountMatch = false;
+        switch (criteria.amount.condition) {
+        case RuleCondition.Equal:
+          amountMatch = Math.abs(transaction.amount - criteria.amount.value) < 0.01; // Handle floating point precision
+          break;
+        case RuleCondition.LessThan:
+          amountMatch = transaction.amount < criteria.amount.value;
+          break;
+        case RuleCondition.GreaterThan:
+          amountMatch = transaction.amount > criteria.amount.value;
+          break;
+        }
+        if (!amountMatch) return false;
+      }
+
+      // Check category criteria
+      if (criteria.category) {
+        const categoryMatch = criteria.category.condition === RuleCondition.Exact ?
+          transaction.category === criteria.category.value :
+          transaction.category.toLowerCase().includes(criteria.category.value.toLowerCase());
+        if (!categoryMatch) return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Error evaluating rule criteria:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Applies rules to a transaction (including fund assignment)
+   * Returns the modified transaction with all rule actions applied
+   * @param transaction The transaction to apply rules to
+   * @param rules Array of rule transformations to evaluate
+   * @returns Transaction with all applicable rules applied
+   */
+  public static applyRulesToTransaction(
+    transaction: Transaction,
+    rules: RuleTransformation[]
+  ): Transaction {
+    let modifiedTransaction = { ...transaction };
+
+    try {
+      // Process each enabled rule
+      for (const rule of rules) {
+        if (!rule.enabled) continue;
+
+        // Check if rule matches transaction
+        if (this.evaluateRuleCriteria(modifiedTransaction, rule.matchingCriteria)) {
+          // Apply rule actions
+          if (rule.action.changeCategory !== undefined) {
+            modifiedTransaction.category = rule.action.changeCategory;
+          }
+
+          if (rule.action.toggleHidden !== undefined) {
+            modifiedTransaction.hidden = rule.action.toggleHidden;
+          }
+
+          if (rule.action.assignFund !== undefined) {
+            modifiedTransaction.allocatedFundId = rule.action.assignFund;
+          }
+
+          // Note: autoSplit is not applied in frontend - it's a backend-only action
+        }
+      }
+
+      return modifiedTransaction;
+    } catch (error) {
+      console.error("Error applying rules to transaction:", error);
+      return transaction; // Return original transaction if rule application fails
     }
   }
 }

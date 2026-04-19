@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 type PageProps = {
   children?: ReactNode
   title?: string
-  maxWidth?: 'mobile' | 'half' | 'full' | 'half-xl'
+  maxWidth?: 'half' | 'full' | 'cozy'
 };
 
 export const Page = ({ children, title, maxWidth = 'half' }: PageProps) => {
@@ -17,10 +17,9 @@ export const Page = ({ children, title, maxWidth = 'half' }: PageProps) => {
   };
 
   const widthClasses = {
-    mobile: 'w-full md:w-96',
-    half: 'w-full md:w-96 lg:w-1/2',
     full: 'w-full',
-    'half-xl': 'w-full md:w-96 lg:w-full xl:w-1/2'
+    half: 'w-full lg:w-2/3',
+    cozy: 'w-full lg:w-1/3'
   };
 
   return (

@@ -132,7 +132,7 @@ export class ConsciousSpendingPlanService {
     bucket: CSPBucket,
     category: string,
     amount: number,
-    isTrackingFund?: boolean,
+    isTrackingAccount?: boolean,
     name?: string
   ): Promise<{
     success: boolean;
@@ -170,7 +170,7 @@ export class ConsciousSpendingPlanService {
       bucketItems.push({
         category,
         amount,
-        ...(isTrackingFund !== undefined ? { isTrackingFund } : {}),
+        ...(isTrackingAccount !== undefined ? { isTrackingAccount } : {}),
         ...(name ? { name } : {})
       });
 

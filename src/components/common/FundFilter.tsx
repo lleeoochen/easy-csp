@@ -1,7 +1,6 @@
 import { Select } from "./select";
 import { Label } from "./label";
-import { useFunds } from "../../hooks/api/useFunds";
-import { FundType } from "@easy-csp/shared-types";
+import { useAccountsWithInfo } from "../../hooks/api/useAccounts";
 
 interface FundFilterProps {
   value: string;
@@ -12,7 +11,6 @@ interface FundFilterProps {
   className?: string;
   includeAllOption?: boolean;
   includeNoneOption?: boolean;
-  filterByType?: FundType;
 }
 
 export const FundFilter = ({
@@ -22,30 +20,28 @@ export const FundFilter = ({
   placeholder = "Filter by fund",
   disabled = false,
   className,
-  includeAllOption = false,
-  includeNoneOption = false,
-  filterByType,
+  includeAllOption = true,
+  includeNoneOption = false
 }: FundFilterProps) => {
-  const { data: funds = [] } = useFunds();
+  const { data: accounts = [], isLoading } = useAccountsWithInfo();
 
-  // Filter funds by type if specified
-  const filteredFunds = filterByType
-    ? funds.filter(fund => fund.type === filterByType)
-    : funds;
+  // Filter to only fund accounts
+  const fundAccounts = accounts.filter(account => account.isFundAccount);
 
+  // Build options with optional "All" and "None" at the top
   const options = [
-    ...(includeAllOption ? [{ value: '', label: 'All transactions' }] : []),
+    ...(includeAllOption ? [{ value: '', label: 'All funds' }] : []),
     ...(includeNoneOption ? [{ value: 'none', label: 'No fund assigned' }] : []),
-    ...filteredFunds.map(fund => ({
-      value: fund.id,
-      label: fund.name,
+    ...fundAccounts.map((account) => ({
+      value: account.id,
+      label: account.displayName,
     })),
   ];
 
   return (
     <div className={className}>
       {label && (
-        <Label htmlFor="fundFilter" className="text-sm font-medium text-gray-700">
+        <Label htmlFor="fund-filter" className="text-sm font-medium text-gray-700">
           {label}
         </Label>
       )}
@@ -53,8 +49,8 @@ export const FundFilter = ({
         options={options}
         value={value}
         onValueChange={onValueChange}
-        isDisabled={disabled}
-        placeholder={placeholder}
+        isDisabled={disabled || isLoading}
+        placeholder={isLoading ? "Loading funds..." : placeholder}
       />
     </div>
   );

@@ -68,8 +68,8 @@ describe('Page', () => {
     expect(pullToRefresh).toHaveClass('w-full');
   });
 
-  it('should apply half-xl width class', () => {
-    render(<Page maxWidth="half-xl">Content</Page>);
+  it('should apply cozy width class', () => {
+    render(<Page maxWidth="cozy">Content</Page>);
     const pullToRefresh = screen.getByTestId('pull-to-refresh');
     expect(pullToRefresh).toHaveClass('w-full', 'md:w-96', 'lg:w-full', 'xl:w-1/2');
   });

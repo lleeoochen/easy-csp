@@ -18,7 +18,7 @@ export function getDefaultTravelCategories(csp: ConsciousSpendingPlan | null | u
 
   const guildFreeSpendingBudgets = csp[CSPBucket.GuildFreeSpending] || [];
   return guildFreeSpendingBudgets
-    .filter(budget => !budget.isTrackingFund) // Exclude any fund categories
+    .filter(budget => !budget.isTrackingAccount)
     .map(budget => budget.category);
 }
 
@@ -64,8 +64,8 @@ export function getTravelModeConfig(rule: Rule | null): TravelModeConfig | null 
     .map(t => t.matchingCriteria.category?.value)
     .filter(Boolean) as string[];
 
-  const fundId = travelRules[0].action.assignFundId;
-  if (!fundId) return null;
+  const accountId = travelRules[0].action.assignFund;
+  if (!accountId) return null;
 
-  return { categories, fundId };
+  return { categories, accountId };
 }

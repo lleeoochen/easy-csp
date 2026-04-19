@@ -1,32 +1,55 @@
-import { useFinancialInstitutions } from "../../hooks/api/useFinancialInstitutions";
-import { generateAccountOptions } from "../../utils/accountUtils";
 import { Select } from "./select";
+import { Label } from "./label";
+import { useAccountsWithInfo } from "../../hooks/api/useAccounts";
+import type { UI_FinancialAccount } from "../../types/uiTypes";
 
 interface AccountSelectorProps {
   value: string;
-  onChange: (value: string) => void;
+  onValueChange: (value: string) => void;
+  label?: string;
+  placeholder?: string;
   disabled?: boolean;
-  includeManualOption?: boolean;
+  className?: string;
+  includeNoneOption?: boolean;
+  accounts?: UI_FinancialAccount[]; // Optional: provide custom filtered accounts
 }
 
-export const MANUAL_ACCOUNT_VALUE = "manual";
+export const AccountSelector = ({
+  value,
+  onValueChange,
+  label = "Account",
+  placeholder = "Select an account",
+  disabled = false,
+  className,
+  includeNoneOption = false,
+  accounts: customAccounts
+}: AccountSelectorProps) => {
+  const { data: fetchedAccounts = [], isLoading } = useAccountsWithInfo();
 
-export function AccountSelector({ value, onChange, disabled, includeManualOption = false }: AccountSelectorProps) {
-  const { data: institutions = [] } = useFinancialInstitutions();
-  const accountOptions = generateAccountOptions(institutions);
+  // Use custom accounts if provided, otherwise use fetched accounts
+  const accounts = customAccounts ?? fetchedAccounts;
 
-  // Add manual option at the beginning if requested
-  const options = includeManualOption
-    ? [{ value: MANUAL_ACCOUNT_VALUE, label: "Manual Entry (No Account)" }, ...accountOptions]
-    : accountOptions;
+  // Build options with optional "None" at the top
+  const options = [
+    ...(includeNoneOption ? [{ value: '', label: 'No account assigned' }] : []),
+    ...accounts.map((account) => ({
+      value: account.id,
+      label: (account.institutionName ? account.institutionName + ' - ' : '') + account.displayName,
+    })).sort((a, b) => a.label.localeCompare(b.label)),
+  ];
 
   return (
-    <Select
-      options={options}
-      value={value}
-      onValueChange={onChange}
-      placeholder="Choose an account..."
-      isDisabled={disabled}
-    />
+    <div className={className}>
+      <Label htmlFor="account" className="text-sm font-medium text-gray-700">
+        {label}
+      </Label>
+      <Select
+        options={options}
+        value={value}
+        onValueChange={onValueChange}
+        isDisabled={disabled || isLoading}
+        placeholder={isLoading ? "Loading accounts..." : placeholder}
+      />
+    </div>
   );
-}
+};

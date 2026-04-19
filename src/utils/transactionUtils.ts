@@ -9,14 +9,10 @@ export interface TransactionSumOptions {
   outflowOnly?: boolean;
   /** Filter by specific category */
   category?: string;
-  /** Filter by fund ID. Use 'any' to match transactions with any fund, or a specific ID */
-  fundId?: string | 'any';
-  /** Exclude transactions that have any fundId (useful for non-Savings buckets) */
-  excludeWithFund?: boolean;
-  /** Filter by specific institution ID */
-  institutionId?: string;
-  /** Filter by specific account ID */
-  accountId?: string;
+  /** Filter by account ID. Use 'any' to match transactions with any account, or a specific ID */
+  accountId?: string | 'any';
+  /** Exclude transactions that have been allocated to a fund account (allocatedFundId is set) */
+  excludeFundAllocated?: boolean;
   /** Include only transactions from these buckets */
   includeBuckets?: CSPBucket[];
   /** Exclude transactions from these buckets */
@@ -42,10 +38,10 @@ export interface TransactionSumOptions {
  * });
  *
  * @example
- * // Sum only inflow transactions (negative amounts) excluding funds
+ * // Sum only inflow transactions (negative amounts) excluding accounts
  * const inflows = sumTransactions(transactions, {
  *   inflowOnly: true,
- *   excludeFunds: true
+ *   excludeWithAccount: true
  * });
  */
 export function sumTransactions(
@@ -58,29 +54,27 @@ export function sumTransactions(
     inflowOnly = false,
     outflowOnly = false,
     category,
-    fundId,
-    excludeWithFund = false,
-    institutionId,
     accountId,
+    excludeFundAllocated = false,
     includeBuckets,
     excludeBuckets,
     csp
   } = options;
 
-  // Build category/fundId-to-bucket mapping once for performance
+  // Build category/accountId-to-bucket mapping once for performance
   let categoryToBucket: Map<string, CSPBucket> | undefined;
-  let fundToBucket: Map<string, CSPBucket> | undefined;
+  let accountToBucket: Map<string, CSPBucket> | undefined;
 
   if ((includeBuckets || excludeBuckets) && csp) {
     categoryToBucket = new Map();
-    fundToBucket = new Map();
+    accountToBucket = new Map();
 
     for (const [bucket, budgets] of Object.entries(csp)) {
       const bucketType = bucket as CSPBucket;
       for (const budget of budgets) {
-        if (budget.isTrackingFund) {
-          // For fund budgets, map by fundId (stored in category field)
-          fundToBucket.set(budget.category, bucketType);
+        if (budget.isTrackingAccount) {
+          // For account budgets, map by accountId (stored in category field)
+          accountToBucket.set(budget.category, bucketType);
         } else {
           // For regular budgets, map by category
           categoryToBucket.set(budget.category, bucketType);
@@ -96,17 +90,17 @@ export function sumTransactions(
         return false;
       }
 
-      // Exclude transactions with funds if requested
-      if (excludeWithFund && transaction.fundId) {
+      // Exclude transactions that have been allocated to a fund account
+      if (excludeFundAllocated && transaction.allocatedFundId) {
         return false;
       }
 
       // Determine transaction bucket(s) - a transaction can belong to multiple buckets
       const transactionBuckets: CSPBucket[] = [];
-      if ((includeBuckets || excludeBuckets) && (categoryToBucket || fundToBucket)) {
-        // Check fundId bucket
-        if (transaction.fundId) {
-          const savingBucket = fundToBucket?.get(transaction.fundId);
+      if ((includeBuckets || excludeBuckets) && (categoryToBucket || accountToBucket)) {
+        // Check accountId bucket
+        if (transaction.accountId) {
+          const savingBucket = accountToBucket?.get(transaction.accountId);
           if (savingBucket) {
             transactionBuckets.push(savingBucket);
           }
@@ -118,8 +112,8 @@ export function sumTransactions(
         }
       }
 
-      if (debug && transaction.fundId) {
-        console.log({transactionBuckets, fundToBucket, });
+      if (debug && transaction.accountId) {
+        console.log({transactionBuckets, accountToBucket, });
       }
 
       // Filter by bucket inclusion - transaction must be in at least one included bucket
@@ -146,40 +140,32 @@ export function sumTransactions(
         return false;
       }
 
-      // Filter by fund ID
-      if (fundId !== undefined) {
-        if (fundId === 'any') {
-          // Match any transaction with a fund
-          if (!transaction.fundId) {
+      // Filter by account ID
+      if (accountId !== undefined) {
+        if (accountId === 'any') {
+          // Match any transaction with an account
+          if (!transaction.accountId) {
             return false;
           }
-        } else if (transaction.fundId !== fundId) {
+        } else if (transaction.accountId !== accountId) {
           return false;
         }
-      }
-
-      // Filter by institution ID
-      if (institutionId && transaction.institutionId !== institutionId) {
-        return false;
-      }
-
-      // Filter by account ID
-      if (accountId && transaction.accountId !== accountId) {
-        return false;
       }
 
       return true;
     });
     if (debug) {
+      console.log("======");
       console.log(result.map(t => ({
         name: t.name,
         category: t.category,
-        fundId: t.fundId,
+        accountId: t.accountId,
         amount: t.amount
       })));
       console.log(result.reduce((sum, transaction) => sum + transaction.amount, 0));
       console.log(options);
       console.log(transactions.map(t => ([t.name, t.amount, t.category])));
+      console.log("======");
     }
 
     return result.reduce((sum, transaction) => sum + transaction.amount, 0);
@@ -214,11 +200,11 @@ export const TransactionSummaries = {
     }),
 
   /**
-   * Sum transactions for a specific fund
+   * Sum transactions for a specific account
    */
-  byFund: (transactions: Transaction[], fundId: string) =>
+  byAccount: (transactions: Transaction[], accountId: string) =>
     sumTransactions(transactions, {
-      fundId,
+      accountId,
       includeHidden: false
     }),
 

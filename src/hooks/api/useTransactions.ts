@@ -47,30 +47,16 @@ export const useUpdateTransaction = () => {
   return useMutation({
     mutationFn: ({ transactionId, updates }: { transactionId: string; updates: Partial<Transaction> }) =>
       TransactionsService.updateTransaction(transactionId, updates),
-    onSuccess: () => {
-      // If datetime was updated, invalidate all transaction queries to refetch
-      // if (updates.datetime !== undefined) {
+    onSuccess: (_data, variables) => {
+      // Invalidate transaction queries
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-        // return;
-      // }
+      queryClient.invalidateQueries({ queryKey: ['transaction'] });
 
-      // // Otherwise, just update the transaction in cache
-      // queryClient.setQueriesData<InfiniteTransactionsData>(
-      //   { queryKey: ['transactions'] },
-      //   (old) => {
-      //     if (!old) return old;
-
-      //     return {
-      //       ...old,
-      //       pages: old.pages.map((page) => ({
-      //         ...page,
-      //         transactions: (page.transactions ?? []).map((t) =>
-      //           t.id === transactionId ? { ...t, ...updates } : t
-      //         ),
-      //       })),
-      //     };
-      //   }
-      // );
+      // If fund allocation was updated, invalidate fund-related queries
+      if (variables.updates.allocatedFundId !== undefined) {
+        queryClient.invalidateQueries({ queryKey: ['fundTransactions'] });
+        queryClient.invalidateQueries({ queryKey: ['fundAllocationTotal'] });
+      }
     },
   });
 };
@@ -80,9 +66,15 @@ export const useCreateTransaction = () => {
   return useMutation({
     mutationFn: (transaction: Omit<Transaction, 'id' | 'uid'>) =>
       TransactionsService.createTransaction(transaction),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['funds'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+
+      // If fund allocation was set, invalidate fund-related queries
+      if (variables.allocatedFundId) {
+        queryClient.invalidateQueries({ queryKey: ['fundTransactions'] });
+        queryClient.invalidateQueries({ queryKey: ['fundAllocationTotal'] });
+      }
     },
   });
 };
@@ -94,7 +86,7 @@ export const useDeleteTransaction = () => {
       TransactionsService.deleteTransaction(transactionId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['funds'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
     },
   });
 };

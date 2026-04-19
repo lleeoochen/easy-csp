@@ -5,7 +5,7 @@ import { cn } from "./utils";
 
 interface ActionConfig {
   label: string;
-  onClick: () => void;
+  onClick?: () => void;
   disabled?: boolean;
   variant?: 'primary' | 'secondary';
   className?: string;
@@ -40,12 +40,12 @@ export function DialogActionPanel({
     if (deleteAction?.confirmation) {
       setShowDeleteConfirm(true);
     } else {
-      deleteAction?.onClick();
+      deleteAction?.onClick?.();
     }
   };
 
   const handleDeleteConfirm = () => {
-    deleteAction?.onClick();
+    deleteAction?.onClick?.();
     setShowDeleteConfirm(false);
   };
 

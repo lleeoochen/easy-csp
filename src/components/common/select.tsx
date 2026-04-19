@@ -100,7 +100,7 @@ const Select = React.forwardRef<HTMLSelectElement | HTMLDivElement, SelectProps>
           onChange={handleNativeChange}
           disabled={isDisabled}
           className={cn(
-            "w-full min-h-[40px] border border-(--border-color,#e2e8f0) px-3 py-2 text-sm focus:outline-none focus:ring-none bg-gray-200 rounded-lg focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed",
+            "w-full min-h-[40px] border border-(--border-color,#e2e8f0) px-3 py-2 text-sm cursor-pointer focus:outline-none focus:ring-none bg-gray-200 rounded-lg focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed",
             className
           )}
         >
@@ -116,7 +116,7 @@ const Select = React.forwardRef<HTMLSelectElement | HTMLDivElement, SelectProps>
     const selectedOption = options.find(option => option.value === currentValue);
 
     return (
-      <div ref={ref as React.Ref<HTMLDivElement>} className={cn("w-full", className)}>
+      <div ref={ref as React.Ref<HTMLDivElement>} className={cn("w-full cursor-pointer", className)}>
         <ReactSelect
           value={selectedOption}
           onChange={handleReactSelectChange}
@@ -125,7 +125,7 @@ const Select = React.forwardRef<HTMLSelectElement | HTMLDivElement, SelectProps>
           placeholder={placeholder}
           styles={customStyles}
           classNamePrefix="react-select"
-          className="react-select-container"
+          className="react-select-container cursor-pointer"
         />
       </div>
     );

@@ -45,7 +45,7 @@ export function CSPOverviewCard({ incomeBudgets, expenseBuckets, currentMonthStr
     // Regular expenses (FixedCost and GuildFreeSpending buckets only)
     const regularExpenses = sumTransactions(transactions, {
       includeBuckets: [CSPBucket.FixedCost, CSPBucket.GuildFreeSpending],
-      excludeWithFund: true,
+      excludeFundAllocated: true,
       includeHidden: false,
       outflowOnly: true,
       csp
@@ -97,7 +97,7 @@ export function CSPOverviewCard({ incomeBudgets, expenseBuckets, currentMonthStr
   };
 
   return (
-    <Card className="flex-1">
+    <Card className="flex-1 md:h-full! xl:h-fit!">
       <CardHeader className={`flex flex-row items-stretch`}>
         <div className="flex flex-col items-start justify-between">
           <div className="flex-1">
@@ -107,7 +107,7 @@ export function CSPOverviewCard({ incomeBudgets, expenseBuckets, currentMonthStr
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex flex-col p-0! divide-y divide-gray-200">
+      <CardContent className="flex flex-col p-0! divide-y divide-gray-200 md:h-full! xl:h-fit!">
         <CSPBudgetActionMenu
           className="px-4 py-1.5"
           budget={incomeBudget}

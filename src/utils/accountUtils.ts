@@ -35,18 +35,3 @@ export function generateAccountOptions(institutions: FinancialInstitution[]) {
     }))
   );
 }
-
-/**
- * Finds the account option value for a given fund
- * @param fund - The fund with institutionId and accountId
- * @returns The account option value string, "manual" for manual funds, or empty string
- */
-export function getAccountOptionValueForFund(
-  fund: { financialInstitutionId?: string; accountId?: string }
-): string {
-  // Return "manual" for manual funds (no accountId)
-  if (!fund.accountId || !fund.financialInstitutionId) {
-    return 'manual';
-  }
-  return generateAccountOptionValue(fund.financialInstitutionId, fund.accountId);
-}

@@ -2,7 +2,7 @@
  * Travel Mode Configuration
  *
  * Defines the configuration for Travel Mode, which automatically marks
- * transactions from selected categories to a designated saving fund.
+ * transactions from selected categories to a designated savings account.
  */
 
 /**
@@ -17,6 +17,6 @@ export const TRAVEL_MODE_RULE_NAME = '__system:travel-mode';
 export interface TravelModeConfig {
   /** Array of CSP category values to match for travel mode */
   categories: string[];
-  /** ID of the saving fund to mark transactions to */
-  fundId: string;
+  /** ID of the savings account to mark transactions to */
+  accountId: string;
 }
