@@ -22,8 +22,8 @@ import type {
   FinancialAccount,
   FinancialInstitution,
 } from "@easy-csp/shared-types";
-import type { UI_FinancialAccount } from "../types/uiTypes";
-import { prepareFirestoreData, withoutUndefinedValue } from "../utils/firestoreHelpers";
+import type { UI_FinancialAccount } from '@/types/uiTypes';
+import { prepareFirestoreData, withoutUndefinedValue } from '@/utils/firestoreHelpers';
 
 /**
  * Service for managing user accounts (both manual and Plaid-linked)

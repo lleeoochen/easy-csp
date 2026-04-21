@@ -1,6 +1,6 @@
-import { useTheme } from '../hooks/useTheme';
-import type { ThemeName } from '../contexts/themeConstants';
-import { themes } from '../contexts/themeConstants';
+import { useTheme } from '@/hooks/useTheme';
+import type { ThemeName } from '@/contexts/themeConstants';
+import { themes } from '@/contexts/themeConstants';
 import { Card, CardContent, CardHeader } from './common/card';
 import { Palette } from 'lucide-react';
 

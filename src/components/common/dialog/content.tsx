@@ -1,6 +1,6 @@
 import * as React from "react";
 import ReactDOM from "react-dom";
-import { cn } from "../utils";
+import { cn } from '@/components/common/utils';
 import { useDialog } from "./context";
 
 export interface DialogContentProps extends React.HTMLAttributes<HTMLDivElement> {

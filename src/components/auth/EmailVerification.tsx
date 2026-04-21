@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getAuth, sendEmailVerification } from 'firebase/auth';
 import { Mail, CheckCircle, AlertCircle } from 'lucide-react';
-import { Button } from '../common/button';
+import { Button } from '@/components/common/button';
 import { AuthCard } from './AuthCard';
 import { SignOutButton } from './SignOutButton';
 

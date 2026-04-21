@@ -1,7 +1,7 @@
 import { Select } from "./select";
 import { Label } from "./label";
-import { useAccountsWithInfo } from "../../hooks/api/useAccounts";
-import type { UI_FinancialAccount } from "../../types/uiTypes";
+import { useAccountsWithInfo } from '@/hooks/api/useAccounts';
+import type { UI_FinancialAccount } from '@/types/uiTypes';
 
 interface AccountSelectorProps {
   value: string;

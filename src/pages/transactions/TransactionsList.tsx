@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import type { Transaction } from "@easy-csp/shared-types";
-import { Card, CardContent, CardHeader } from "../../components/common/card";
+import { Card, CardContent, CardHeader } from '@/components/common/card';
 import { TransactionRow } from "./TransactionRow";
-import { sumTransactions } from "../../utils/transactionUtils";
-import { formatCurrency } from "../../utils/financialUtils";
+import { sumTransactions } from '@/utils/transactionUtils';
+import { formatCurrency } from '@/utils/financialUtils';
 
 type TransactionsListProps =  {
   transactions: Transaction[];

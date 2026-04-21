@@ -1,5 +1,5 @@
+import { cn } from "@/components/common/utils";
 import * as React from "react";
-import { cn } from "../utils";
 
 export interface DialogHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;

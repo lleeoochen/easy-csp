@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import { Plus, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Page } from '../../components/Page';
-import { Button } from '../../components/common/button';
-import { useAccountsWithInfo } from '../../hooks/api/useAccounts';
-import { useFinancialInstitutions, useRefreshFinancialInstitutions } from '../../hooks/api/useFinancialInstitutions';
+import { Page } from '@/components/Page';
+import { Button } from '@/components/common/button';
+import { useAccountsWithInfo } from '@/hooks/api/useAccounts';
+import { useFinancialInstitutions, useRefreshFinancialInstitutions } from '@/hooks/api/useFinancialInstitutions';
 import { NetWorthGroupedBarChart } from './NetWorthGroupedBarChart';
 import { AccountSection } from './AccountSection';
 import { InstitutionSection } from './InstitutionSection';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
-import { calculateNetWorth, isAssetAccount } from '../../utils/netWorthUtils';
+import { calculateNetWorth, isAssetAccount } from '@/utils/netWorthUtils';
 import { Toaster } from 'react-hot-toast';
-import { cn } from '../../components/common/utils';
-import { SegmentedControl } from '../../components/common/SegmentedControl';
-import type { UI_FinancialAccount } from '../../types/uiTypes';
+import { cn } from '@/components/common/utils';
+import { SegmentedControl } from '@/components/common/SegmentedControl';
+import type { UI_FinancialAccount } from '@/types/uiTypes';
 
 type ViewMode = 'type' | 'institution';
 

@@ -1,6 +1,6 @@
 import { Select } from "./common/select";
 import { Label } from "./common/label";
-import { useFundAccounts } from "../hooks/api/useFundAccounts";
+import { useFundAccounts } from '@/hooks/api/useFundAccounts';
 import { X } from "lucide-react";
 
 interface FundAccountDropdownProps {

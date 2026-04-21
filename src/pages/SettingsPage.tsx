@@ -1,14 +1,14 @@
 import { getAuth, signOut } from "firebase/auth";
-import { useAuthState } from "../hooks/useAuthState";
+import { useAuthState } from '@/hooks/useAuthState';
 import { User, Filter, ChevronRight, TestTube } from "lucide-react";
-import { Card, CardContent, CardHeader } from "../components/common/card";
-import { Page } from "../components/Page";
-import { Button } from "../components/common/button";
+import { Card, CardContent, CardHeader } from '@/components/common/card';
+import { Page } from '@/components/Page';
+import { Button } from '@/components/common/button';
 import { useNavigate } from "react-router-dom";
-import { isDevEnvironment } from "../utils/envUtils";
-import { DevTestImport } from "../components/DevTestImport";
-import { ThemeSelector } from "../components/ThemeSelector";
-import { TravelModeSettingsRow } from "../components/TravelModeSettingsRow";
+import { isDevEnvironment } from '@/utils/envUtils';
+import { DevTestImport } from '@/components/DevTestImport';
+import { ThemeSelector } from '@/components/ThemeSelector';
+import { TravelModeSettingsRow } from '@/components/TravelModeSettingsRow';
 
 const SettingsPage = () => {
   const { signedIn } = useAuthState();

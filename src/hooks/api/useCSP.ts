@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ConsciousSpendingPlanService } from '../../services/consciousSpendingPlanService';
+import { ConsciousSpendingPlanService } from '@/services/consciousSpendingPlanService';
 import type { CSPBucket } from '@easy-csp/shared-types';
 import { useMemo } from 'react';
-import { camelCaseToSentence } from '../../utils/stringUtils';
+import { camelCaseToSentence } from '@/utils/stringUtils';
 import { useAccounts } from './useAccounts';
 
 export const CSP_QUERY_KEY = ['csp'];

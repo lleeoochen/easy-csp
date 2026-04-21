@@ -1,10 +1,10 @@
-import { Card, CardContent, CardHeader } from "../../components/common/card";
-import { Switch } from "../../components/common/switch";
+import { Card, CardContent, CardHeader } from '@/components/common/card';
+import { Switch } from '@/components/common/switch';
 import { AlertTriangle } from "lucide-react";
-import { useUpdateRule } from "../../hooks/api/useRules";
-import { useCategoryMap } from "../../hooks/useCategoryMap";
+import { useUpdateRule } from '@/hooks/api/useRules';
+import { useCategoryMap } from '@/hooks/useCategoryMap';
 import type { RuleTransformation } from "@easy-csp/shared-types";
-import { useRegularCategoryNameMap } from "../../hooks/api/useCSP";
+import { useRegularCategoryNameMap } from '@/hooks/api/useCSP';
 
 interface RulesListProps {
   rules: RuleTransformation[];

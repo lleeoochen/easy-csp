@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, AlertCircle } from 'lucide-react';
 import type { Transaction } from '@easy-csp/shared-types';
-import { Card, CardContent } from '../../components/common/card';
-import { Button } from '../../components/common/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../components/common/dialog';
-import { useUpdateFundAllocation } from '../../hooks/api/useFundAccounts';
-import { useCategoryMap } from '../../hooks/useCategoryMap';
-import { formatCurrency, getTransactionSignPrefix } from '../../utils/financialUtils';
-import { cn } from '../../components/common/utils';
+import { Card, CardContent } from '@/components/common/card';
+import { Button } from '@/components/common/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/common/dialog';
+import { useUpdateFundAllocation } from '@/hooks/api/useFundAccounts';
+import { useCategoryMap } from '@/hooks/useCategoryMap';
+import { formatCurrency, getTransactionSignPrefix } from '@/utils/financialUtils';
+import { cn } from '@/components/common/utils';
 import toast from 'react-hot-toast';
 
 interface FundTransactionCardProps {
@@ -16,7 +16,7 @@ interface FundTransactionCardProps {
   fundId: string;
 }
 
-export const FundTransactionCard = ({ transaction, fundId }: FundTransactionCardProps) => {
+export const FundTransactionCard = ({ transaction }: FundTransactionCardProps) => {
   const navigate = useNavigate();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { mutate: updateAllocation, isPending } = useUpdateFundAllocation();

@@ -14,7 +14,7 @@ import {
   FinancialInstitutionStatus,
 } from "@easy-csp/shared-types";
 import type { FinancialInstitution } from "@easy-csp/shared-types";
-import { prepareFirestoreData } from "../utils/firestoreHelpers";
+import { prepareFirestoreData } from '@/utils/firestoreHelpers';
 
 export class FinancialInstitutionsService {
   private static getAuthenticatedUserId(): string {

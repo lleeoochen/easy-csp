@@ -24,3 +24,8 @@ dist-ssr
 *.sw?
 
 easy-csp-shared-types-1.0.0.tgz
+
+# Prevent compiled JS files in src directory (TypeScript project)
+src/**/*.js
+!src/**/*.spec.js
+!src/**/*.test.js

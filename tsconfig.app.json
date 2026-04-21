@@ -17,6 +17,12 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path aliases */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+
     /* Linting */
     "strict": false,
     "noUnusedLocals": true,
@@ -24,5 +30,6 @@
     "noFallthroughCasesInSwitch": true,
     "strictNullChecks": true
   },
-  "include": ["src", "main.tsx"]
+  "include": ["src", "main.tsx"],
+  "exclude": ["**/*.spec.ts", "**/*.spec.tsx", "**/*.test.ts", "**/*.test.tsx"]
 }

@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Page } from '../../components/Page';
-import { Button } from '../../components/common/button';
-import { Input } from '../../components/common/input';
-import { Label } from '../../components/common/label';
-import { Select } from '../../components/common/select';
-import { BackButton } from '../../components/common/BackButton';
+import { Page } from '@/components/Page';
+import { Button } from '@/components/common/button';
+import { Input } from '@/components/common/input';
+import { Label } from '@/components/common/label';
+import { Select } from '@/components/common/select';
+import { BackButton } from '@/components/common/BackButton';
 import { AccountType } from '@easy-csp/shared-types';
-import { useCreateManualAccount } from '../../hooks/api/useAccounts';
-import LinkFinancialInstitutionButton from '../../components/LinkFinancialInstitutionButton';
+import { useCreateManualAccount } from '@/hooks/api/useAccounts';
+import LinkFinancialInstitutionButton from '@/components/LinkFinancialInstitutionButton';
 import { toast } from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 

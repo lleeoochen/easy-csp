@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './dialog';
 import { DialogActionPanel } from './DialogActionPanel';
-import { useFundTransactions } from '../../hooks/api/useFundAccounts';
+import { useFundTransactions } from '@/hooks/api/useFundAccounts';
 
 interface FundAccountWarningDialogProps {
   open: boolean;
@@ -63,7 +63,6 @@ export const FundAccountWarningDialog = ({
               label: isLoading ? 'Disabling...' : 'Disable Anyway',
               onClick: onConfirm,
               disabled: isLoading || isLoadingTransactions,
-              variant: 'destructive',
             }}
             isLoading={isLoading}
           />

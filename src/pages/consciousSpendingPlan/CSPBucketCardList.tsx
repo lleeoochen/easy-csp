@@ -1,7 +1,7 @@
 import { CSPBucket, type CSPCategoryBudget } from "@easy-csp/shared-types";
 import { CSPBucketCard } from "./CSPBucketCard";
 import { CSPOverviewCard } from "./CSPOverviewCard";
-import { useCSP } from "../../hooks/api/useCSP";
+import { useCSP } from '@/hooks/api/useCSP';
 const CSP_BUCKET_ORDER: CSPBucket[] = [
   CSPBucket.Income,
   CSPBucket.FixedCost,

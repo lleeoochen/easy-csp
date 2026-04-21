@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { Plane, ChevronRight } from "lucide-react";
 import { Switch } from "./common/switch";
-import { useUserRules, useToggleTravelMode } from "../hooks/useTravelMode";
-import { isTravelModeConfigured, isTravelModeEnabled } from "../utils/travelModeUtils";
+import { useUserRules, useToggleTravelMode } from '@/hooks/useTravelMode';
+import { isTravelModeConfigured, isTravelModeEnabled } from '@/utils/travelModeUtils';
 
 export function TravelModeSettingsRow() {
   const navigate = useNavigate();

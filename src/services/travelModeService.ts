@@ -20,9 +20,9 @@ import {
   type RuleTransformation,
   RuleCondition
 } from "@easy-csp/shared-types";
-import { TRAVEL_MODE_RULE_NAME, type TravelModeConfig } from "../types/travelMode";
-import { getTravelModeRules } from "../utils/travelModeUtils";
-import { prepareFirestoreData } from "../utils/firestoreHelpers";
+import { TRAVEL_MODE_RULE_NAME, type TravelModeConfig } from '@/types/travelMode';
+import { getTravelModeRules } from '@/utils/travelModeUtils';
+import { prepareFirestoreData } from '@/utils/firestoreHelpers';
 
 /**
  * Custom error class for Travel Mode service errors

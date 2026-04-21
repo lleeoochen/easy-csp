@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { CSPBucket } from "@easy-csp/shared-types";
-import { useAddCSPItem, useCSP } from "../../hooks/api/useCSP";
-import { sentenceToCamelCase } from "../../utils/stringUtils";
-import { Input } from "../../components/common/input";
-import { Button } from "../../components/common/button";
-import { cn } from "../../components/common/utils";
+import { useAddCSPItem, useCSP } from '@/hooks/api/useCSP';
+import { sentenceToCamelCase } from '@/utils/stringUtils';
+import { Input } from '@/components/common/input';
+import { Button } from '@/components/common/button';
+import { cn } from '@/components/common/utils';
 
 interface AddCategoryRowProps {
   bucket: CSPBucket;

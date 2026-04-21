@@ -1,5 +1,6 @@
-import { ReactElement } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { ReactElement } from 'react';
+import { render, type RenderOptions } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
@@ -53,5 +54,6 @@ export function renderWithProviders(
 }
 
 // Re-export everything from React Testing Library
+// eslint-disable-next-line react-refresh/only-export-components
 export * from '@testing-library/react';
 export { renderWithProviders as render };

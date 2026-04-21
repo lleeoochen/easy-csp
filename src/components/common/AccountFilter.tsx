@@ -1,6 +1,6 @@
 import { Select } from "./select";
 import { Label } from "./label";
-import { useAccountsWithInfo } from "../../hooks/api/useAccounts";
+import { useAccountsWithInfo } from '@/hooks/api/useAccounts';
 
 interface AccountFilterProps {
   value: string;

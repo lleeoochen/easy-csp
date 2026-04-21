@@ -1,9 +1,9 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/common/dialog';
-import { Button } from '../../components/common/button';
-import type { UI_FinancialAccount } from '../../types/uiTypes';
-import { useDeleteManualAccount } from '../../hooks/api/useAccounts';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/common/dialog';
+import { Button } from '@/components/common/button';
+import type { UI_FinancialAccount } from '@/types/uiTypes';
+import { useDeleteManualAccount } from '@/hooks/api/useAccounts';
 import { toast } from 'react-hot-toast';
-import { formatCurrency } from '../../utils/financialUtils';
+import { formatCurrency } from '@/utils/financialUtils';
 
 interface DeleteAccountDialogProps {
   open: boolean;

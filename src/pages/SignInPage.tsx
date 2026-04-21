@@ -7,12 +7,12 @@ import {
   sendEmailVerification
 } from 'firebase/auth';
 import { httpsCallable, getFunctions } from 'firebase/functions';
-import { Button } from '../components/common/button';
-import { FormField } from '../components/auth/FormField';
-import { ErrorAlert } from '../components/auth/ErrorAlert';
-import { AuthCard } from '../components/auth/AuthCard';
-import { MfaVerification } from '../components/auth/MfaVerification';
-import { InfoAlert } from '../components/auth/InfoAlert';
+import { Button } from '@/components/common/button';
+import { FormField } from '@/components/auth/FormField';
+import { ErrorAlert } from '@/components/auth/ErrorAlert';
+import { AuthCard } from '@/components/auth/AuthCard';
+import { MfaVerification } from '@/components/auth/MfaVerification';
+import { InfoAlert } from '@/components/auth/InfoAlert';
 
 type MultiFactorResolver = ReturnType<typeof getMultiFactorResolver>;
 

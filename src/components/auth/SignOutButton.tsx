@@ -1,6 +1,6 @@
 import { LogOut } from "lucide-react";
 import { signOut, getAuth } from "firebase/auth";
-import { Button } from "../common/button";
+import { Button } from '@/components/common/button';
 
 export function SignOutButton() {
   const auth = getAuth();

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Tabs, TabMenuItem } from './Tabs';
 import { Home, Settings, User } from 'lucide-react';
-import { MemoryRouter, useLocation } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 
 vi.mock('../hooks/useHideOnScroll', () => ({
   useHideOnScroll: vi.fn(() => true),

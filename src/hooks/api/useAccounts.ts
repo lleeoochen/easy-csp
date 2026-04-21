@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AccountService } from '../../services/accountService';
+import { AccountService } from '@/services/accountService';
 import type { AccountType } from '@easy-csp/shared-types';
-import type { UI_FinancialAccount } from '../../types/uiTypes';
+import type { UI_FinancialAccount } from '@/types/uiTypes';
 
 /**
  * Query key for accounts data

@@ -1,19 +1,19 @@
 import { TransactionsList } from "./TransactionsList";
-import { Page } from "../../components/Page";
+import { Page } from '@/components/Page';
 import { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import type { Transaction } from "@easy-csp/shared-types";
-import { useTransactions } from "../../hooks/api/useTransactions";
-import type { ListTransactionsRequest } from "../../types/firestoreTypes";
+import { useTransactions } from '@/hooks/api/useTransactions';
+import type { ListTransactionsRequest } from '@/types/firestoreTypes';
 import { ChevronDown, ChevronUp, SlidersHorizontal, X, Plus } from "lucide-react";
-import { CategorySelector } from "../../components/common/CategorySelector";
-import { FundFilter } from "../../components/common/FundFilter";
-import { MonthSelector } from "../../components/MonthSelector";
-import { getMonthBoundaries } from "../../utils/dateUtils";
-import { Button } from "../../components/common/button";
-import { Input } from "../../components/common/input";
-import { Card } from "../../components/common/card";
-import { useMonthFilter } from "../../hooks/useMonthFilter";
+import { CategorySelector } from '@/components/common/CategorySelector';
+import { FundFilter } from '@/components/common/FundFilter';
+import { MonthSelector } from '@/components/MonthSelector';
+import { getMonthBoundaries } from '@/utils/dateUtils';
+import { Button } from '@/components/common/button';
+import { Input } from '@/components/common/input';
+import { Card } from '@/components/common/card';
+import { useMonthFilter } from '@/hooks/useMonthFilter';
 
 const FETCH_LIMIT = 20;
 

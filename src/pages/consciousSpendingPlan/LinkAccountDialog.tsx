@@ -6,13 +6,13 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "../../components/common/dialog";
-import { DialogActionPanel } from "../../components/common/DialogActionPanel";
-import { AccountSelector } from "../../components/common/AccountSelector";
+} from '@/components/common/dialog';
+import { DialogActionPanel } from '@/components/common/DialogActionPanel';
+import { AccountSelector } from '@/components/common/AccountSelector';
 import { CSPBucket, AccountType } from "@easy-csp/shared-types";
-import { useAddCSPItem, useCSP } from "../../hooks/api/useCSP";
-import { useAccountsWithInfo, ACCOUNTS_QUERY_KEY, ACCOUNTS_WITH_INFO_QUERY_KEY } from "../../hooks/api/useAccounts";
-import { AccountService } from "../../services/accountService";
+import { useAddCSPItem, useCSP } from '@/hooks/api/useCSP';
+import { useAccountsWithInfo, ACCOUNTS_QUERY_KEY, ACCOUNTS_WITH_INFO_QUERY_KEY } from '@/hooks/api/useAccounts';
+import { AccountService } from '@/services/accountService';
 import { toast } from "react-hot-toast";
 
 interface LinkAccountDialogProps {

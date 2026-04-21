@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { getCurrentMonthYear } from "../utils/dateUtils";
+import { getCurrentMonthYear } from '@/utils/dateUtils';
 
 export const useMonthFilter = () => {
   const [searchParams, setSearchParams] = useSearchParams();

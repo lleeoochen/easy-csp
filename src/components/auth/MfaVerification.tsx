@@ -6,7 +6,7 @@ import {
   RecaptchaVerifier,
   getAuth
 } from 'firebase/auth';
-import { Button } from '../common/button';
+import { Button } from '@/components/common/button';
 import { FormField } from './FormField';
 import { ErrorAlert } from './ErrorAlert';
 import { InfoAlert } from './InfoAlert';
@@ -90,9 +90,13 @@ export const MfaVerification: React.FC<MfaVerificationProps> = ({
     } catch (error) {
       console.error('Error sending SMS:', error);
       console.error('Error details:', {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         code: (error as any)?.code,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         message: (error as any)?.message,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         name: (error as any)?.name,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         stack: (error as any)?.stack
       });
       const firebaseError = error as { code?: string; message?: string };
@@ -109,6 +113,7 @@ export const MfaVerification: React.FC<MfaVerificationProps> = ({
         setError('reCAPTCHA verification failed. Please try again.');
       } else if (firebaseError.code === 'auth/invalid-phone-number') {
         setError('Invalid phone number. Please contact support.');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } else if ((error as any)?.message?.includes('already been rendered')) {
         setError('Please refresh the page and try again.');
       } else {

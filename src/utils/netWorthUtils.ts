@@ -1,5 +1,5 @@
 import type { AccountType, NetWorthSummary } from '@easy-csp/shared-types';
-import type { UI_FinancialAccount } from '../types/uiTypes';
+import type { UI_FinancialAccount } from '@/types/uiTypes';
 
 /**
  * Calculates net worth summary from all user accounts

@@ -5,8 +5,8 @@
  * These utilities work directly with the Rule type from Firestore.
  */
 
+import { TRAVEL_MODE_RULE_NAME, type TravelModeConfig } from '@/types/travelMode';
 import { type Rule, type RuleTransformation, CSPBucket, type ConsciousSpendingPlan } from '@easy-csp/shared-types';
-import { TRAVEL_MODE_RULE_NAME, type TravelModeConfig } from '../types/travelMode';
 
 /**
  * Get default travel categories from user's guilt-free spending bucket

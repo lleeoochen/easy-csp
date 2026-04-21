@@ -1,16 +1,16 @@
 import { useMemo, useState } from "react";
 import { CSPBucket, type CSPCategoryBudget } from "@easy-csp/shared-types";
-import { Card, CardContent, CardHeader } from "../../components/common/card";
-import { camelCaseToSentence } from "../../utils/stringUtils";
-import { formatCurrency } from "../../utils/financialUtils";
+import { Card, CardContent, CardHeader } from '@/components/common/card';
+import { camelCaseToSentence } from '@/utils/stringUtils';
+import { formatCurrency } from '@/utils/financialUtils';
 import { CSPBudgetRow } from "./CSPBudgetRow";
 import { AddCategoryRow } from "./AddCategoryRow";
 import { LinkAccountDialog } from "./LinkAccountDialog";
-import { useTransactions } from "../../hooks/api/useTransactions";
-import { getMonthBoundaries } from "../../utils/dateUtils";
-import { sumTransactions } from "../../utils/transactionUtils";
-import { useCSP } from "../../hooks/api/useCSP";
-import { Button } from "../../components/common/button";
+import { useTransactions } from '@/hooks/api/useTransactions';
+import { getMonthBoundaries } from '@/utils/dateUtils';
+import { sumTransactions } from '@/utils/transactionUtils';
+import { useCSP } from '@/hooks/api/useCSP';
+import { Button } from '@/components/common/button';
 
 const SAVING_AND_INVESTING_BUCKETS = [
   CSPBucket.Savings,

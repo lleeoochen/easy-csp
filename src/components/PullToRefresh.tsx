@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { RefreshCw } from 'lucide-react';
-import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
 interface PullToRefreshProps {
   onRefresh: () => Promise<void>;

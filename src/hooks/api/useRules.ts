@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { RulesService } from '../../services/rulesService';
+import { RulesService } from '@/services/rulesService';
 import type { RuleTransformation, Rule } from '@easy-csp/shared-types';
 
 export const RULES_QUERY_KEY = ['rules'];

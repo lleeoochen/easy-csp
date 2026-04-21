@@ -1,9 +1,9 @@
 import type { AccountType } from '@easy-csp/shared-types';
-import { Card, CardHeader, CardContent } from '../../components/common/card';
+import { Card, CardHeader, CardContent } from '@/components/common/card';
 import { AccountListItem } from './AccountListItem';
-import { getAccountTypeDisplay } from '../../utils/netWorthUtils';
-import { formatCurrency } from '../../utils/financialUtils';
-import type { UI_FinancialAccount } from '../../types/uiTypes';
+import { getAccountTypeDisplay } from '@/utils/netWorthUtils';
+import { formatCurrency } from '@/utils/financialUtils';
+import type { UI_FinancialAccount } from '@/types/uiTypes';
 
 interface AccountSectionProps {
   title: string;

@@ -11,7 +11,7 @@ import {
   CSPBucket,
   PROTECTED_CSP_CATEGORIES,
 } from "@easy-csp/shared-types";
-import { prepareFirestoreData } from "../utils/firestoreHelpers";
+import { prepareFirestoreData } from '@/utils/firestoreHelpers';
 
 export class ConsciousSpendingPlanService {
   private static getAuthenticatedUserId(): string {

@@ -1,11 +1,11 @@
 import { useState, useMemo } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/common/dialog";
-import { DialogActionPanel } from "../../components/common/DialogActionPanel";
-import { Label } from "../../components/common/label";
-import { Select } from "../../components/common/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/common/dialog';
+import { DialogActionPanel } from '@/components/common/DialogActionPanel';
+import { Label } from '@/components/common/label';
+import { Select } from '@/components/common/select';
 import type { Transaction } from "@easy-csp/shared-types";
 import { SplitFrequency } from "@easy-csp/shared-types";
-import { useSplitTransaction } from "../../hooks/api/useSplitTransactions";
+import { useSplitTransaction } from '@/hooks/api/useSplitTransactions';
 
 interface TransactionSplitDialogProps {
   open: boolean;

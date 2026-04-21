@@ -1,22 +1,22 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Page } from "../../components/Page";
-import { Card, CardHeader, CardContent } from "../../components/common/card";
-import { DialogActionPanel } from "../../components/common/DialogActionPanel";
-import { Input } from "../../components/common/input";
-import { Select } from "../../components/common/select";
-import { Label } from "../../components/common/label";
-import { Switch } from "../../components/common/switch";
-import { CategorySelector } from "../../components/common/CategorySelector";
+import { Page } from '@/components/Page';
+import { Card, CardHeader, CardContent } from '@/components/common/card';
+import { DialogActionPanel } from '@/components/common/DialogActionPanel';
+import { Input } from '@/components/common/input';
+import { Select } from '@/components/common/select';
+import { Label } from '@/components/common/label';
+import { Switch } from '@/components/common/switch';
+import { CategorySelector } from '@/components/common/CategorySelector';
 import type { RuleTransformation, RuleMatchingCriteria, RuleAction } from "@easy-csp/shared-types";
 import { CSPCategory, RuleCondition, SplitFrequency } from "@easy-csp/shared-types";
-import { useRules, useAddRule, useUpdateRule, useDeleteRule } from "../../hooks/api/useRules";
-import { cn } from "../../components/common/utils";
-import { AccountSelector } from "../../components/common/AccountSelector";
+import { useRules, useAddRule, useUpdateRule, useDeleteRule } from '@/hooks/api/useRules';
+import { cn } from '@/components/common/utils';
+import { AccountSelector } from '@/components/common/AccountSelector';
 import { ArrowLeft } from "lucide-react";
-import { Button } from "../../components/common/button";
-import { FundAccountDropdown } from "../../components/FundAccountDropdown";
-import { RulesService } from "../../services/rulesService";
+import { Button } from '@/components/common/button';
+import { FundAccountDropdown } from '@/components/FundAccountDropdown';
+import { RulesService } from '@/services/rulesService';
 
 const RuleEditPage = () => {
   const { index } = useParams<{ index: string }>();

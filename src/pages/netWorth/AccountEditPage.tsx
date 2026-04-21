@@ -1,26 +1,26 @@
 import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Eye } from 'lucide-react';
-import { Page } from '../../components/Page';
-import { Card, CardHeader, CardContent } from '../../components/common/card';
-import { Button } from '../../components/common/button';
-import { Input } from '../../components/common/input';
-import { Label } from '../../components/common/label';
-import { Switch } from '../../components/common/switch';
-import { DialogActionPanel } from '../../components/common/DialogActionPanel';
-import { SegmentedControl } from '../../components/common/SegmentedControl';
+import { Page } from '@/components/Page';
+import { Card, CardHeader, CardContent } from '@/components/common/card';
+import { Button } from '@/components/common/button';
+import { Input } from '@/components/common/input';
+import { Label } from '@/components/common/label';
+import { Switch } from '@/components/common/switch';
+import { DialogActionPanel } from '@/components/common/DialogActionPanel';
+import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { AccountType } from '@easy-csp/shared-types';
-import { useAccountsWithInfo } from '../../hooks/api/useAccounts';
+import { useAccountsWithInfo } from '@/hooks/api/useAccounts';
 import {
   useUpdateAccountNickname,
   useUpdateManualAccount,
   useUpdateAccountTargetAmount
-} from '../../hooks/api/useAccounts';
-import { useUpdateFundStatus } from '../../hooks/api/useFundAccounts';
-import { FundAccountWarningDialog } from '../../components/common/FundAccountWarningDialog';
+} from '@/hooks/api/useAccounts';
+import { useUpdateFundStatus } from '@/hooks/api/useFundAccounts';
+import { FundAccountWarningDialog } from '@/components/common/FundAccountWarningDialog';
 import { toast } from 'react-hot-toast';
-import { formatCurrency } from '../../utils/financialUtils';
-import { getAccountDisplayName } from '../../utils/netWorthUtils';
+import { formatCurrency } from '@/utils/financialUtils';
+import { getAccountDisplayName } from '@/utils/netWorthUtils';
 
 type TabType = 'details' | 'goal' | 'fund';
 

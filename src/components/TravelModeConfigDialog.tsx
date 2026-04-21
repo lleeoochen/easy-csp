@@ -9,11 +9,11 @@ import {
 import { Button } from "./common/button";
 import { Label } from "./common/label";
 import { AccountSelector } from "./common/AccountSelector";
-import { useCSP } from "../hooks/api/useCSP";
-import { useSaveTravelMode, useUserRules } from "../hooks/useTravelMode";
-import { getTravelModeConfig, getDefaultTravelCategories } from "../utils/travelModeUtils";
+import { useCSP } from '@/hooks/api/useCSP';
+import { useSaveTravelMode, useUserRules } from '@/hooks/useTravelMode';
+import { getTravelModeConfig, getDefaultTravelCategories } from '@/utils/travelModeUtils';
 import { CSPBucket } from "@easy-csp/shared-types";
-import { camelCaseToSentence } from "../utils/stringUtils";
+import { camelCaseToSentence } from '@/utils/stringUtils';
 
 interface TravelModeConfigDialogProps {
   open: boolean;

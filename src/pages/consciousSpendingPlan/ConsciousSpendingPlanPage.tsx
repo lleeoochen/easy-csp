@@ -1,7 +1,7 @@
 import { CSPBucketCardList } from "./CSPBucketCardList";
-import { MonthSelector } from "../../components/MonthSelector";
-import { Page } from "../../components/Page";
-import { useMonthFilter } from "../../hooks/useMonthFilter";
+import { MonthSelector } from '@/components/MonthSelector';
+import { Page } from '@/components/Page';
+import { useMonthFilter } from '@/hooks/useMonthFilter';
 
 const ConsciousSpendingPlanPage = () => {
   const { selectedYear, selectedMonth, handleMonthSelect } = useMonthFilter();

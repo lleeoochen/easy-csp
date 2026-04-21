@@ -1,13 +1,13 @@
 import type { FinancialInstitution } from '@easy-csp/shared-types';
 import { PlaidErrorCode, RETRY_SYNC_ERRORS, RECONNECT_REQUIRED_ERRORS, REMOVE_INSTITUTION_ERRORS, FinancialInstitutionStatus } from '@easy-csp/shared-types';
-import { Card, CardHeader, CardContent } from '../../components/common/card';
-import { Button } from '../../components/common/button';
+import { Card, CardHeader, CardContent } from '@/components/common/card';
+import { Button } from '@/components/common/button';
 import { AccountListItem } from './AccountListItem';
-import { getFinancialInstitutionStatusDisplay, getPlaidErrorMessage } from '../../utils/statusUtils';
-import { useRetrySyncInstitution, useRemoveInstitution } from '../../hooks/api/useFinancialInstitutions';
-import LinkFinancialInstitutionButton from '../../components/LinkFinancialInstitutionButton';
+import { getFinancialInstitutionStatusDisplay, getPlaidErrorMessage } from '@/utils/statusUtils';
+import { useRetrySyncInstitution, useRemoveInstitution } from '@/hooks/api/useFinancialInstitutions';
+import LinkFinancialInstitutionButton from '@/components/LinkFinancialInstitutionButton';
 import { AlertTriangleIcon } from 'lucide-react';
-import type { UI_FinancialAccount } from '../../types/uiTypes';
+import type { UI_FinancialAccount } from '@/types/uiTypes';
 
 interface InstitutionSectionProps {
   institutions: FinancialInstitution[];

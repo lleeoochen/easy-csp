@@ -1,6 +1,6 @@
 import { Select } from "./select";
 import { Label } from "./label";
-import { useRegularCategoryNameMap } from "../../hooks/api/useCSP";
+import { useRegularCategoryNameMap } from '@/hooks/api/useCSP';
 
 interface CategorySelectorProps {
   value: string;

@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { httpsCallable, getFunctions } from "firebase/functions";
 import { type LinkTokenCreateRequest, type LinkTokenCreateResponse } from 'plaid';
 import { usePlaidLink, type PlaidLinkOptions } from 'react-plaid-link';
-import { isDevEnvironment } from '../utils/envUtils';
+import { isDevEnvironment } from '@/utils/envUtils';
 import { Button } from './common/button';
-import { useMarkInstitutionForResync } from '../hooks/api/useFinancialInstitutions';
+import { useMarkInstitutionForResync } from '@/hooks/api/useFinancialInstitutions';
 
 interface LinkFinancialInstitutionButtonProps {
   buttonText?: string;

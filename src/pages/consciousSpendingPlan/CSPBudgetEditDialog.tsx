@@ -5,13 +5,13 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "../../components/common/dialog";
-import { DialogActionPanel } from "../../components/common/DialogActionPanel";
-import { Label } from "../../components/common/label";
-import { Input } from "../../components/common/input";
-import { useUpdateCSPItem } from "../../hooks/api/useCSP";
+} from '@/components/common/dialog';
+import { DialogActionPanel } from '@/components/common/DialogActionPanel';
+import { Label } from '@/components/common/label';
+import { Input } from '@/components/common/input';
+import { useUpdateCSPItem } from '@/hooks/api/useCSP';
 import type { CSPCategoryBudget, CSPBucket } from "@easy-csp/shared-types";
-import { camelCaseToSentence } from "../../utils/stringUtils";
+import { camelCaseToSentence } from '@/utils/stringUtils';
 
 interface CSPBudgetEditDialogProps {
   open: boolean;

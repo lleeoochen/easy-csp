@@ -1,12 +1,12 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { CSPBucket, type CSPCategoryBudget } from "@easy-csp/shared-types";
-import { Card, CardContent, CardHeader } from "../../components/common/card";
+import { Card, CardContent, CardHeader } from '@/components/common/card';
 import { CSPBudgetActionMenu } from "./CSPBudgetActionMenu";
-import { useTransactions } from "../../hooks/api/useTransactions";
-import { getMonthBoundaries } from "../../utils/dateUtils";
-import { sumTransactions } from "../../utils/transactionUtils";
-import { useCSP } from "../../hooks/api/useCSP";
+import { useTransactions } from '@/hooks/api/useTransactions';
+import { getMonthBoundaries } from '@/utils/dateUtils';
+import { sumTransactions } from '@/utils/transactionUtils';
+import { useCSP } from '@/hooks/api/useCSP';
 
 interface CSPOverviewCardProps {
   incomeBudgets: CSPCategoryBudget[];

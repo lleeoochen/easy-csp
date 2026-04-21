@@ -1,16 +1,16 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Page } from "../../components/Page";
-import { Card, CardHeader, CardContent } from "../../components/common/card";
-import { Button } from "../../components/common/button";
-import { Label } from "../../components/common/label";
-import { AccountSelector } from "../../components/common/AccountSelector";
-import { DialogActionPanel } from "../../components/common/DialogActionPanel";
-import { useCSP } from "../../hooks/api/useCSP";
-import { useSaveTravelMode, useUserRules } from "../../hooks/useTravelMode";
-import { getTravelModeConfig, getDefaultTravelCategories } from "../../utils/travelModeUtils";
+import { Page } from '@/components/Page';
+import { Card, CardHeader, CardContent } from '@/components/common/card';
+import { Button } from '@/components/common/button';
+import { Label } from '@/components/common/label';
+import { AccountSelector } from '@/components/common/AccountSelector';
+import { DialogActionPanel } from '@/components/common/DialogActionPanel';
+import { useCSP } from '@/hooks/api/useCSP';
+import { useSaveTravelMode, useUserRules } from '@/hooks/useTravelMode';
+import { getTravelModeConfig, getDefaultTravelCategories } from '@/utils/travelModeUtils';
 import { CSPBucket } from "@easy-csp/shared-types";
-import { camelCaseToSentence } from "../../utils/stringUtils";
+import { camelCaseToSentence } from '@/utils/stringUtils';
 import { ArrowLeft } from "lucide-react";
 
 const CSP_BUCKET_ORDER: CSPBucket[] = [

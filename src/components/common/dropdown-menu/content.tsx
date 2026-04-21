@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useDropdownMenu } from "./context";
-import { cn } from "../utils";
+import { cn } from "@/components/common/utils";
 
 interface DropdownMenuContentProps {
   children: React.ReactNode;

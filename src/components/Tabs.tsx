@@ -2,7 +2,7 @@ import { HashRouter as Router, Routes, Route, Link, useLocation } from "react-ro
 import type { ComponentType, ReactNode } from "react";
 import { cn } from "./common/utils";
 import type { LucideProps } from "lucide-react";
-import { useHideOnScroll } from "../hooks/useHideOnScroll";
+import { useHideOnScroll } from '@/hooks/useHideOnScroll';
 
 
 type TabsProps = {

@@ -13,7 +13,7 @@ import {
   type RuleMatchingCriteria,
   RuleCondition
 } from "@easy-csp/shared-types";
-import { prepareFirestoreData } from "../utils/firestoreHelpers";
+import { prepareFirestoreData } from '@/utils/firestoreHelpers';
 import { AccountService } from "./accountService";
 
 export class RulesService {
@@ -243,7 +243,7 @@ export class RulesService {
     transaction: Transaction,
     rules: RuleTransformation[]
   ): Transaction {
-    let modifiedTransaction = { ...transaction };
+    const modifiedTransaction = { ...transaction };
 
     try {
       // Process each enabled rule

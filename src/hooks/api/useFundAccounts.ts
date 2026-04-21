@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AccountService } from '../../services/accountService';
-import { TransactionsService } from '../../services/transactionsService';
+import { AccountService } from '@/services/accountService';
+import { TransactionsService } from '@/services/transactionsService';
 
 /**
  * Query key for fund accounts data

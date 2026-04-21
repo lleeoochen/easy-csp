@@ -1,10 +1,10 @@
-import { Page } from "../../components/Page";
+import { Page } from '@/components/Page';
 import { useNavigate } from "react-router-dom";
-import { useRules } from "../../hooks/api/useRules";
+import { useRules } from '@/hooks/api/useRules';
 import { RulesList } from "./RulesList";
-import { Button } from "../../components/common/button";
-import { BackButton } from "../../components/common/BackButton";
-import { TRAVEL_MODE_RULE_NAME } from "../../types/travelMode";
+import { Button } from '@/components/common/button';
+import { BackButton } from '@/components/common/BackButton';
+import { TRAVEL_MODE_RULE_NAME } from '@/types/travelMode';
 
 const RulesPage = () => {
   const navigate = useNavigate();

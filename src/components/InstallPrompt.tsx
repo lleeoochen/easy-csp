@@ -7,6 +7,7 @@ export const InstallPrompt = () => {
   useEffect(() => {
     // Check if running in standalone mode (already installed)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       || (window.navigator as any).standalone
       || document.referrer.includes('android-app://');
 

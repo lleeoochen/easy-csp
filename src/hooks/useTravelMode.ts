@@ -10,8 +10,8 @@
  */
 
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
-import { TravelModeService } from '../services/travelModeService';
-import type { TravelModeConfig } from '../types/travelMode';
+import { TravelModeService } from '@/services/travelModeService';
+import type { TravelModeConfig } from '@/types/travelMode';
 import { getAuth } from 'firebase/auth';
 
 // Re-export useRules as useUserRules for travel mode components

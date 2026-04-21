@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { getMonthRange, getCurrentMonthYear } from '../utils/dateUtils';
+import { getMonthRange, getCurrentMonthYear } from '@/utils/dateUtils';
 import { Button } from './common/button';
 import { cn } from './common/utils';
 

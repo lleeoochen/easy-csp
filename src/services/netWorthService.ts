@@ -1,8 +1,9 @@
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { ACCOUNTS_COLLECTION, type Account, AccountType } from '@easy-csp/shared-types';
-import { calculateNetWorth } from '../utils/netWorthUtils';
+import { ACCOUNTS_COLLECTION } from '@easy-csp/shared-types';
+import { calculateNetWorth } from '@/utils/netWorthUtils';
+import type { UI_FinancialAccount } from '@/types/uiTypes';
 
 export interface NetWorthBreakdown {
   checking: number;
@@ -38,7 +39,7 @@ export const NetWorthService = {
     const accounts = accountsSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    } as Account));
+    } as UI_FinancialAccount));
 
     // Use the utility function to calculate net worth
     const netWorthSummary = calculateNetWorth(accounts);

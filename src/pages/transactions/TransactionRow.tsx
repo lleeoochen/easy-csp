@@ -1,9 +1,9 @@
 import type { Transaction } from "@easy-csp/shared-types";
 import { isManualTransaction } from "@easy-csp/shared-types";
-import { useCategoryMap, useIgnoredCategoryIds } from "../../hooks/useCategoryMap";
-import { useAccounts } from "../../hooks/api/useAccounts";
-import { cn } from "../../components/common/utils";
-import { formatCurrency, getTransactionSignPrefix } from "../../utils/financialUtils";
+import { useCategoryMap, useIgnoredCategoryIds } from '@/hooks/useCategoryMap';
+import { useAccounts } from '@/hooks/api/useAccounts';
+import { cn } from '@/components/common/utils';
+import { formatCurrency, getTransactionSignPrefix } from '@/utils/financialUtils';
 import { Split, Target, PenLine } from "lucide-react";
 
 const SAVING_TARGET_COLORS = [

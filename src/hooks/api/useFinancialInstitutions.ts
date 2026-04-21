@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { FinancialInstitutionsService } from '../../services/financialInstitutionsService';
+import { FinancialInstitutionsService } from '@/services/financialInstitutionsService';
 import { type FinancialInstitution, FinancialInstitutionStatus } from '@easy-csp/shared-types';
 import { removeItemFromCache } from './cacheUtils';
 

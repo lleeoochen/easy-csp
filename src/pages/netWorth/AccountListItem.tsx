@@ -1,15 +1,15 @@
-import { getAccountDisplayName } from '../../utils/netWorthUtils';
-import { formatCurrency } from '../../utils/financialUtils';
+import { getAccountDisplayName } from '@/utils/netWorthUtils';
+import { formatCurrency } from '@/utils/financialUtils';
 import { formatDistanceToNow } from 'date-fns';
 import { Wallet, Eye } from 'lucide-react';
-import type { UI_FinancialAccount } from '../../types/uiTypes';
-import { Progress } from '../../components/common/progress';
+import type { UI_FinancialAccount } from '@/types/uiTypes';
+import { Progress } from '@/components/common/progress';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../../components/common/dropdown-menu';
+} from '@/components/common/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
 
 interface AccountListItemProps {

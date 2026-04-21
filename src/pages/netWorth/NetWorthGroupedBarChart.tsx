@@ -1,8 +1,8 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import type { NetWorthBreakdown } from '../../services/netWorthService';
-import { Card, CardContent, CardHeader } from '../../components/common/card';
+import type { NetWorthBreakdown } from '@/services/netWorthService';
+import { Card, CardContent, CardHeader } from '@/components/common/card';
 import type { RectRadius } from 'recharts/types/shape/Rectangle';
-import { formatCurrency } from '../../utils/financialUtils';
+import { formatCurrency } from '@/utils/financialUtils';
 
 interface NetWorthGroupedBarChartProps {
   breakdown: NetWorthBreakdown;

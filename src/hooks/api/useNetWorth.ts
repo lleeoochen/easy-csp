@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { NetWorthService } from '../../services/netWorthService';
+import { NetWorthService } from '@/services/netWorthService';
 
 export const NET_WORTH_QUERY_KEY = ['netWorth'];
 

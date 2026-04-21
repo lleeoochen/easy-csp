@@ -1,12 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
 
-export const useHideOnScroll = (threshold = 10, resetDependency?: any) => {
+export const useHideOnScroll = (threshold = 10, resetDependency?: string) => {
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
   const isAtBottom = useRef(false);
 
   // Reset visibility when resetDependency changes (e.g., route change)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsVisible(true);
     lastScrollY.current = 0;
     isAtBottom.current = false;

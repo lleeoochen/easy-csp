@@ -6,14 +6,14 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "../../components/common/dialog";
-import { DialogActionPanel } from "../../components/common/DialogActionPanel";
+} from '@/components/common/dialog';
+import { DialogActionPanel } from '@/components/common/DialogActionPanel';
 import { CSPBucket } from "@easy-csp/shared-types";
-import { useDeleteCSPItem } from "../../hooks/api/useCSP";
-import { ACCOUNTS_QUERY_KEY, ACCOUNTS_WITH_INFO_QUERY_KEY } from "../../hooks/api/useAccounts";
-import { AccountService } from "../../services/accountService";
+import { useDeleteCSPItem } from '@/hooks/api/useCSP';
+import { ACCOUNTS_QUERY_KEY, ACCOUNTS_WITH_INFO_QUERY_KEY } from '@/hooks/api/useAccounts';
+import { AccountService } from '@/services/accountService';
 import { toast } from "react-hot-toast";
-import { Checkbox } from "../../components/common/checkbox";
+import { Checkbox } from '@/components/common/checkbox';
 
 interface UnlinkAccountDialogProps {
   open: boolean;

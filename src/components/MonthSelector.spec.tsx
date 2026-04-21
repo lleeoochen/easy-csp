@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@/test/testUtils';
 import { MonthSelector } from './MonthSelector';
-import * as dateUtils from '../utils/dateUtils';
+import * as dateUtils from '@/utils/dateUtils';
 
 // Mock date utilities
 vi.mock('../utils/dateUtils', () => ({

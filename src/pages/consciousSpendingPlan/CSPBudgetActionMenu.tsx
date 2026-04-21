@@ -5,15 +5,15 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "../../components/common/dropdown-menu";
-import { Progress } from "../../components/common/progress";
+} from '@/components/common/dropdown-menu';
+import { Progress } from '@/components/common/progress';
 import { type CSPCategoryBudget, CSPBucket } from "@easy-csp/shared-types";
-import { formatCurrency } from "../../utils/financialUtils";
-import { cn } from "../../components/common/utils";
+import { formatCurrency } from '@/utils/financialUtils';
+import { cn } from '@/components/common/utils';
 import { CSPBudgetEditDialog } from "./CSPBudgetEditDialog";
 import { UnlinkAccountDialog } from "./UnlinkAccountDialog";
 import { PenIcon, BarChart3Icon, Trash2Icon, UnlinkIcon } from "lucide-react";
-import { useDeleteCSPItem } from "../../hooks/api/useCSP";
+import { useDeleteCSPItem } from '@/hooks/api/useCSP';
 import { PROTECTED_CSP_CATEGORIES } from "@easy-csp/shared-types";
 
 interface CSPBudgetActionMenuProps {

@@ -1,12 +1,12 @@
 import { useMemo } from "react";
 import { CSPBucket, type CSPCategoryBudget } from "@easy-csp/shared-types";
 import { CSPBudgetActionMenu } from "./CSPBudgetActionMenu";
-import { useRegularBudget } from "../../hooks/useCSPBudgetRow";
-import { useTransactions } from "../../hooks/api/useTransactions";
-import { getMonthBoundaries } from "../../utils/dateUtils";
-import { sumTransactions } from "../../utils/transactionUtils";
-import { useAccounts } from "../../hooks/api/useAccounts";
-import { useCSP } from "../../hooks/api/useCSP";
+import { useRegularBudget } from '@/hooks/useCSPBudgetRow';
+import { useTransactions } from '@/hooks/api/useTransactions';
+import { getMonthBoundaries } from '@/utils/dateUtils';
+import { sumTransactions } from '@/utils/transactionUtils';
+import { useAccounts } from '@/hooks/api/useAccounts';
+import { useCSP } from '@/hooks/api/useCSP';
 
 const POSITIVE_BUCKETS = [CSPBucket.Savings, CSPBucket.Income, CSPBucket.Investment];
 

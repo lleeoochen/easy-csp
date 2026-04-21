@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@/test/testUtils';
 import { CategorySelector } from './CategorySelector';
-import { useRegularCategoryNameMap } from '../../hooks/api/useCSP';
+import { useRegularCategoryNameMap } from '@/hooks/api/useCSP';
 
 vi.mock('../../hooks/api/useCSP');
 vi.mock('./select', () => ({
