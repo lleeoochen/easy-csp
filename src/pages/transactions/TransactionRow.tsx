@@ -61,8 +61,8 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
 
   const isManual = account ? isManualTransaction(account) : false;
 
-  const targetColor = transaction.accountId
-    ? SAVING_TARGET_COLORS[hashStringToIndex(transaction.accountId, SAVING_TARGET_COLORS.length)]
+  const targetColor = transaction.allocatedFundId
+    ? SAVING_TARGET_COLORS[hashStringToIndex(transaction.allocatedFundId, SAVING_TARGET_COLORS.length)]
     : "text-blue-600";
 
   const categoryText = categoryMap[transaction.category] ?? transaction.category;
@@ -70,6 +70,7 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
   const isIgnored = ignoredCategoryIds.has(transaction.category) || transaction.hidden
 
   const displayName = transaction.nickname || transaction.name;
+  const isPending = transaction.plaidPending === true;
 
   return (
     <div className="bg-white active:bg-accent/50 transition-colors cursor-pointer hover:bg-accent/20 rounded-2xl">
@@ -77,11 +78,13 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
         <div className="flex items-start justify-between gap-5">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div className="min-w-0 flex-1">
-              <div className="truncate flex items-center gap-1">
+              <div className="truncate flex items-center gap-1.5">
                 {isManual && (
                   <PenLine className="text-gray-500 shrink-0" size={14} strokeWidth={2} />
                 )}
-                {displayName}
+                <span className={cn(isPending && "text-gray-400 italic")}>
+                  {displayName}
+                </span>
               </div>
               <div className={cn(
                 "flex flex-row gap-1 items-center text-sm flex-wrap",
@@ -91,15 +94,16 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
                   <Target className={targetColor} size={18} strokeWidth={2} />
                 )}
                 <SplitIndicator transaction={transaction} />
-                {categoryText}
+                {isPending ? 'Pending' : categoryText}
               </div>
             </div>
           </div>
           <div className="flex flex-col items-end">
             <div className={cn(
               "font-bold",
+              isPending && "text-gray-400",
               isIgnored && "text-gray-400",
-              !isIgnored && transaction.amount < 0 && "text-green-600"
+              !isIgnored && !isPending && transaction.amount < 0 && "text-green-600"
             )}>
               {getTransactionSignPrefix(transaction.amount) + formatCurrency(transaction.amount)}
             </div>

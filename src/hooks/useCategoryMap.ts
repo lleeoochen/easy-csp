@@ -21,7 +21,7 @@ export const useAccountCategoryIds = (): ReadonlySet<string> => {
     if (!csp) return ids;
     for (const items of Object.values(csp)) {
       for (const item of items as CSPCategoryBudget[]) {
-        if (item.isTrackingAccount) ids.add(item.category);
+        if (item.isTrackingFund) ids.add(item.category);
       }
     }
     return ids;

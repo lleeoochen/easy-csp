@@ -9,11 +9,15 @@ import { TRAVEL_MODE_RULE_NAME } from '@/types/travelMode';
 const RulesPage = () => {
   const navigate = useNavigate();
   const { data: rulesDoc, isLoading, error, refetch } = useRules();
-  const transformations = (rulesDoc?.transformations ?? []).filter(
-    transform => transform.name != TRAVEL_MODE_RULE_NAME);
 
-  const handleRuleClick = (_rule: unknown, index: number) => {
-    navigate(`/rules/${index}/edit`);
+  // Filter out travel mode rules and track original indices
+  const allTransformations = rulesDoc?.transformations ?? [];
+  const transformationsWithIndices = allTransformations
+    .map((transform, originalIndex) => ({ transform, originalIndex }))
+    .filter(({ transform }) => transform.name !== TRAVEL_MODE_RULE_NAME);
+
+  const handleRuleClick = (_rule: unknown, originalIndex: number) => {
+    navigate(`/rules/${originalIndex}/edit`);
   };
 
   const handleAddRule = () => {
@@ -21,7 +25,7 @@ const RulesPage = () => {
   };
 
   return (
-    <Page title="Transaction Rules" maxWidth="full">
+    <Page title="Transaction Rules" maxWidth="cozy">
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <BackButton to="/settings" />
@@ -40,7 +44,7 @@ const RulesPage = () => {
           </div>
         )}
 
-        <RulesList rules={transformations} onRuleClick={handleRuleClick} />
+        <RulesList rules={transformationsWithIndices} onRuleClick={handleRuleClick} />
       </div>
     </Page>
   );

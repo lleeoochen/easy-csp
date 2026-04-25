@@ -72,7 +72,7 @@ const SettingsPage = () => {
               {/* Rules Button */}
               <button
                 onClick={() => navigate('/rules')}
-                className="w-full flex items-center justify-between rounded-lg hover:bg-gray-100 transition-colors p-2"
+                className="w-full flex items-center justify-between rounded-lg hover:bg-gray-100 transition-colors p-2 cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <Filter className="w-5 h-5 text-gray-600" />

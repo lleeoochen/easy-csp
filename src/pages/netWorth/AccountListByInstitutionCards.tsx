@@ -1,15 +1,14 @@
 import type { FinancialInstitution } from '@easy-csp/shared-types';
 import { PlaidErrorCode, RETRY_SYNC_ERRORS, RECONNECT_REQUIRED_ERRORS, REMOVE_INSTITUTION_ERRORS, FinancialInstitutionStatus } from '@easy-csp/shared-types';
-import { Card, CardHeader, CardContent } from '@/components/common/card';
 import { Button } from '@/components/common/button';
-import { AccountListItem } from './AccountListItem';
+import { AccountListCard } from './AccountListCard';
 import { getFinancialInstitutionStatusDisplay, getPlaidErrorMessage } from '@/utils/statusUtils';
 import { useRetrySyncInstitution, useRemoveInstitution } from '@/hooks/api/useFinancialInstitutions';
 import LinkFinancialInstitutionButton from '@/components/LinkFinancialInstitutionButton';
 import { AlertTriangleIcon } from 'lucide-react';
 import type { UI_FinancialAccount } from '@/types/uiTypes';
 
-interface InstitutionSectionProps {
+interface AccountListByInstitutionCardsProps {
   institutions: FinancialInstitution[];
   accountsByInstitution: Record<string, UI_FinancialAccount[]>;
   onDelete: (account: UI_FinancialAccount) => void;
@@ -56,11 +55,11 @@ const InstitutionErrorBanner = ({ institution }: { institution: FinancialInstitu
   );
 };
 
-export const InstitutionSection = ({
+export const AccountListByInstitutionCards = ({
   institutions,
   accountsByInstitution,
   onDelete,
-}: InstitutionSectionProps) => {
+}: AccountListByInstitutionCardsProps) => {
   if (institutions.length === 0) {
     return (
       <div className="text-center py-8">
@@ -78,34 +77,19 @@ export const InstitutionSection = ({
           const institutionAccounts = accountsByInstitution[institution.institutionId] || [];
 
           return (
-            <Card key={`${institution.institutionId}-${index}`} className='md:h-full'>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h2 className="text-lg">{institution.institutionName}</h2>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusDisplay.color}`}>
-                    {statusDisplay.text}
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className='p-0! md:h-full'>
-                <InstitutionErrorBanner institution={institution} />
-                {institutionAccounts.length === 0 ? (
-                  <p className="text-gray-500 text-sm">No accounts found for this institution.</p>
-                ) : (
-                  <div className="divide-y divide-gray-200">
-                    {institutionAccounts.map((account) => (
-                      <AccountListItem
-                        key={account.id}
-                        account={account}
-                        onDelete={onDelete}
-                      />
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <AccountListCard
+              key={`${institution.institutionId}-${index}`}
+              title={institution.institutionName}
+              accounts={institutionAccounts}
+              onDelete={onDelete}
+              headerContent={
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusDisplay.color}`}>
+                  {statusDisplay.text}
+                </span>
+              }
+              subtitle={<InstitutionErrorBanner institution={institution} />}
+              emptyMessage="No accounts found for this institution."
+            />
           );
         })}
       </div>

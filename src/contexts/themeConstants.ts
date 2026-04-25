@@ -1,4 +1,4 @@
-export type ThemeName = 'ocean' | 'forest' | 'sunset' | 'dark';
+export type ThemeName = 'ocean' | 'forest' | 'sunset' | 'pink' | 'purple' | 'dark';
 
 interface Theme {
   name: ThemeName;
@@ -53,6 +53,34 @@ export const themes: Record<ThemeName, Theme> = {
       secondaryBg: '#d1d5db',
       secondaryFg: '#000000',
       tabsBarBg: '#9a3412cc',
+      tabsBarFg: '#ffffff',
+      tabsBarActiveBg: '#ffffff',
+      tabsBarActiveFg: '#c2410c',
+    },
+  },
+  pink: {
+    name: 'pink',
+    colors: {
+      background: '#c29ac9',
+      primaryBg: '#ab82b3',
+      primaryFg: '#ffffff',
+      secondaryBg: '#d1d5db',
+      secondaryFg: '#000000',
+      tabsBarBg: '#ab82b3cc',
+      tabsBarFg: '#ffffff',
+      tabsBarActiveBg: '#ffffff',
+      tabsBarActiveFg: '#c2410c',
+    },
+  },
+  purple: {
+    name: 'purple',
+    colors: {
+      background: '#75569e',
+      primaryBg: '#5e4284',
+      primaryFg: '#ffffff',
+      secondaryBg: '#d1d5db',
+      secondaryFg: '#000000',
+      tabsBarBg: '#5e4284cc',
       tabsBarFg: '#ffffff',
       tabsBarActiveBg: '#ffffff',
       tabsBarActiveFg: '#c2410c',

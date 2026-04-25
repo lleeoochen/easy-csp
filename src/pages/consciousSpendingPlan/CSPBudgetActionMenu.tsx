@@ -11,7 +11,7 @@ import { type CSPCategoryBudget, CSPBucket } from "@easy-csp/shared-types";
 import { formatCurrency } from '@/utils/financialUtils';
 import { cn } from '@/components/common/utils';
 import { CSPBudgetEditDialog } from "./CSPBudgetEditDialog";
-import { UnlinkAccountDialog } from "./UnlinkAccountDialog";
+import { UnlinkFundDialog } from "./UnlinkFundDialog";
 import { PenIcon, BarChart3Icon, Trash2Icon, UnlinkIcon } from "lucide-react";
 import { useDeleteCSPItem } from '@/hooks/api/useCSP';
 import { PROTECTED_CSP_CATEGORIES } from "@easy-csp/shared-types";
@@ -60,7 +60,7 @@ export const CSPBudgetActionMenu = ({
       return;
     }
     // For accounts, filter by account; for regular categories, filter by category and no account
-    if (budget.isTrackingAccount) {
+    if (budget.isTrackingFund) {
       navigate(`/transactions?fund=${encodeURIComponent(budget.category)}&month=${currentMonth}`);
     } else {
       navigate(`/transactions?category=${encodeURIComponent(budget.category)}&fund=none&month=${currentMonth}`);
@@ -81,7 +81,7 @@ export const CSPBudgetActionMenu = ({
   };
 
   // Check if this is a linked account in Savings/Investment bucket
-  const isLinkedFundAccount = budget.isTrackingAccount &&
+  const isLinkedFundAccount = budget.isTrackingFund &&
     (bucket === CSPBucket.Savings || bucket === CSPBucket.Investment);
 
   return (
@@ -138,7 +138,7 @@ export const CSPBudgetActionMenu = ({
                 Unlink Account
               </DropdownMenuItem>
             )}
-            {showDelete && bucket !== CSPBucket.Income && budget.isTrackingAccount !== true && !PROTECTED_CSP_CATEGORIES.has(budget.category) && (
+            {showDelete && bucket !== CSPBucket.Income && budget.isTrackingFund !== true && !PROTECTED_CSP_CATEGORIES.has(budget.category) && (
               <DropdownMenuItem
                 onClick={handleRemoveCategory}
                 className="text-red-600 focus:text-red-600"
@@ -159,11 +159,11 @@ export const CSPBudgetActionMenu = ({
         categoryName={categoryName}
       />
 
-      <UnlinkAccountDialog
+      <UnlinkFundDialog
         open={isUnlinkDialogOpen}
         onOpenChange={setIsUnlinkDialogOpen}
-        accountId={budget.category}
-        accountName={categoryName}
+        fundId={budget.category}
+        fundName={categoryName}
         bucket={bucket}
       />
     </>

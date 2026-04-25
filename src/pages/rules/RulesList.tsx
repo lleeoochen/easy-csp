@@ -3,23 +3,31 @@ import { Switch } from '@/components/common/switch';
 import { AlertTriangle } from "lucide-react";
 import { useUpdateRule } from '@/hooks/api/useRules';
 import { useCategoryMap } from '@/hooks/useCategoryMap';
-import type { RuleTransformation } from "@easy-csp/shared-types";
+import { RuleCondition, type RuleTransformation } from "@easy-csp/shared-types";
 import { useRegularCategoryNameMap } from '@/hooks/api/useCSP';
+import { useAccountsWithInfo } from '@/hooks/api/useAccounts';
+import { useFunds } from '@/hooks/api/useFunds';
 
 interface RulesListProps {
-  rules: RuleTransformation[];
-  onRuleClick: (rule: RuleTransformation, index: number) => void;
+  rules: Array<{ transform: RuleTransformation; originalIndex: number }>;
+  onRuleClick: (rule: RuleTransformation, originalIndex: number) => void;
 }
 
 export function RulesList({ rules, onRuleClick }: RulesListProps) {
   const updateRuleMutation = useUpdateRule();
   const categoryMap = useCategoryMap();
   const categoryNameMap = useRegularCategoryNameMap();
+  const { data: accounts = [] } = useAccountsWithInfo();
+  const { data: funds = [] } = useFunds();
 
-  const handleToggleRule = (ruleIndex: number, enabled: boolean) => {
-    const rule = rules[ruleIndex];
-    if (rule) {
-      updateRuleMutation.mutate({ ruleIndex, updatedRule: { ...rule, enabled } });
+  // Create account lookup map for O(1) access
+  const accountMap = new Map(accounts.map(account => [account.id, account]));
+  const fundMap = new Map(funds.map(fund => [fund.id, fund]));
+
+  const handleToggleRule = (originalIndex: number, enabled: boolean) => {
+    const ruleItem = rules.find(r => r.originalIndex === originalIndex);
+    if (ruleItem) {
+      updateRuleMutation.mutate({ ruleIndex: originalIndex, updatedRule: { ...ruleItem.transform, enabled } });
     }
   };
 
@@ -27,22 +35,40 @@ export function RulesList({ rules, onRuleClick }: RulesListProps) {
     const criteria = rule.matchingCriteria;
     const parts: string[] = [];
 
+    // Helper to format text conditions (contains/exact)
+    const formatTextCondition = (condition: RuleCondition): string => {
+      switch (condition) {
+        case RuleCondition.Contains:
+          return "contains";
+        case RuleCondition.Equal:
+          return "equals";
+        case RuleCondition.Exact:
+          return "is";
+        case RuleCondition.GreaterThan:
+          return ">";
+        case RuleCondition.LessThan:
+          return "<";
+      }
+    };
+
     if (criteria.name) {
-      parts.push(`Name ${criteria.name.condition} "${criteria.name.value}"`);
+      const conditionText = formatTextCondition(criteria.name.condition);
+      parts.push(`Name ${conditionText} "${criteria.name.value}"`);
     }
     if (criteria.accountId) {
-      parts.push(`Account ${criteria.accountId.condition} "${criteria.accountId.value}"`);
+      const conditionText = formatTextCondition(criteria.accountId.condition);
+      parts.push(`Account ${conditionText} "${accountMap.get(criteria.accountId.value)?.displayName}"`);
     }
     if (criteria.amount) {
-      const symbol = criteria.amount.condition === 'lessThan' ? '<' :
-                     criteria.amount.condition === 'greaterThan' ? '>' : '=';
-      parts.push(`Amount ${symbol} $${criteria.amount.value}`);
+      const conditionText = formatTextCondition(criteria.amount.condition);
+      parts.push(`Amount ${conditionText} $${criteria.amount.value}`);
     }
     if (criteria.category) {
-      parts.push(`Category ${criteria.category.condition} "${categoryNameMap.get(criteria.category.value)}"`);
+      const conditionText = formatTextCondition(criteria.category.condition);
+      parts.push(`Category ${conditionText} "${categoryNameMap.get(criteria.category.value)}"`);
     }
 
-    return parts.join(" AND ");
+    return parts.join(" and ");
   };
 
   const formatActions = (rule: RuleTransformation): string => {
@@ -56,6 +82,10 @@ export function RulesList({ rules, onRuleClick }: RulesListProps) {
     }
     if (rule.action.autoSplit) {
       actions.push(`Auto-split into ${rule.action.autoSplit.splitCount} (${rule.action.autoSplit.frequency})`);
+    }
+    if (rule.action.assignFund) {
+      const fund = fundMap.get(rule.action.assignFund);
+      actions.push(`Assign to fund "${fund?.name ?? 'Unknown Fund'}"`);
     }
 
     return actions.join("\n");
@@ -72,52 +102,60 @@ export function RulesList({ rules, onRuleClick }: RulesListProps) {
     );
   }
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-      {rules.map((rule, index) => {
-        const hasStaleCategory = rule.action.changeCategory !== undefined
-          && categoryMap[rule.action.changeCategory] === undefined;
+  // Group rules by whether they check transaction name
+  const sortedRules = rules.sort((a, b) => a.transform.name.localeCompare(b.transform.name));
 
-        return (
-          <div key={index} className="flex items-stretch gap-2 cursor-pointer" onClick={() => onRuleClick(rule, index)}>
-            <Card key={index} className="flex-1">
-              <CardHeader className="flex justify-between">
-                <div className="flex items-center gap-3">
-                  <div>
-                    <h3 className="font-medium">{rule.name}</h3>
-                    {hasStaleCategory && (
-                      <span className="flex items-center gap-1 text-xs text-amber-600 mt-1">
-                        <AlertTriangle size={12} />
-                        Category no longer exists in your CSP
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex gap-1 justify-between">
-                  <Switch
-                    checked={rule.enabled}
-                    onCheckedChange={(enabled) => handleToggleRule(index, enabled)}
-                  />
-                </div>
-              </CardHeader>
-              <CardContent className="flex items-center justify-between p-4!">
-                <div className="flex-1 space-y-2">
-                  <div className="grid columns-2 text-md">
-                    <div className="font-bold">
-                      Condition
-                    </div>
-                    <span>{formatCriteria(rule)}</span>
-                    <div className="mt-2 font-bold">
-                      Action
-                    </div>
-                    <span className="whitespace-pre-wrap">{formatActions(rule)}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+  const renderRuleRow = (rule: RuleTransformation, originalIndex: number) => {
+    const hasStaleCategory = rule.action.changeCategory !== undefined
+      && categoryMap[rule.action.changeCategory] === undefined;
+
+    return (
+      <div key={originalIndex}>
+        <div
+          className="flex items-center justify-between p-4 hover:bg-accent/50 cursor-pointer transition-colors"
+          onClick={() => onRuleClick(rule, originalIndex)}
+        >
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3">
+              <h3 className="font-medium truncate">{rule.name}</h3>
+              {hasStaleCategory && (
+                <span className="flex items-center gap-1 text-xs text-amber-600 shrink-0">
+                  <AlertTriangle size={12} />
+                  Category no longer exists
+                </span>
+              )}
+            </div>
+            <div className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">
+              {formatActions(rule)}
+            </div>
+            <div className="text-sm text-gray-400 text-muted-foreground mt-1 whitespace-pre-wrap">
+              Condition: {formatCriteria(rule)}
+            </div>
           </div>
-        );
-      })}
+          <div className="ml-4 shrink-0" onClick={(e) => e.stopPropagation()}>
+            <Switch
+              checked={rule.enabled}
+              onCheckedChange={(enabled) => handleToggleRule(originalIndex, enabled)}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <h2 className="text-lg font-semibold">Transaction Rules</h2>
+          <p className="text-sm text-muted-foreground">Automatically applied when transactions are imported.</p>
+        </CardHeader>
+        <CardContent className="p-0! divide-y divide-gray-200">
+          {sortedRules.map(({ transform: rule, originalIndex }) =>
+            renderRuleRow(rule, originalIndex)
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

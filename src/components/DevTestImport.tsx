@@ -14,24 +14,50 @@ export const DevTestImport = () => {
       const functions = getFunctions();
       const testImport = httpsCallable(functions, 'testImportPlaidTransaction');
 
-      const result = await testImport({
+      // // Example 1: Import a pending transaction
+      // const pendingResult = await testImport({
+      //   transaction: {
+      //     transaction_id: "pending_coffee_1",
+      //     account_id: "KqGJbvo1g1hwdzg5kaRRfRoEAb5pJ8fRvMq3B", // Replace with your actual account_id
+      //     name: "Starbucks",
+      //     amount: 5.50,
+      //     date: "2026-04-21",
+      //     pending: true,
+      //     personal_finance_category: {
+      //       primary: "FOOD_AND_DRINK",
+      //       detailed: "FOOD_AND_DRINK_COFFEE",
+      //       confidence_level: "HIGH"
+      //     }
+      //   },
+      //   institutionId: "P39JKvl8G8fQAaW5EoxxfzDzVE7MwwCw8Mqro" // Replace with your actual institutionId
+      // });
+
+      // console.log("✅ Pending transaction imported:", pendingResult.data);
+
+      // Wait a moment to simulate time passing
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Example 2: Import the posted version (this should remove the pending one)
+      const postedResult = await testImport({
         transaction: {
-          transaction_id: "test_recology_" + Date.now(),
-          account_id: "KqGJbvo1g1hwdzg5kaRRfRoEAb5pJ8fRvMq3B",
-          name: "RECOLOGY INC",
-          amount: 150.00,
-          date: "2026-03-17",
+          transaction_id: "posted_coffee_2",
+          account_id: "KqGJbvo1g1hwdzg5kaRRfRoEAb5pJ8fRvMq3B", // Same account
+          name: "Starbucks",
+          amount: 5.50,
+          date: "2026-04-21",
+          pending: false,
+          pending_transaction_id: "pending_coffee_1", // Link to pending transaction
           personal_finance_category: {
-            primary: "RENT_AND_UTILITIES",
-            detailed: "RENT_AND_UTILITIES_SEWAGE_AND_WASTE_MANAGEMENT",
+            primary: "FOOD_AND_DRINK",
+            detailed: "FOOD_AND_DRINK_COFFEE",
             confidence_level: "HIGH"
           }
         },
         institutionId: "P39JKvl8G8fQAaW5EoxxfzDzVE7MwwCw8Mqro"
       });
 
-      console.log("✅ Test import success:", result.data);
-      setTestResult("✅ Success! Check console and transactions page.");
+      console.log("✅ Posted transaction imported (pending should be removed):", postedResult.data);
+      setTestResult("✅ Success! Imported pending→posted conversion. Check transactions page.");
     } catch (error) {
       console.error("❌ Test import error:", error);
       setTestResult(`❌ Error: ${error.message}`);
@@ -47,7 +73,7 @@ export const DevTestImport = () => {
         onClick={handleTestImport}
         disabled={testLoading}
       >
-        {testLoading ? 'Importing...' : 'Test Import Transaction'}
+        {testLoading ? 'Importing...' : 'Test Pending→Posted Conversion'}
       </Button>
       {testResult && (
         <p className="mt-2 text-sm">{testResult}</p>

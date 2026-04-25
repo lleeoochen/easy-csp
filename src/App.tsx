@@ -8,7 +8,7 @@ import TravelModeEditPage from "./pages/travelMode/TravelModeEditPage";
 import NetWorthPage from "./pages/netWorth/NetWorthPage";
 import AddAccountPage from "./pages/netWorth/AddAccountPage";
 import AccountEditPage from "./pages/netWorth/AccountEditPage";
-import { DollarSign, BarChart3, Settings, Filter, TrendingUp } from "lucide-react";
+import { DollarSign, BarChart3, Settings, Filter, TrendingUp, Target } from "lucide-react";
 import { initializeApp } from "firebase/app";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { connectFirestoreEmulator, getFirestore, doc, getDoc } from "firebase/firestore";
@@ -21,9 +21,9 @@ import { RequireMfaEnrollment } from "./components/RequireMfaEnrollment";
 import { EmailVerification } from "./components/auth/EmailVerification";
 import { USERS_COLLECTION, type User } from "@easy-csp/shared-types";
 import { useState, useEffect } from "react";
-
-// Import migration helper for easy access in console
-import "./utils/migrationHelper";
+import { FundsPage } from "@/pages/funds/FundsPage";
+import AddFundPage from "@/pages/funds/AddFundPage";
+import EditFundPage from "@/pages/funds/EditFundPage";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBERcnPQeqTU4VrJryfWAiqaFe4BPxDRXQ",
@@ -115,7 +115,27 @@ function App() {
               element: <ConsciousSpendingPlanPage />,
               showInNav: true
             },
-
+            {
+              path: "/funds",
+              name: "Funds",
+              icon: Target,
+              element: <FundsPage />,
+              showInNav: true
+            },
+            {
+              path: "/funds/add",
+              name: "Add Fund",
+              icon: Target,
+              element: <AddFundPage />,
+              showInNav: false
+            },
+            {
+              path: "/funds/:fundId/edit",
+              name: "Edit Fund",
+              icon: Target,
+              element: <EditFundPage />,
+              showInNav: false
+            },
             {
               path: "/net-worth",
               name: "Net Worth",

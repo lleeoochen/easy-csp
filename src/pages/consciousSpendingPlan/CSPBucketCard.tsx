@@ -5,7 +5,7 @@ import { camelCaseToSentence } from '@/utils/stringUtils';
 import { formatCurrency } from '@/utils/financialUtils';
 import { CSPBudgetRow } from "./CSPBudgetRow";
 import { AddCategoryRow } from "./AddCategoryRow";
-import { LinkAccountDialog } from "./LinkAccountDialog";
+import { LinkFundDialog } from "./LinkFundDialog";
 import { useTransactions } from '@/hooks/api/useTransactions';
 import { getMonthBoundaries } from '@/utils/dateUtils';
 import { sumTransactions } from '@/utils/transactionUtils';
@@ -97,7 +97,7 @@ export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString, showA
         )}
       </CardContent>
 
-      <LinkAccountDialog
+      <LinkFundDialog
         open={isLinkDialogOpen}
         onOpenChange={setIsLinkDialogOpen}
         bucket={cspBucket}

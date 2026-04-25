@@ -44,6 +44,7 @@ const TransactionEditPage = () => {
   const [transactionAmount, setTransactionAmount] = useState<string>('');
   const [transactionType, setTransactionType] = useState<'expense' | 'income'>('expense');
   const [allocatedFundId, setAllocatedFundId] = useState<string>('');
+  const [hidden, setHidden] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   const [splitDialogOpen, setSplitDialogOpen] = useState(false);
   const [validationErrors, setValidationErrors] = useState<{
@@ -88,6 +89,7 @@ const TransactionEditPage = () => {
       setTransactionAmount(Math.abs(transaction.amount).toString());
       setTransactionType(transaction.amount < 0 ? 'income' : 'expense');
       setAllocatedFundId(transaction.allocatedFundId || '');
+      setHidden(transaction.hidden);
     }
   }, [transaction]);
 
@@ -108,7 +110,7 @@ const TransactionEditPage = () => {
           nickname: nickname || undefined,
           accountId: null as unknown as string,
           plaidCategory: 'Manual',
-          hidden: false,
+          hidden: hidden,
           allocatedFundId: allocatedFundId || undefined,
         };
 
@@ -128,6 +130,7 @@ const TransactionEditPage = () => {
           category: selectedCategory,
           nickname: nickname || undefined,
           allocatedFundId: allocatedFundId || undefined,
+          hidden: hidden,
         };
 
         if (isManual) {
@@ -162,7 +165,7 @@ const TransactionEditPage = () => {
   };
 
   const handleDelete = async () => {
-    if (!transaction || !isManual) return;
+    if (!transaction) return;
 
     setIsLoading(true);
     try {
@@ -208,6 +211,7 @@ const TransactionEditPage = () => {
     selectedCategory !== transaction!.category ||
     nickname !== (transaction!.nickname || '') ||
     allocatedFundId !== (transaction!.allocatedFundId || '') ||
+    hidden !== transaction!.hidden ||
     selectedDate.getTime() !== transaction!.datetime ||
     (isManual && (
       transactionName !== transaction!.name ||
@@ -344,7 +348,7 @@ const TransactionEditPage = () => {
                 label="Date"
                 value={selectedDate}
                 onChange={setSelectedDate}
-                disabled={!isManual}
+                disabled={false}
               />
               {validationErrors.date && (
                 <p className="text-xs text-red-600 mt-1">{validationErrors.date}</p>
@@ -378,6 +382,34 @@ const TransactionEditPage = () => {
             disabled={false}
             includeNoneOption={true}
           />
+
+          {/* Hidden Status Toggle */}
+          <div className="flex items-center justify-between py-2">
+            <div>
+              <Label htmlFor="hidden-toggle" className="text-sm font-medium text-gray-700">
+                Hidden
+              </Label>
+              <p className="text-xs text-gray-500 mt-1">
+                Hide this transaction from calculations and summaries
+              </p>
+            </div>
+            <button
+              id="hidden-toggle"
+              type="button"
+              role="switch"
+              aria-checked={hidden}
+              onClick={() => setHidden(!hidden)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-bg focus:ring-offset-2 ${
+                hidden ? 'bg-primary-bg' : 'bg-gray-200'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  hidden ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
           </CardContent>
         </Card>
 
@@ -411,7 +443,7 @@ const TransactionEditPage = () => {
               onClick: handleSave,
               disabled: isLoading || !hasChanges
             }}
-            delete={!isCreateMode && isManual ? {
+            delete={!isCreateMode ? {
               label: 'Delete',
               onClick: handleDelete,
               disabled: isLoading,

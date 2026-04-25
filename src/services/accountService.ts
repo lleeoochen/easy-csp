@@ -154,7 +154,6 @@ export class AccountService {
         accountType: account.accountType,
         balance: account.balance,
         isManual: account.isManual,
-        isFundAccount: account.isFundAccount,
         lastSyncTimestamp: account.lastSyncTimestamp,
       };
 
@@ -245,11 +244,6 @@ export class AccountService {
     // Use a timestamp-based ID to ensure uniqueness
     const manualAccountId = `manual_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-    // Set default isFundAccount value based on account type
-    // Savings and investment accounts default to true (commonly used for fund tracking)
-    // Other account types default to false
-    const isFundAccount = accountType === AccountType.Savings || accountType === AccountType.Investment;
-
     // Prepare account data
     const accountData: Omit<FinancialAccount, "id"> = {
       uid,
@@ -259,7 +253,6 @@ export class AccountService {
       accountType,
       balance: initialBalance,
       isManual: true,
-      isFundAccount: isFundAccount,
       // Plaid metadata fields are undefined for manual accounts
       institutionId: undefined,
       institutionName: undefined,
@@ -883,15 +876,7 @@ export class AccountService {
       );
     }
 
-    // Step 4: Check if account is already a fund account
-    if (accountData.isFundAccount) {
-      return {
-        success: true,
-        message: "Account is already a fund account",
-      };
-    }
-
-    // Step 5: Enable fund account status
+    // Step 4: Enable fund account status
     await updateDoc(
       accountRef,
       prepareFirestoreData({

@@ -15,8 +15,8 @@ import { cn } from '@/components/common/utils';
 import { AccountSelector } from '@/components/common/AccountSelector';
 import { ArrowLeft } from "lucide-react";
 import { Button } from '@/components/common/button';
-import { FundAccountDropdown } from '@/components/FundAccountDropdown';
 import { RulesService } from '@/services/rulesService';
+import { FundSelector } from "@/components/common/FundSelector";
 
 const RuleEditPage = () => {
   const { index } = useParams<{ index: string }>();
@@ -413,22 +413,9 @@ const RuleEditPage = () => {
               </div>
 
               {/* Toggle Hidden Action */}
-              <div className="flex flex-col items-start gap-2">
-                <div className="flex flex-row gap-2 justify-between w-full">
-                  <Label className={cn({ "text-gray-300": !toggleHiddenEnabled })}>Set Hidden Status</Label>
-                  <Switch checked={toggleHiddenEnabled} onCheckedChange={setToggleHiddenEnabled} />
-                </div>
-                <div className={cn("flex flex-row gap-2 w-full", { "hidden": !toggleHiddenEnabled })}>
-                  <Select
-                    options={[
-                      { value: "true", label: "Hide transaction" },
-                      { value: "false", label: "Show transaction" }
-                    ]}
-                    value={toggleHiddenValue.toString()}
-                    onValueChange={(value) => setToggleHiddenValue(value === "true")}
-                    isDisabled={!toggleHiddenEnabled}
-                  />
-                </div>
+              <div className="flex flex-row gap-2 justify-between w-full">
+                <Label className={cn({ "text-gray-300": !toggleHiddenEnabled })}>Hide Transaction</Label>
+                <Switch checked={toggleHiddenEnabled} onCheckedChange={setToggleHiddenEnabled} />
               </div>
 
               {/* Auto Split Action */}
@@ -467,7 +454,7 @@ const RuleEditPage = () => {
                   <Switch checked={assignFundEnabled} onCheckedChange={setAssignFundEnabled} />
                 </div>
                 <div className={cn("w-full", { "hidden": !assignFundEnabled })}>
-                  <FundAccountDropdown
+                  <FundSelector
                     value={assignFundValue}
                     onValueChange={(value) => setAssignFundValue(value || "")}
                     label=""

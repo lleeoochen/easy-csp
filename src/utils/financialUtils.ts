@@ -2,6 +2,8 @@
  * Financial utility functions for currency formatting and calculations
  */
 
+import { AccountType } from "@easy-csp/shared-types";
+
 /**
  * Formats a number as currency with dollar sign and proper rounding
  * @param amount The numeric amount to format
@@ -182,4 +184,29 @@ export function formatCurrencyWithSign(
  */
 export function getTransactionSignPrefix(amount: number): string {
   return amount < 0 ? "+" : "";
+}
+
+/**
+ * Determines if an account type is eligible to be a fund account
+ * Only asset accounts can be fund accounts
+ */
+export const isAssetAccountType = (accountType: AccountType): boolean => {
+  return [
+    AccountType.Checking,
+    AccountType.Savings,
+    AccountType.Investment,
+    AccountType.Other,
+  ].includes(accountType);
+};
+
+/**
+ * Gets the display name for an account, preferring nickname over accountName
+ * @param account The account object with nickname and accountName properties
+ * @returns The nickname if set, otherwise the accountName
+ */
+export function getAccountDisplayName(account: { nickname?: string; accountName: string } | null | undefined): string {
+  if (!account) {
+    return 'Unknown Account';
+  }
+  return account.nickname || account.accountName;
 }

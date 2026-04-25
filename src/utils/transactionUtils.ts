@@ -72,7 +72,7 @@ export function sumTransactions(
     for (const [bucket, budgets] of Object.entries(csp)) {
       const bucketType = bucket as CSPBucket;
       for (const budget of budgets) {
-        if (budget.isTrackingAccount) {
+        if (budget.isTrackingFund) {
           // For account budgets, map by accountId (stored in category field)
           accountToBucket.set(budget.category, bucketType);
         } else {
@@ -164,7 +164,8 @@ export function sumTransactions(
       })));
       console.log(result.reduce((sum, transaction) => sum + transaction.amount, 0));
       console.log(options);
-      console.log(transactions.map(t => ([t.name, t.amount, t.category])));
+      console.log(accountId);
+      console.log(transactions.map(t => ([t.name, t.amount, t.category, t.accountId])));
       console.log("======");
     }
 

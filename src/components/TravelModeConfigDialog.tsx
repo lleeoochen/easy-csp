@@ -40,7 +40,7 @@ function useTravelModeConfigDialogContent() {
   // Derive initial state from existing config or defaults
   // The parent component uses a key to reset this hook when config changes
   const initialCategories = existingConfig?.categories ?? defaultCategories;
-  const initialAccountId = existingConfig?.accountId ?? "";
+  const initialAccountId = existingConfig?.fundId ?? "";
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategories);
   const [accountId, setAccountId] = useState<string>(initialAccountId);
@@ -66,7 +66,7 @@ function useTravelModeConfigDialogContent() {
     if (selectedCategories.length === 0 || !accountId) return;
 
     saveConfig(
-      { categories: selectedCategories, accountId: accountId },
+      { categories: selectedCategories, fundId: accountId },
       {
         onSuccess: () => {
           onClose();
@@ -84,7 +84,7 @@ function useTravelModeConfigDialogContent() {
     return CSP_BUCKET_ORDER.map((bucket) => ({
       bucket,
       categories: (csp[bucket] || [])
-        .filter((budget) => !budget.isTrackingAccount) // Exclude dynamic account categories
+        .filter((budget) => !budget.isTrackingFund) // Exclude dynamic account categories
         .map((budget) => ({
           id: budget.category,
           name: budget.name || camelCaseToSentence(budget.category),
@@ -112,7 +112,7 @@ export function TravelModeConfigDialog({ open, onOpenChange }: TravelModeConfigD
   // Use rule as key to reset component state when config changes
   const dialogKey = useMemo(() => {
     const config = getTravelModeConfig(rule ?? null);
-    return config ? `${config.categories.join(',')}-${config.accountId}` : 'new';
+    return config ? `${config.categories.join(',')}-${config.fundId}` : 'new';
   }, [rule]);
 
   return (

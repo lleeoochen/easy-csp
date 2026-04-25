@@ -195,7 +195,7 @@ export class TravelModeService {
         );
       }
 
-      if (!config.accountId || typeof config.accountId !== "string" || config.accountId.trim() === "") {
+      if (!config.fundId || typeof config.fundId !== "string" || config.fundId.trim() === "") {
         throw new TravelModeError(
           "Account must be selected",
           TravelModeErrorCode.INVALID_CONFIG
@@ -230,7 +230,7 @@ export class TravelModeService {
             }
           },
           action: {
-            assignFund: config.accountId
+            assignFund: config.fundId
           }
         }));
 

@@ -68,15 +68,15 @@ export function CSPBucketCardList({ selectedMonth, selectedYear }: CSPBucketCard
 
   return (
     <>
-      <div className="flex">
+      <div className="flex flex-col gap-3">
+        {/* Overview Card */}
+        <CSPOverviewCard
+          incomeBudgets={consciousSpendingPlan[CSPBucket.Income] ?? []}
+          expenseBuckets={expenseBucketsForOverview}
+          currentMonthString={currentMonthString}
+        />
         {/* Category Sections - Horizontal on desktop */}
-        <div className="flex flex-col lg:grid lg:grid-cols-2 xl:grid-cols-5 gap-3 w-full">
-          {/* Overview Card */}
-          <CSPOverviewCard
-            incomeBudgets={consciousSpendingPlan[CSPBucket.Income] ?? []}
-            expenseBuckets={expenseBucketsForOverview}
-            currentMonthString={currentMonthString}
-          />
+        <div className="flex flex-col lg:grid lg:grid-cols-2 xl:grid-cols-4 gap-3 w-full">
           {spendingBuckets.map(([cspBucket, cspBudgets]) => (
             <CSPBucketCard
               key={cspBucket}

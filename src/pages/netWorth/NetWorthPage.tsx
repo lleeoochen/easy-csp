@@ -5,9 +5,9 @@ import { Page } from '@/components/Page';
 import { Button } from '@/components/common/button';
 import { useAccountsWithInfo } from '@/hooks/api/useAccounts';
 import { useFinancialInstitutions, useRefreshFinancialInstitutions } from '@/hooks/api/useFinancialInstitutions';
-import { NetWorthGroupedBarChart } from './NetWorthGroupedBarChart';
-import { AccountSection } from './AccountSection';
-import { InstitutionSection } from './InstitutionSection';
+import { NetWorthSummaryChart } from './NetWorthSummaryChart';
+import { AccountListByTypeCards } from './AccountListByTypeCards';
+import { AccountListByInstitutionCards } from './AccountListByInstitutionCards';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
 import { calculateNetWorth, isAssetAccount } from '@/utils/netWorthUtils';
 import { Toaster } from 'react-hot-toast';
@@ -120,7 +120,7 @@ const NetWorthPage = () => {
         </div>
 
         {/* Net Worth Chart */}
-        <NetWorthGroupedBarChart breakdown={breakdown} />
+        <NetWorthSummaryChart breakdown={breakdown} />
 
         {/* View Mode Tabs */}
         <SegmentedControl<ViewMode>
@@ -139,7 +139,7 @@ const NetWorthPage = () => {
             <>
               {/* Assets Section */}
               {assetAccounts.length > 0 && (
-                <AccountSection
+                <AccountListByTypeCards
                   title="Assets"
                   accounts={assetAccounts}
                   subtotal={netWorthSummary.assets.total}
@@ -149,7 +149,7 @@ const NetWorthPage = () => {
 
               {/* Liabilities Section */}
               {liabilityAccounts.length > 0 && (
-                <AccountSection
+                <AccountListByTypeCards
                   title="Liabilities"
                   accounts={liabilityAccounts}
                   subtotal={netWorthSummary.liabilities.total}
@@ -158,7 +158,7 @@ const NetWorthPage = () => {
               )}
             </>
           ) : (
-            <InstitutionSection
+            <AccountListByInstitutionCards
               institutions={institutions}
               accountsByInstitution={accountsByInstitution}
               onDelete={setDeleteAccount}

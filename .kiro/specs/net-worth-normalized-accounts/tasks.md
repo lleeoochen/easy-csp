@@ -267,12 +267,12 @@
 
 ## 9. Update CSP Services
 
-- [~] 9.1 Update CSP savings service
+- [ ] 9.1 Update CSP savings service
   - [ ] 9.1.1 Remove fundId references
   - [ ] 9.1.2 Add accountId references
   - [ ] 9.1.3 Update queries to use accounts instead of funds
 
-- [~] 9.2 Update CSP investments service
+- [ ] 9.2 Update CSP investments service
   - [ ] 9.2.1 Remove fundId references
   - [ ] 9.2.2 Add accountId references
   - [ ] 9.2.3 Update queries to use accounts instead of funds
@@ -284,13 +284,13 @@
 
 ## 10. Update CSP Hooks
 
-- [~] 10.1 Update CSP savings hooks
+- [ ] 10.1 Update CSP savings hooks
   - [ ] 10.1.1 Remove fundId parameter
   - [ ] 10.1.2 Use accountId parameter
   - [ ] 10.1.3 Remove fund lookup logic
   - [ ] 10.1.4 Get account info from accounts query
 
-- [~] 10.2 Update CSP investments hooks
+- [ ] 10.2 Update CSP investments hooks
   - [ ] 10.2.1 Remove fundId parameter
   - [ ] 10.2.2 Use accountId parameter
   - [ ] 10.2.3 Remove fund lookup logic
@@ -322,7 +322,7 @@
 
 ## 12. Create Net Worth Page Components
 
-- [~] 12.1 Create NetWorthPage component
+- [ ] 12.1 Create NetWorthPage component
   - [ ] 12.1.1 Create src/pages/netWorth/NetWorthPage.tsx
   - [ ] 12.1.2 Use Page component wrapper
   - [ ] 12.1.3 Use useAccountsWithInfo hook to fetch accounts
@@ -330,14 +330,14 @@
   - [ ] 12.1.5 Handle loading and error states
   - [ ] 12.1.6 Add "+ Manual" button in header
 
-- [~] 12.2 Create NetWorthSummary component
+- [ ] 12.2 Create NetWorthSummary component
   - [ ] 12.2.1 Create src/pages/netWorth/NetWorthSummary.tsx
   - [ ] 12.2.2 Display total net worth prominently
   - [ ] 12.2.3 Display total assets and liabilities
   - [ ] 12.2.4 Use color coding (green for positive, red for negative)
   - [ ] 12.2.5 Make responsive with Tailwind classes
 
-- [~] 12.3 Create AccountCard component
+- [ ] 12.3 Create AccountCard component
   - [ ] 12.3.1 Create src/pages/netWorth/AccountCard.tsx
   - [ ] 12.3.2 Display account name (nickname if set)
   - [ ] 12.3.3 Display current balance with color coding
@@ -348,7 +348,7 @@
   - [ ] 12.3.8 Add action buttons (Edit, Set Goal, Delete)
   - [ ] 12.3.9 Make responsive with Tailwind classes
 
-- [~] 12.4 Create AccountSection component
+- [ ] 12.4 Create AccountSection component
   - [ ] 12.4.1 Create src/pages/netWorth/AccountSection.tsx
   - [ ] 12.4.2 Accept title, accounts, and subtotal props
   - [ ] 12.4.3 Display section header with subtotal
@@ -356,7 +356,7 @@
   - [ ] 12.4.5 Display AccountCard for each account
   - [ ] 12.4.6 Use responsive grid layout (1 col mobile, 2 col tablet, 3 col desktop)
 
-- [~] 12.5 Create ManualAccountModal component
+- [ ] 12.5 Create ManualAccountModal component
   - [ ] 12.5.1 Create src/pages/netWorth/ManualAccountModal.tsx
   - [ ] 12.5.2 Add form fields (account name, type, initial balance, nickname)
   - [ ] 12.5.3 Add validation (required fields, valid balance)
@@ -364,7 +364,7 @@
   - [ ] 12.5.5 Show success/error toast
   - [ ] 12.5.6 Close modal on success
 
-- [~] 12.6 Create AccountNicknameModal component
+- [ ] 12.6 Create AccountNicknameModal component
   - [ ] 12.6.1 Create src/pages/netWorth/AccountNicknameModal.tsx
   - [ ] 12.6.2 Add nickname input field
   - [ ] 12.6.3 Support clearing nickname
@@ -372,7 +372,7 @@
   - [ ] 12.6.5 Show success/error toast
   - [ ] 12.6.6 Close modal on success
 
-- [~] 12.7 Create TargetAmountModal component
+- [ ] 12.7 Create TargetAmountModal component
   - [ ] 12.7.1 Create src/pages/netWorth/TargetAmountModal.tsx
   - [ ] 12.7.2 Add target amount input field
   - [ ] 12.7.3 Validate target amount is positive number
@@ -381,7 +381,7 @@
   - [ ] 12.7.6 Show success/error toast
   - [ ] 12.7.7 Close modal on success
 
-- [~] 12.8 Add responsive styling
+- [ ] 12.8 Add responsive styling
   - [ ] 12.9.1 Use mobile-first Tailwind classes
   - [ ] 12.9.2 Test on mobile (< 768px)
   - [ ] 12.9.3 Test on tablet (768px - 1024px)
@@ -392,45 +392,45 @@
 
 ## 13. Update Existing Pages
 
-- [~] 13.1 Update CSP Pages
+- [ ] 13.1 Update CSP Pages
   - [ ] 13.1.1 Update to use new account-based model
   - [ ] 13.1.2 Display account name and institution for linked accounts
   - [ ] 13.1.3 Remove fund selector (use account selector)
   - [ ] 13.1.4 Update CSP creation flow
   - [ ] 13.1.5 Update CSP editing flow
 
-- [~] 13.2 Update FinancialInstitutionsPage
+- [ ] 13.2 Update FinancialInstitutionsPage
   - [ ] 13.2.1 Remove account display (accounts now on Net Worth page)
   - [ ] 13.2.2 Show only sync status and institution info
   - [ ] 13.2.3 Keep error handling and reconnect flow
   - [ ] 13.2.4 Add link to Net Worth page to view accounts
 
-- [~] 13.3 Update TransactionsPage (if needed)
+- [ ] 13.3 Update TransactionsPage (if needed)
   - [ ] 13.3.1 Verify transactions display correctly with new account references
   - [ ] 13.3.2 Update account filtering if needed
 
 ## 14. Add Navigation
 
-- [~] 14.1 Add Net Worth route
+- [ ] 14.1 Add Net Worth route
   - [ ] 14.1.1 Add route to router configuration
   - [ ] 14.1.2 Set path to /net-worth
 
-- [~] 14.2 Add Net Worth navigation link
+- [ ] 14.2 Add Net Worth navigation link
   - [ ] 14.2.1 Add to main navigation menu
   - [ ] 14.2.2 Add icon (lucide-react)
   - [ ] 14.2.3 Position prominently (e.g., first in menu)
 
-- [~] 14.3 Update home page (if applicable)
+- [ ] 14.3 Update home page (if applicable)
   - [ ] 14.3.1 Add Net Worth card/link to dashboard
 
 ## 15. Add Real-Time Updates
 
-- [~] 15.1 Set up Firestore real-time listener for accounts
+- [ ] 15.1 Set up Firestore real-time listener for accounts
   - [ ] 15.1.1 Use onSnapshot in useAccountsWithInfo hook
   - [ ] 15.1.2 Filter by uid
   - [ ] 15.1.3 Update React Query cache on changes
 
-- [~] 15.2 Optimize real-time updates
+- [ ] 15.2 Optimize real-time updates
   - [ ] 15.2.1 Debounce rapid updates during sync
   - [ ] 15.2.2 Show loading indicator during updates
   - [ ] 15.2.3 Recalculate net worth automatically
@@ -478,26 +478,26 @@
 
 ## 17. Migration Execution
 
-- [~] 17.1 Prepare for migration
+- [ ] 17.1 Prepare for migration
   - [ ] 17.1.1 Backup production Firestore data
   - [ ] 17.1.2 Test migration on staging environment
   - [ ] 17.1.3 Validate migrated data on staging
   - [ ] 17.1.4 Prepare rollback plan
 
-- [~] 17.2 Execute migration
+- [ ] 17.2 Execute migration
   - [ ] 17.2.1 Schedule maintenance window (if needed)
   - [ ] 17.2.2 Run migration Cloud Function
   - [ ] 17.2.3 Monitor progress with Cloud Logging
   - [ ] 17.2.4 Validate migrated data
 
-- [~] 17.3 Post-migration validation
+- [ ] 17.3 Post-migration validation
   - [ ] 17.3.1 Verify account count matches before/after
   - [ ] 17.3.2 Verify all transactions have valid account references
   - [ ] 17.3.3 Verify all CSP entities have valid account references
   - [ ] 17.3.4 Verify no data loss
   - [ ] 17.3.5 Test key user flows
 
-- [~] 17.4 Cleanup
+- [ ] 17.4 Cleanup
   - [ ] 17.4.1 Remove accounts array from institution documents (if not done by migration)
   - [ ] 17.4.2 Update Firestore security rules
   - [ ] 17.4.3 Deploy updated Cloud Functions
@@ -506,28 +506,28 @@
 
 ## 18. Deployment
 
-- [~] 18.1 Deploy Cloud Functions
+- [ ] 18.1 Deploy Cloud Functions
   - [ ] 18.1.1 Deploy updated Plaid sync function
   - [ ] 18.1.2 Deploy updated Plaid exchange function
   - [ ] 18.1.3 Deploy migration function (if not already run)
   - [ ] 18.1.4 Verify functions are running correctly
 
-- [~] 18.2 Deploy Firestore security rules
+- [ ] 18.2 Deploy Firestore security rules
   - [ ] 18.2.1 Deploy updated security rules
   - [ ] 18.2.2 Verify rules are enforced correctly
 
-- [~] 18.3 Deploy Firestore indexes
+- [ ] 18.3 Deploy Firestore indexes
   - [ ] 18.3.1 Deploy index definitions
   - [ ] 18.3.2 Wait for indexes to build
   - [ ] 18.3.3 Verify indexes are being used
 
-- [~] 18.4 Deploy frontend
+- [ ] 18.4 Deploy frontend
   - [ ] 18.4.1 Build production bundle
   - [ ] 18.4.2 Deploy to hosting (gh-pages or Firebase Hosting)
   - [ ] 18.4.3 Verify deployment is live
   - [ ] 18.4.4 Test key user flows on production
 
-- [~] 18.5 Monitor deployment
+- [ ] 18.5 Monitor deployment
   - [ ] 18.5.1 Monitor Cloud Functions logs for errors
   - [ ] 18.5.2 Monitor Firestore usage and performance
   - [ ] 18.5.3 Monitor frontend error tracking
@@ -535,44 +535,44 @@
 
 ## 19. Documentation
 
-- [~] 19.1 Update developer documentation
+- [ ] 19.1 Update developer documentation
   - [ ] 19.1.1 Document new Account data model
   - [ ] 19.1.2 Document migration process
   - [ ] 19.1.3 Document AccountService API
   - [ ] 19.1.4 Update architecture diagrams
 
-- [~] 19.2 Create user documentation
+- [ ] 19.2 Create user documentation
   - [ ] 19.2.1 Write user guide for Net Worth page
   - [ ] 19.2.2 Write guide for creating manual accounts
   - [ ] 19.2.3 Write guide for linking accounts to funds
   - [ ] 19.2.4 Create FAQ for common questions
 
-- [~] 19.3 Update README files
+- [ ] 19.3 Update README files
   - [ ] 19.3.1 Update main README with Net Worth feature
   - [ ] 19.3.2 Update shared-types README with new interfaces
 
 ## 20. Post-Launch
 
-- [~] 20.1 Monitor metrics
+- [ ] 20.1 Monitor metrics
   - [ ] 20.1.1 Track Net Worth page views
   - [ ] 20.1.2 Track manual account creation rate
   - [ ] 20.1.3 Track target amount usage rate
   - [ ] 20.1.4 Track page load performance
   - [ ] 20.1.5 Track error rates
 
-- [~] 20.2 Gather user feedback
+- [ ] 20.2 Gather user feedback
   - [ ] 20.2.1 Add feedback form to Net Worth page
   - [ ] 20.2.2 Monitor support requests
   - [ ] 20.2.3 Conduct user interviews (optional)
   - [ ] 20.2.4 Analyze usage patterns
 
-- [~] 20.3 Iterate based on feedback
+- [ ] 20.3 Iterate based on feedback
   - [ ] 20.3.1 Prioritize bug fixes
   - [ ] 20.3.2 Prioritize UX improvements
   - [ ] 20.3.3 Consider future enhancements
   - [ ] 20.3.4 Plan next iteration
 
-- [~] 20.4 Performance optimization
+- [ ] 20.4 Performance optimization
   - [ ] 20.4.1 Optimize slow queries
   - [ ] 20.4.2 Add caching where appropriate
   - [ ] 20.4.3 Optimize bundle size

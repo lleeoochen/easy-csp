@@ -17,15 +17,17 @@ export const Page = ({ children, title, maxWidth = 'half' }: PageProps) => {
   };
 
   const widthClasses = {
-    full: 'w-full',
+    full: 'w-full lg:w-3/4',
     half: 'w-full lg:w-2/3',
     cozy: 'w-full lg:w-1/3'
   };
 
   return (
-    <PullToRefresh onRefresh={handleRefresh} className={`container ${widthClasses[maxWidth]} p-4 pb-24 m-auto pt-[env(safe-area-inset-top)]`}>
-      <h1 className="text-xl text-primary-fg text-center py-5">{ title }</h1>
-      { children }
+    <PullToRefresh onRefresh={handleRefresh} className={`p-4 pb-24 pt-[env(safe-area-inset-top)] w-full`}>
+      <h1 className={`text-2xl my-5 text-primary-fg text-center py-5`}>{ title }</h1>
+      <div className={`${widthClasses[maxWidth]} m-auto`}>
+        { children }
+      </div>
     </PullToRefresh>
   );
 };

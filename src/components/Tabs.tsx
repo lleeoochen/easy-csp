@@ -3,6 +3,7 @@ import type { ComponentType, ReactNode } from "react";
 import { cn } from "./common/utils";
 import type { LucideProps } from "lucide-react";
 import { useHideOnScroll } from '@/hooks/useHideOnScroll';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 
 type TabsProps = {
@@ -39,7 +40,7 @@ export const TabMenuItem = ({ path, icon, name }: TabMenuItemProps) => {
       }
     >
       <IconElement className="size-7" strokeWidth={strokeWidth}/>
-      <span className="text-sm mt-1">{name}</span>
+      <span className="text-xs mt-1">{name}</span>
     </Link>
   );
 }
@@ -48,7 +49,8 @@ const TabsContent = ({ paths }: TabsProps) => {
   const location = useLocation();
   // Filter paths for navigation display
   const navPaths = paths.filter(p => p.showInNav);
-  const isNavVisible = useHideOnScroll(50, location.pathname);
+  const isDesktop = useMediaQuery('(min-width: 768px)'); // md breakpoint
+  const shouldShowNav = useHideOnScroll(50, location.pathname) || isDesktop;
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
@@ -64,8 +66,8 @@ const TabsContent = ({ paths }: TabsProps) => {
 
       {/* Bottom Navigation */}
       <nav className={cn(
-        "fixed grid grid-cols-4 bottom-5 left-5 right-5 bg-tabs-bar-bg z-10 backdrop-blur-lg rounded-2xl shadow-xl/30 mx-auto mb-[env(safe-area-inset-bottom)] transition-transform duration-300 w-4/5 md:w-fit",
-        !isNavVisible && "translate-y-[calc(100%+1.25rem+env(safe-area-inset-bottom))]"
+        "fixed grid grid-cols-5 bottom-5 left-5 right-5 bg-tabs-bar-bg z-10 backdrop-blur-lg rounded-2xl shadow-xl/30 mx-auto mb-[env(safe-area-inset-bottom)] transition-transform duration-300 w-4/5 md:w-fit",
+        !shouldShowNav && "translate-y-[calc(100%+1.25rem+env(safe-area-inset-bottom))]"
       )}>
         {
           navPaths.map(path => (

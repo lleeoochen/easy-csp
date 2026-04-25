@@ -17,6 +17,6 @@ export const TRAVEL_MODE_RULE_NAME = '__system:travel-mode';
 export interface TravelModeConfig {
   /** Array of CSP category values to match for travel mode */
   categories: string[];
-  /** ID of the savings account to mark transactions to */
-  accountId: string;
+  /** ID of the fund to mark transactions to */
+  fundId: string;
 }

@@ -34,8 +34,8 @@ export const useUpdateCSPItem = () => {
 export const useAddCSPItem = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ bucket, category, amount, isTrackingAccount, name }: { bucket: CSPBucket; category: string; amount: number; isTrackingAccount?: boolean; name?: string }) =>
-      ConsciousSpendingPlanService.addCSPItem(bucket, category, amount, isTrackingAccount, name).then(r => {
+    mutationFn: ({ bucket, category, amount, isTrackingFund, name }: { bucket: CSPBucket; category: string; amount: number; isTrackingFund?: boolean; name?: string }) =>
+      ConsciousSpendingPlanService.addCSPItem(bucket, category, amount, isTrackingFund, name).then(r => {
         if (!r.success) throw new Error(r.message ?? 'Failed to add CSP item');
         return r.csp!;
       }),
@@ -57,7 +57,7 @@ export const useCategoryNameMap = (): ReadonlyMap<string, string> => {
     if (!csp) return map;
     for (const items of Object.values(csp)) {
       for (const item of items) {
-        if (item.isTrackingAccount) {
+        if (item.isTrackingFund) {
           const account = accounts.find(a => a.id === item.category);
           const displayName = account?.nickname || account?.accountName;
           map.set(item.category, displayName ?? item.name ?? camelCaseToSentence(item.category));
@@ -83,7 +83,7 @@ export const useRegularCategoryNameMap = (): ReadonlyMap<string, string> => {
     for (const items of Object.values(csp)) {
       for (const item of items) {
         // Exclude account-tracking categories
-        if (!item.isTrackingAccount) {
+        if (!item.isTrackingFund) {
           map.set(item.category, item.name ?? camelCaseToSentence(item.category));
         }
       }

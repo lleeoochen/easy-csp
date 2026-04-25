@@ -14,7 +14,7 @@ export const ThemeSelector = () => {
         Theme
       </CardHeader>
       <CardContent>
-        <div className="flex gap-3 p-2">
+        <div className="flex flex-wrap mr-auto gap-4 p-2">
           {(Object.keys(themes) as ThemeName[]).map((themeName) => {
             const theme = themes[themeName];
             const isActive = currentTheme === themeName;
@@ -24,9 +24,9 @@ export const ThemeSelector = () => {
                 key={themeName}
                 onClick={() => setTheme(themeName)}
                 className={`w-16 h-16 rounded-lg transition-all cursor-pointer ${
-                  isActive ? 'ring-4 ring-offset-2 ring-gray-400 scale-110' : 'hover:scale-105'
+                  isActive ? 'ring-2 ring-offset-1 ring-primary-bg scale-110' : 'hover:scale-105'
                 }`}
-                style={{ backgroundColor: theme.colors.primaryBg }}
+                style={{ backgroundColor: theme.colors.background }}
                 aria-label={`${themeName} theme`}
                 title={themeName.charAt(0).toUpperCase() + themeName.slice(1)}
               />

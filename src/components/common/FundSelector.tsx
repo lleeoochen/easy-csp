@@ -1,6 +1,7 @@
 import { Select } from "./select";
 import { Label } from "./label";
-import { useAccountsWithInfo } from '@/hooks/api/useAccounts';
+import { useFunds } from "@/hooks/api/useFunds";
+import type { UI_Fund } from "@/types/uiTypes";
 
 interface FundSelectorProps {
   value: string;
@@ -10,6 +11,7 @@ interface FundSelectorProps {
   disabled?: boolean;
   className?: string;
   includeNoneOption?: boolean;
+  funds?: UI_Fund[]; // Optional: provide custom filtered funds
 }
 
 export const FundSelector = ({
@@ -19,19 +21,18 @@ export const FundSelector = ({
   placeholder = "Select a fund",
   disabled = false,
   className,
-  includeNoneOption = true
+  includeNoneOption = true,
+  funds: customFunds
 }: FundSelectorProps) => {
-  const { data: accounts = [], isLoading } = useAccountsWithInfo();
-
-  // Filter to only fund accounts
-  const fundAccounts = accounts.filter(account => account.isFundAccount);
+  const { data: funds = [], isLoading } = useFunds();
+  const fundsToUse = customFunds ?? funds;
 
   // Build options with optional "None" at the top
   const options = [
     ...(includeNoneOption ? [{ value: '', label: 'No fund assigned' }] : []),
-    ...fundAccounts.map((account) => ({
-      value: account.id,
-      label: account.displayName,
+    ...fundsToUse.map((fund) => ({
+      value: fund.id,
+      label: fund.name,
     })),
   ];
 

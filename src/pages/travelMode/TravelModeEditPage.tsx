@@ -4,7 +4,6 @@ import { Page } from '@/components/Page';
 import { Card, CardHeader, CardContent } from '@/components/common/card';
 import { Button } from '@/components/common/button';
 import { Label } from '@/components/common/label';
-import { AccountSelector } from '@/components/common/AccountSelector';
 import { DialogActionPanel } from '@/components/common/DialogActionPanel';
 import { useCSP } from '@/hooks/api/useCSP';
 import { useSaveTravelMode, useUserRules } from '@/hooks/useTravelMode';
@@ -12,6 +11,8 @@ import { getTravelModeConfig, getDefaultTravelCategories } from '@/utils/travelM
 import { CSPBucket } from "@easy-csp/shared-types";
 import { camelCaseToSentence } from '@/utils/stringUtils';
 import { ArrowLeft } from "lucide-react";
+import { FundSelector } from "@/components/common/FundSelector";
+import { useFunds } from "@/hooks/api/useFunds";
 
 const CSP_BUCKET_ORDER: CSPBucket[] = [
   CSPBucket.Income,
@@ -27,15 +28,16 @@ const TravelModeEditPage = () => {
   const { data: csp } = useCSP();
   const { data: rulesData, isLoading: loadingRules } = useUserRules();
   const { mutate: saveConfig, isPending, isError, error } = useSaveTravelMode();
+  const { data: funds = [] } = useFunds();
 
   const existingConfig = useMemo(() => getTravelModeConfig(rulesData ?? null), [rulesData]);
   const defaultCategories = useMemo(() => getDefaultTravelCategories(csp), [csp]);
 
   const initialCategories = existingConfig?.categories ?? defaultCategories;
-  const initialAccountId = existingConfig?.accountId ?? "";
+  const initialFundId = existingConfig?.fundId ?? "";
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategories);
-  const [accountId, setAccountId] = useState<string>(initialAccountId);
+  const [fundId, setFundId] = useState<string>(initialFundId);
 
   // Sync state when initial values change (e.g., when CSP data loads)
   useEffect(() => {
@@ -43,8 +45,8 @@ const TravelModeEditPage = () => {
   }, [initialCategories]);
 
   useEffect(() => {
-    setAccountId(initialAccountId);
-  }, [initialAccountId]);
+    setFundId(initialFundId);
+  }, [initialFundId]);
 
   const handleCategoryToggle = (category: string) => {
     setSelectedCategories((prev) =>
@@ -55,10 +57,10 @@ const TravelModeEditPage = () => {
   };
 
   const handleSave = async () => {
-    if (selectedCategories.length === 0 || !accountId) return;
+    if (selectedCategories.length === 0 || !fundId) return;
 
     saveConfig(
-      { categories: selectedCategories, accountId: accountId },
+      { categories: selectedCategories, fundId: fundId },
       {
         onSuccess: () => {
           navigate('/settings');
@@ -67,7 +69,7 @@ const TravelModeEditPage = () => {
     );
   };
 
-  const isValid = selectedCategories.length > 0 && accountId !== "";
+  const isValid = selectedCategories.length > 0 && fundId !== "";
 
   // Group categories by bucket
   const categoriesByBucket = useMemo(() => {
@@ -76,7 +78,7 @@ const TravelModeEditPage = () => {
     return CSP_BUCKET_ORDER.map((bucket) => ({
       bucket,
       categories: (csp[bucket] || [])
-        .filter((budget) => !budget.isTrackingAccount)
+        .filter((budget) => !budget.isTrackingFund)
         .map((budget) => ({
           id: budget.category,
           name: budget.name || camelCaseToSentence(budget.category),
@@ -146,16 +148,33 @@ const TravelModeEditPage = () => {
 
         <Card className="mt-2">
           <CardHeader>
-            Assign an Account
+            Assign an Travel Fund
           </CardHeader>
           <CardContent className="py-4">
-            <AccountSelector
-              value={accountId}
-              onValueChange={setAccountId}
-              label="Travel Account"
-              placeholder="Select an account"
-              includeNoneOption={false}
-            />
+            {
+              funds.length > 0
+              ? (
+                <FundSelector
+                  value={fundId}
+                  onValueChange={setFundId}
+                  label="Travel Fund"
+                  placeholder="Select an fund"
+                  includeNoneOption={false}
+                />
+              ) : (
+                <div>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      navigate('/funds');
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    Create a travel fund
+                  </Button>
+                </div>
+              )
+            }
 
             {isError && error && (
               <div className="text-sm text-red-600 bg-red-50 p-2 rounded mt-4">

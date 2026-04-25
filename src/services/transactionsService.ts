@@ -16,7 +16,7 @@ import {
 import { getAuth } from "firebase/auth";
 import { TRANSACTIONS_COLLECTION, ACCOUNTS_COLLECTION } from "@easy-csp/shared-types";
 import type { Transaction } from "@easy-csp/shared-types";
-import type { ListTransactionsRequest, ListTransactionsResponse } from '@/types/firestoreTypes';
+import type { ListTransactionsRequest, ListTransactionsResponse } from '@/types/requestTypes';
 import { prepareFirestoreData, withoutUndefinedValue } from '@/utils/firestoreHelpers';
 
 export const NEXT_TOKEN_END = "NEXT_TOKEN_END";

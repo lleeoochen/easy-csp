@@ -5,6 +5,7 @@ import {
   AccountType,
   FinancialInstitutionStatus,
   PlaidErrorCode,
+  type Fund,
 } from '@easy-csp/shared-types';
 
 /**
@@ -146,20 +147,12 @@ export interface UI_FinancialAccount {
    * undefined for manual accounts or accounts without errors
    */
   syncError?: PlaidErrorCode;
-
-  /**
-   * Optional target amount for savings goals
-   * Allows users to set a target balance for the account (e.g., emergency fund goal)
-   * Used for progress tracking and goal visualization in the UI
-   * undefined if no target is set
-   */
-  targetAmount?: number;
-
-  /**
-   * Whether this account is used as a fund for transaction allocation
-   * When true, transactions can be allocated to this account for tracking purposes
-   * Fund allocations are metadata only and do not affect the actual account balance
-   * Only asset accounts (checking, savings, investment, other) can be fund accounts
-   */
-  isFundAccount?: boolean;
 }
+
+export type UI_Fund = Fund & {
+  /**
+   * Firestore document ID from accounts/ collection (PRIMARY KEY)
+   * This is the main identifier used for all account operations
+   */
+  id: string;
+};

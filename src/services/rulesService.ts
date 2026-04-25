@@ -14,7 +14,7 @@ import {
   RuleCondition
 } from "@easy-csp/shared-types";
 import { prepareFirestoreData } from '@/utils/firestoreHelpers';
-import { AccountService } from "./accountService";
+import { FundService } from "@/services/fundService";
 
 export class RulesService {
   private static getAuthenticatedUserId(): string {
@@ -147,23 +147,19 @@ export class RulesService {
   /**
    * Validates that a fund assignment rule references a valid fund account
    * Called when creating or updating rules with assignFund action
-   * @param fundAccountId The fund account ID to validate
+   * @param fundId The fund ID to validate
    * @returns Object with valid flag and optional error message
    */
   public static async validateFundAssignmentRule(
-    fundAccountId: string
+    fundId: string
   ): Promise<{ valid: boolean; message?: string }> {
     try {
-      // Get all accounts to find the referenced fund account
-      const accounts = await AccountService.listAccounts();
-      const fundAccount = accounts.find(acc => acc.id === fundAccountId);
+      // Get all funds to find the referenced fund account
+      const funds = await FundService.listFunds();
+      const fund = funds.find(fund => fund.id === fundId);
 
-      if (!fundAccount) {
-        return { valid: false, message: "Fund account not found" };
-      }
-
-      if (!fundAccount.isFundAccount) {
-        return { valid: false, message: "Referenced account is not a fund account" };
+      if (!fund) {
+        return { valid: false, message: "Fund not found" };
       }
 
       return { valid: true };

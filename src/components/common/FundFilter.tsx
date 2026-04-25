@@ -1,6 +1,6 @@
 import { Select } from "./select";
 import { Label } from "./label";
-import { useAccountsWithInfo } from '@/hooks/api/useAccounts';
+import { useFunds } from "@/hooks/api/useFunds";
 
 interface FundFilterProps {
   value: string;
@@ -23,18 +23,15 @@ export const FundFilter = ({
   includeAllOption = true,
   includeNoneOption = false
 }: FundFilterProps) => {
-  const { data: accounts = [], isLoading } = useAccountsWithInfo();
-
-  // Filter to only fund accounts
-  const fundAccounts = accounts.filter(account => account.isFundAccount);
+  const { data: funds = [], isLoading } = useFunds();
 
   // Build options with optional "All" and "None" at the top
   const options = [
     ...(includeAllOption ? [{ value: '', label: 'All funds' }] : []),
-    ...(includeNoneOption ? [{ value: 'none', label: 'No fund assigned' }] : []),
-    ...fundAccounts.map((account) => ({
-      value: account.id,
-      label: account.displayName,
+    ...(includeNoneOption ? [{ value: 'none', label: 'No associated fund' }] : []),
+    ...funds.map((fund) => ({
+      value: fund.id,
+      label: fund.name,
     })),
   ];
 

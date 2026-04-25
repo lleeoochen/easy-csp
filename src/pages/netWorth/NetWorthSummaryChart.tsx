@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader } from '@/components/common/card';
 import type { RectRadius } from 'recharts/types/shape/Rectangle';
 import { formatCurrency } from '@/utils/financialUtils';
 
-interface NetWorthGroupedBarChartProps {
+interface NetWorthSummaryChartProps {
   breakdown: NetWorthBreakdown;
 }
 
@@ -17,7 +17,7 @@ const COLORS = {
   other: '#6b7280',
 };
 
-export const NetWorthGroupedBarChart = ({ breakdown }: NetWorthGroupedBarChartProps) => {
+export const NetWorthSummaryChart = ({ breakdown }: NetWorthSummaryChartProps) => {
   // Single data point with all account types as properties
   const data = [
     {
@@ -34,7 +34,7 @@ export const NetWorthGroupedBarChart = ({ breakdown }: NetWorthGroupedBarChartPr
   // Determine which bars are visible
   const visibleBars = [
     { key: 'checking', value: breakdown.checking },
-    { key: 'credit', value: breakdown.credit },
+    { key: 'creditCard', value: breakdown.credit },
     { key: 'investment', value: breakdown.investment },
     { key: 'loan', value: breakdown.loan },
     { key: 'other', value: breakdown.other },
@@ -80,7 +80,7 @@ export const NetWorthGroupedBarChart = ({ breakdown }: NetWorthGroupedBarChartPr
             />
             <Legend iconType="circle" />
             {breakdown.checking   && (<Bar dataKey="Checking" stackId="a" fill={COLORS.checking} radius={getRadius('checking')} />)}
-            {breakdown.credit     && (<Bar dataKey="Credit" stackId="a" fill={COLORS.credit} radius={getRadius('credit')} />)}
+            {breakdown.credit     && (<Bar dataKey="Credit Card" stackId="a" fill={COLORS.credit} radius={getRadius('credit')} />)}
             {breakdown.investment && (<Bar dataKey="Investment" stackId="a" fill={COLORS.investment} radius={getRadius('investment')} />)}
             {breakdown.loan       && (<Bar dataKey="Loan" stackId="a" fill={COLORS.loan} radius={getRadius('loan')} />)}
             {breakdown.other      && (<Bar dataKey="Other" stackId="a" fill={COLORS.other} radius={getRadius('other')} />)}

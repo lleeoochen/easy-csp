@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import type { Transaction } from "@easy-csp/shared-types";
 import { useTransactions } from '@/hooks/api/useTransactions';
-import type { ListTransactionsRequest } from '@/types/firestoreTypes';
+import type { ListTransactionsRequest } from '@/types/requestTypes';
 import { ChevronDown, ChevronUp, SlidersHorizontal, X, Plus } from "lucide-react";
 import { CategorySelector } from '@/components/common/CategorySelector';
 import { FundFilter } from '@/components/common/FundFilter';

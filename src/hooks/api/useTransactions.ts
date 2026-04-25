@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { TransactionsService } from '@/services/transactionsService';
-import type { ListTransactionsRequest, ListTransactionsResponse } from '@/types/firestoreTypes';
+import type { ListTransactionsRequest, ListTransactionsResponse } from '@/types/requestTypes';
 import { NEXT_TOKEN_END } from '@/services/transactionsService';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Transaction } from '@easy-csp/shared-types';
