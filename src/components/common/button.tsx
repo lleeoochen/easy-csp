@@ -21,7 +21,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             className,
             variantClassNames[variant],
             {
-              "bg-gray-400 text-gray-600": disabled
+              "bg-gray-400! text-gray-600!": disabled
             }
           )
         }

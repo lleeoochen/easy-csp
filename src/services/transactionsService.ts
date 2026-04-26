@@ -140,6 +140,7 @@ export class TransactionsService {
     transaction: Omit<Transaction, 'id' | 'uid'>
   ): Promise<{ success: boolean; transaction?: Transaction & { id: string }; message?: string }> {
     try {
+      console.log(transaction);
       const uid = this.getAuthenticatedUserId();
       const firestore = getFirestore();
 

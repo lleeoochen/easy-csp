@@ -210,6 +210,7 @@ export class TravelModeService {
         const ruleDoc = await transaction.get(ruleDocRef);
 
         let transformations: RuleTransformation[] = [];
+        let enabled = false;
 
         if (ruleDoc.exists()) {
           const existingRule = ruleDoc.data() as Rule;
@@ -217,12 +218,15 @@ export class TravelModeService {
           transformations = existingRule.transformations.filter(
             t => t.name !== TRAVEL_MODE_RULE_NAME
           );
+          enabled = existingRule.transformations.filter(
+            t => t.name === TRAVEL_MODE_RULE_NAME
+          ).every(t => t.enabled);
         }
 
         // Create new travel mode rules (one per category)
         const travelModeRules: RuleTransformation[] = config.categories.map(category => ({
           name: TRAVEL_MODE_RULE_NAME,
-          enabled: true,
+          enabled: enabled,
           matchingCriteria: {
             category: {
               value: category,

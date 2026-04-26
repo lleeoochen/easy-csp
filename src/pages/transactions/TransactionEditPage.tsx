@@ -20,6 +20,8 @@ import { ArrowLeft, Split } from "lucide-react";
 import { TransactionSplitDialog } from "./TransactionSplitDialog";
 import { Button } from '@/components/common/button';
 
+const MANUAL_ACCOUNT = "MANUAL_ACCOUNT";
+
 const TransactionEditPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -108,7 +110,7 @@ const TransactionEditPage = () => {
           datetime: selectedDate.getTime(),
           category: selectedCategory,
           nickname: nickname || undefined,
-          accountId: null as unknown as string,
+          accountId: MANUAL_ACCOUNT,
           plaidCategory: 'Manual',
           hidden: hidden,
           allocatedFundId: allocatedFundId || undefined,
@@ -240,6 +242,7 @@ const TransactionEditPage = () => {
           <CardHeader>
             <h2 className="text-lg font-semibold">
               {isCreateMode ? 'Add Transaction' : (isManual ? transactionName : transaction!.name)}
+              {transaction?.plaidPending ? ' (Pending)' : ''}
             </h2>
           </CardHeader>
           <CardContent className="space-y-6 py-4">
@@ -251,6 +254,7 @@ const TransactionEditPage = () => {
               onChange={(e) => setNickname(e.target.value)}
               placeholder="Add a custom name..."
               className="mt-1"
+              disabled={transaction?.plaidPending}
             />
             {/* Transaction Name - Only for manual/create mode */}
             {(isCreateMode || isManual) && (
@@ -348,7 +352,7 @@ const TransactionEditPage = () => {
                 label="Date"
                 value={selectedDate}
                 onChange={setSelectedDate}
-                disabled={false}
+                disabled={transaction?.plaidPending}
               />
               {validationErrors.date && (
                 <p className="text-xs text-red-600 mt-1">{validationErrors.date}</p>
@@ -369,7 +373,7 @@ const TransactionEditPage = () => {
             value={selectedCategory}
             onValueChange={setSelectedCategory}
             label="Category"
-            disabled={false}
+            disabled={transaction?.plaidPending}
             includeAllOption={false}
           />
 
@@ -379,7 +383,7 @@ const TransactionEditPage = () => {
             onValueChange={setAllocatedFundId}
             label="Allocated Fund (Optional)"
             placeholder="Select a fund to allocate to..."
-            disabled={false}
+            disabled={transaction?.plaidPending}
             includeNoneOption={true}
           />
 
@@ -398,6 +402,7 @@ const TransactionEditPage = () => {
               type="button"
               role="switch"
               aria-checked={hidden}
+              disabled={transaction?.plaidPending}
               onClick={() => setHidden(!hidden)}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary-bg focus:ring-offset-2 ${
                 hidden ? 'bg-primary-bg' : 'bg-gray-200'
@@ -441,12 +446,12 @@ const TransactionEditPage = () => {
             submit={{
               label: isLoading ? 'Saving...' : (isCreateMode ? 'Create' : 'Save'),
               onClick: handleSave,
-              disabled: isLoading || !hasChanges
+              disabled: isLoading || !hasChanges || transaction?.plaidPending
             }}
             delete={!isCreateMode ? {
               label: 'Delete',
               onClick: handleDelete,
-              disabled: isLoading,
+              disabled: isLoading || transaction?.plaidPending,
               confirmation: {
                 title: 'Delete Transaction',
                 message: 'Are you sure you want to delete this transaction? This action cannot be undone.'
@@ -455,7 +460,7 @@ const TransactionEditPage = () => {
             customActions={!isCreateMode ? [{
               label: 'Split',
               onClick: () => setSplitDialogOpen(true),
-              disabled: isLoading || isAlreadySplit,
+              disabled: isLoading || isAlreadySplit || transaction?.plaidPending,
               variant: 'secondary',
               title: isAlreadySplit ? "Transaction is already split" : "Split this transaction"
             }] : undefined}
