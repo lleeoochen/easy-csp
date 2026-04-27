@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/common/dropdown-menu';
 import { useNavigate } from 'react-router-dom';
+import { Progress } from '@/components/common/progress';
 
 interface FundListItemProps {
   fund: UI_Fund;
@@ -34,36 +35,39 @@ export const FundListItem = ({ fund, onDelete }: FundListItemProps) => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <div className="px-4 py-3">
-            <div className="flex gap-4 items-center justify-between cursor-pointer hover:bg-accent/20 active:bg-accent/50 transition-colors w-full">
-              {/* Left: Fund Info */}
-              <div className="flex-1 min-w-0 space-y-1 grow shrink basis-2/3 truncate">
-                <h4 className="font-medium truncate">{fund.name}</h4>
-
-                {/* Account Info */}
-                <div className="flex items-center gap-2 text-gray-400 text-sm truncate">
-                  <span>{account?.displayName || 'Unknown Account'}</span>
+            <div className="flex flex-col items-center justify-between cursor-pointer hover:bg-accent/20 active:bg-accent/50 transition-colors w-full">
+              <div className="flex justify-between items-center w-full">
+                {/* Left: Fund Info */}
+                <div className="grow shrink basis-2/3 font-medium truncate">
+                  {fund.name}
                 </div>
 
                 {/* Progress Bar (if target amount is set) */}
                 {fund.targetAmount && account && (
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>{formatCurrency(account.balance, 0, false)}</span>
-                      <span>{formatCurrency(fund.targetAmount, 0, false)}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-green-500 h-2 rounded-full transition-all"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                  </div>
+                  <Progress 
+                    className="grow shrink basis-1/3"
+                    value={progress}
+                    activeColorClass='bg-green-700'
+                  />
                 )}
               </div>
 
+              {fund.targetAmount && account && (
+                <div className="flex justify-between w-full">
+                  <div className="text-gray-400 text-sm">
+                    Target: {formatCurrency(fund.targetAmount)}
+                  </div>
+                  <div className="text-gray-400 text-sm">
+                    {
+                      formatCurrency(account.balance)
+                    }
+                  </div>
+                </div>
+              )}
+
               {/* Right: Current Balance */}
               {account && !fund.targetAmount && (
-                <div className="text-sm font-semibold text-green-500">
+                <div className="text-sm font-semibold text-green-700">
                   {formatCurrency(account.balance, 0, false)}
                 </div>
               )}

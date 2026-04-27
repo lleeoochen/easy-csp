@@ -1,35 +1,31 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { CSPBucket, type CSPCategoryBudget } from "@easy-csp/shared-types";
 import { Card, CardContent, CardHeader } from '@/components/common/card';
 import { camelCaseToSentence } from '@/utils/stringUtils';
 import { formatCurrency } from '@/utils/financialUtils';
 import { CSPBudgetRow } from "./CSPBudgetRow";
 import { AddCategoryRow } from "./AddCategoryRow";
-import { LinkFundDialog } from "./LinkFundDialog";
 import { useTransactions } from '@/hooks/api/useTransactions';
 import { getMonthBoundaries } from '@/utils/dateUtils';
 import { sumTransactions } from '@/utils/transactionUtils';
 import { useCSP } from '@/hooks/api/useCSP';
-import { Button } from '@/components/common/button';
+import { Button } from "@/components/common/button";
+import { useNavigate } from "react-router-dom";
 
-const SAVING_AND_INVESTING_BUCKETS = [
-  CSPBucket.Savings,
-  CSPBucket.Investment,
-];
+const FUND_BUCKETS = [CSPBucket.Savings, CSPBucket.Investment];
 
 interface CSPBucketCardProps {
   cspBucket: CSPBucket;
   cspBudgets: CSPCategoryBudget[];
   currentMonthString: string;
-  showAddRow?: boolean;
 }
 
-export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString, showAddRow = true }: CSPBucketCardProps) {
+export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString }: CSPBucketCardProps) {
   const [year, month] = currentMonthString.split('-').map(Number);
   const { startDate, endDate } = getMonthBoundaries(year, month - 1);
   const { data: transactionPages } = useTransactions({ startDate, endDate });
   const { data: csp } = useCSP();
-  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   const transactions = useMemo(() =>
     transactionPages?.pages.flatMap(p => p.transactions ?? []) ?? [],
@@ -40,9 +36,8 @@ export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString, showA
   const { totalSpent, totalBudgeted } = useMemo(() => {
     const totalSpent = sumTransactions(transactions, {
       includeBuckets: [cspBucket],
-      excludeFundAllocated: !SAVING_AND_INVESTING_BUCKETS.includes(cspBucket),
+      excludeFundAllocated: true,
       includeHidden: false,
-      inflowOnly: SAVING_AND_INVESTING_BUCKETS.includes(cspBucket),
       csp
     });
 
@@ -68,7 +63,6 @@ export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString, showA
           {formatCurrency(totalSpent)}
         </div>
       </CardHeader>
-      {/* SubCategories */}
       <CardContent className="flex flex-col p-0! divide-y divide-gray-200 md:h-full! xl:h-fit!">
         {cspBudgets.map((budget) => (
           <div key={budget.category} className="px-4 py-1.5">
@@ -79,29 +73,19 @@ export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString, showA
             />
           </div >
         ))}
-        {showAddRow && !SAVING_AND_INVESTING_BUCKETS.includes(cspBucket) && (
-          <div className="p-2">
-            <AddCategoryRow bucket={cspBucket} />
-          </div>
-        )}
-        {SAVING_AND_INVESTING_BUCKETS.includes(cspBucket) && (
-          <div className="p-2">
-            <Button
-              variant="secondary"
-              onClick={() => setIsLinkDialogOpen(true)}
-              className="w-full"
-            >
-              Link {cspBucket === CSPBucket.Savings ? 'Savings' : 'Investment'} Account
-            </Button>
-          </div>
-        )}
+        <div className="p-2 flex">
+          { FUND_BUCKETS.includes(cspBucket)
+            ? (
+              <Button variant="secondary" className="flex-1" onClick={() => navigate('/funds')}>
+                Manage funds
+              </Button>
+            ) : (
+              <div className="flex-1">
+                <AddCategoryRow bucket={cspBucket} />
+              </div>
+          )}
+        </div>
       </CardContent>
-
-      <LinkFundDialog
-        open={isLinkDialogOpen}
-        onOpenChange={setIsLinkDialogOpen}
-        bucket={cspBucket}
-      />
     </Card>
   );
 }

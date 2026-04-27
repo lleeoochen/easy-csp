@@ -23,7 +23,7 @@ export const DeleteFundDialog = ({ open, fund, onClose }: DeleteFundDialogProps)
     if (!fund) return;
 
     try {
-      await deleteFund.mutateAsync(fund.id);
+      await deleteFund.mutateAsync(fund);
       toast.success('Fund deleted successfully');
       onClose();
     } catch (error) {

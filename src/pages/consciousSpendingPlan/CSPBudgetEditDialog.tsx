@@ -71,15 +71,19 @@ export function CSPBudgetEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Target</DialogTitle>
+          <DialogTitle>
+            {budget.isTrackingFund ? 'Edit Contribution Target' : 'Edit Budget'}
+          </DialogTitle>
           <DialogDescription>
-            Update the target amount for {camelCaseToSentence(categoryName)}
+            Update {budget.isTrackingFund ? 'contribution target' : 'budget'} for {camelCaseToSentence(categoryName)}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="amount">Target Amount</Label>
+            <Label htmlFor="amount">
+              {budget.isTrackingFund ? 'Contribution Target' : 'Budget'}
+            </Label>
             <Input
               id="amount"
               type="number"

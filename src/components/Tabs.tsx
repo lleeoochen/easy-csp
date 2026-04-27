@@ -50,7 +50,7 @@ const TabsContent = ({ paths }: TabsProps) => {
   // Filter paths for navigation display
   const navPaths = paths.filter(p => p.showInNav);
   const isDesktop = useMediaQuery('(min-width: 768px)'); // md breakpoint
-  const shouldShowNav = useHideOnScroll(50, location.pathname) || isDesktop;
+  const shouldShowNav = useHideOnScroll(500, location.pathname) || isDesktop;
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">

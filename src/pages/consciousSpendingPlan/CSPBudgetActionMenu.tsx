@@ -11,8 +11,7 @@ import { type CSPCategoryBudget, CSPBucket } from "@easy-csp/shared-types";
 import { formatCurrency } from '@/utils/financialUtils';
 import { cn } from '@/components/common/utils';
 import { CSPBudgetEditDialog } from "./CSPBudgetEditDialog";
-import { UnlinkFundDialog } from "./UnlinkFundDialog";
-import { PenIcon, BarChart3Icon, Trash2Icon, UnlinkIcon } from "lucide-react";
+import { PenIcon, BarChart3Icon, Trash2Icon, Target } from "lucide-react";
 import { useDeleteCSPItem } from '@/hooks/api/useCSP';
 import { PROTECTED_CSP_CATEGORIES } from "@easy-csp/shared-types";
 
@@ -45,7 +44,6 @@ export const CSPBudgetActionMenu = ({
 }: CSPBudgetActionMenuProps) => {
   const navigate = useNavigate();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isUnlinkDialogOpen, setIsUnlinkDialogOpen] = useState(false);
   const deleteCSPItem = useDeleteCSPItem();
 
   const isOverBudget = actualAmount > budgetAmount;
@@ -76,10 +74,6 @@ export const CSPBudgetActionMenu = ({
     }
   };
 
-  const handleUnlinkAccount = () => {
-    setIsUnlinkDialogOpen(true);
-  };
-
   // Check if this is a linked account in Savings/Investment bucket
   const isLinkedFundAccount = budget.isTrackingFund &&
     (bucket === CSPBucket.Savings || bucket === CSPBucket.Investment);
@@ -95,7 +89,7 @@ export const CSPBudgetActionMenu = ({
                   {categoryName}
                 </div>
                 <Progress
-                  className="bg-gray-200 grow shrink basis-1/3"
+                  className="grow shrink basis-1/3"
                   value={Math.min(actualAmount / budgetAmount * 100, 100)}
                   activeColorClass={cn("bg-gray-500", {
                     "bg-red-400": isOverBudget && !exceedingIsGood,
@@ -118,24 +112,23 @@ export const CSPBudgetActionMenu = ({
               </div>
             </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuContent align="end" className="w-64">
             <DropdownMenuItem onClick={handleViewTransactions}>
               <BarChart3Icon className="mr-2 h-4 w-4" />
               View Transactions
             </DropdownMenuItem>
+            {isLinkedFundAccount && (
+              <DropdownMenuItem
+                onClick={() => navigate('/funds')}
+              >
+                <Target className="mr-2 h-4 w-4" />
+                Manage Funds
+              </DropdownMenuItem>
+            )}
             {showEdit && (
               <DropdownMenuItem onClick={handleEditBudget}>
                 <PenIcon className="mr-2 h-4 w-4" />
-                Edit
-              </DropdownMenuItem>
-            )}
-            {isLinkedFundAccount && (
-              <DropdownMenuItem
-                onClick={handleUnlinkAccount}
-                className="text-orange-600 focus:text-orange-600"
-              >
-                <UnlinkIcon className="mr-2 h-4 w-4" />
-                Unlink Account
+                { isLinkedFundAccount ? "Edit contribution target" : "Edit budget" } 
               </DropdownMenuItem>
             )}
             {showDelete && bucket !== CSPBucket.Income && budget.isTrackingFund !== true && !PROTECTED_CSP_CATEGORIES.has(budget.category) && (
@@ -157,14 +150,6 @@ export const CSPBudgetActionMenu = ({
         budget={budget}
         bucket={bucket}
         categoryName={categoryName}
-      />
-
-      <UnlinkFundDialog
-        open={isUnlinkDialogOpen}
-        onOpenChange={setIsUnlinkDialogOpen}
-        fundId={budget.category}
-        fundName={categoryName}
-        bucket={bucket}
       />
     </>
   );

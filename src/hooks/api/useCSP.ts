@@ -3,7 +3,7 @@ import { ConsciousSpendingPlanService } from '@/services/consciousSpendingPlanSe
 import type { CSPBucket } from '@easy-csp/shared-types';
 import { useMemo } from 'react';
 import { camelCaseToSentence } from '@/utils/stringUtils';
-import { useAccounts } from './useAccounts';
+import { useFunds } from '@/hooks/api/useFunds';
 
 export const CSP_QUERY_KEY = ['csp'];
 
@@ -50,7 +50,7 @@ export const useAddCSPItem = () => {
  */
 export const useCategoryNameMap = (): ReadonlyMap<string, string> => {
   const { data: csp } = useCSP();
-  const { data: accounts = [] } = useAccounts();
+  const { data: funds = [] } = useFunds();
 
   return useMemo(() => {
     const map = new Map<string, string>();
@@ -58,16 +58,15 @@ export const useCategoryNameMap = (): ReadonlyMap<string, string> => {
     for (const items of Object.values(csp)) {
       for (const item of items) {
         if (item.isTrackingFund) {
-          const account = accounts.find(a => a.id === item.category);
-          const displayName = account?.nickname || account?.accountName;
-          map.set(item.category, displayName ?? item.name ?? camelCaseToSentence(item.category));
+          const fund = funds.find(fund => fund.id === item.category);
+          map.set(item.category, fund?.name ?? item.name ?? camelCaseToSentence(item.category));
         } else {
           map.set(item.category, item.name ?? camelCaseToSentence(item.category));
         }
       }
     }
     return map;
-  }, [csp, accounts]);
+  }, [csp, funds]);
 };
 
 /**

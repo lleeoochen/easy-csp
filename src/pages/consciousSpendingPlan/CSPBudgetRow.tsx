@@ -40,7 +40,7 @@ export const CSPBudgetRow = ({ budget, bucket, currentMonthString }: CSPBudgetRo
     // For linked accounts, sum by institutionId and accountId
     return Math.abs(sumTransactions(transactions, {
       csp,
-      accountId: budget.category,
+      allocatedFundId: budget.category,
       includeHidden: false,
       inflowOnly: true,
     }));
