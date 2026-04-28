@@ -12,6 +12,7 @@ import {
   addDoc,
   getDoc,
   deleteDoc,
+  writeBatch,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { TRANSACTIONS_COLLECTION, ACCOUNTS_COLLECTION } from "@easy-csp/shared-types";
@@ -201,6 +202,102 @@ export class TransactionsService {
       return {
         success: false,
         message: "Failed to delete transaction",
+      };
+    }
+  }
+
+  /**
+   * Unsplits a transaction by deleting all child splits and restoring the parent's total amount
+   */
+  public static async unsplitTransaction(transactionId: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const uid = this.getAuthenticatedUserId();
+      const firestore = getFirestore();
+
+      // Get the transaction
+      const transactionRef = doc(firestore, TRANSACTIONS_COLLECTION, transactionId);
+      const transactionSnap = await getDoc(transactionRef);
+
+      if (!transactionSnap.exists()) {
+        return {
+          success: false,
+          message: "Transaction not found",
+        };
+      }
+
+      const transaction = transactionSnap.data() as Transaction;
+
+      // Verify ownership
+      if (transaction.uid !== uid) {
+        return {
+          success: false,
+          message: "You do not own this transaction",
+        };
+      }
+
+      // Check if transaction is split
+      if (!transaction.splitParentId) {
+        return {
+          success: false,
+          message: "Transaction is not split",
+        };
+      }
+
+      // Get the parent ID
+      const parentId = transaction.splitParentId;
+
+      // Query all transactions with this splitParentId
+      const splitsQuery = query(
+        collection(firestore, TRANSACTIONS_COLLECTION),
+        where("splitParentId", "==", parentId),
+        where("uid", "==", uid)
+      );
+
+      const splitsSnap = await getDocs(splitsQuery);
+
+      if (splitsSnap.empty) {
+        return {
+          success: false,
+          message: "No split transactions found",
+        };
+      }
+
+      // Calculate total amount from all splits
+      let totalAmount = 0;
+      splitsSnap.docs.forEach((doc) => {
+        const splitTransaction = doc.data() as Transaction;
+        totalAmount += splitTransaction.amount;
+      });
+
+      // Use batch to delete all child transactions and update parent atomically
+      const batch = writeBatch(firestore);
+
+      // Update parent (remove splitParentId and restore total amount)
+      const parentDoc = splitsSnap.docs.find((doc) => doc.id === parentId);
+      if (parentDoc) {
+        batch.update(parentDoc.ref, prepareFirestoreData({
+          splitParentId: undefined, // This will use deleteField()
+          amount: totalAmount,
+        }));
+      }
+
+      // Delete all child transactions
+      splitsSnap.docs.forEach((doc) => {
+        if (doc.id !== parentId) {
+          batch.delete(doc.ref);
+        }
+      });
+
+      await batch.commit();
+
+      return {
+        success: true,
+      };
+    } catch (error) {
+      console.error("Error unsplitting transaction:", error);
+      return {
+        success: false,
+        message: "Failed to unsplit transaction",
       };
     }
   }

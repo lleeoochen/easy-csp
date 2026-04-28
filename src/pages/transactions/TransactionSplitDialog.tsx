@@ -112,7 +112,7 @@ export const TransactionSplitDialog = ({ open, onOpenChange, transaction }: Tran
           {preview && (
             <div>
               <Label className="text-sm font-medium text-gray-700">Preview</Label>
-              <div className="mt-1 space-y-1 max-h-48 overflow-y-auto rounded border border-gray-200 p-2">
+              <div className="mt-1 space-y-1 rounded-2xl p-2 grid grid-cols-2 gap-x-12">
                 {preview.map((item, i) => (
                   <div key={i} className="flex justify-between text-sm text-gray-600">
                     <span>{item.date.toLocaleDateString()}</span>

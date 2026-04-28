@@ -12,7 +12,7 @@ import type { Transaction } from "@easy-csp/shared-types";
 import { CSPCategory } from "@easy-csp/shared-types";
 import { upperCaseToSentence } from '@/utils/stringUtils';
 import { useFinancialInstitutions } from '@/hooks/api/useFinancialInstitutions';
-import { useUpdateTransaction, useDeleteTransaction, useCreateTransaction, useTransaction, useTransactions } from '@/hooks/api/useTransactions';
+import { useUpdateTransaction, useDeleteTransaction, useCreateTransaction, useTransaction, useTransactions, useUnsplitTransaction } from '@/hooks/api/useTransactions';
 import { useAccounts } from '@/hooks/api/useAccounts';
 import "@/components/common/datepicker.css";
 import { formatCurrency, getTransactionSignPrefix } from '@/utils/financialUtils';
@@ -50,6 +50,7 @@ const TransactionEditPage = () => {
   const updateTransaction = useUpdateTransaction();
   const deleteTransaction = useDeleteTransaction();
   const createTransaction = useCreateTransaction();
+  const unsplitTransaction = useUnsplitTransaction();
 
   const account = transaction?.accountId
     ? accounts.find(acc => acc.id === transaction.accountId)
@@ -196,6 +197,24 @@ const TransactionEditPage = () => {
     }
   };
 
+  const handleUnsplit = async () => {
+    if (!transaction) return;
+
+    setIsLoading(true);
+    try {
+      const result = await unsplitTransaction.mutateAsync(transaction.id);
+      if (result.success) {
+        navigate('/transactions');
+      } else {
+        console.error('Error unsplitting transaction:', result.message);
+      }
+    } catch (error) {
+      console.error('Error unsplitting transaction:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const institution = account?.institutionId
     ? institutions.find(inst => inst.institutionId === account.institutionId)
     : null;
@@ -256,10 +275,10 @@ const TransactionEditPage = () => {
         {/* Form Card */}
         <Card>
           <CardHeader>
-            <h2 className="text-lg font-semibold">
+            <div className="text-lg">
               {isCreateMode ? 'Add Transaction' : (isManual ? transactionName : transaction!.name)}
               {transaction?.plaidPending ? ' (Pending)' : ''}
-            </h2>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6 py-4">
             <Label htmlFor="nickname" className="text-sm font-medium text-gray-700">Nickname (Optional)</Label>
@@ -431,47 +450,8 @@ const TransactionEditPage = () => {
               />
             </button>
           </div>
-          </CardContent>
-        </Card>
-
-        {/* Split Status Banner */}
-        {!isCreateMode && isAlreadySplit && (
-          <Card className="mt-2">
-            <CardHeader>
-              <h2 className="text-lg font-semibold">
-                Transactions Splitted
-              </h2>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col divide-y divide-gray-100">
-                {
-                  splittedTransactions.map(splittedTransaction => {
-                    const isSplitParent = splittedTransaction.id === splittedTransaction.splitParentId;
-                    const isCurrentTransaction = splittedTransaction.id === transaction.id;
-
-                    return (
-                      <div
-                        key={splittedTransaction.id}
-                        className="flex justify-between py-2 cursor-pointer hover:bg-accent/20"
-                        onClick={() => navigate(`/transactions/${splittedTransaction.id}/edit`)}
-                      >
-                        <div className={cn("flex gap-2 items-center", { "ml-2": !isSplitParent, "font-semibold": isCurrentTransaction })}>
-                          {!isSplitParent ? <span className="text-gray-400">⤷</span> : undefined}
-                          <span>{splittedTransaction.name}</span>
-                          <span className="text-gray-400">{isCurrentTransaction ? '- Current' : ''}</span>
-                        </div>
-                        <div>{new Date(splittedTransaction.datetime).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
-                      </div>
-                    );
-                  })
-                }
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Action buttons - Fixed at bottom on mobile */}
-        <Card className="bg-card p-4 mt-2">
           <DialogActionPanel
             cancel={{
               label: 'Cancel',
@@ -492,16 +472,79 @@ const TransactionEditPage = () => {
                 message: 'Are you sure you want to delete this transaction? This action cannot be undone.'
               }
             } : undefined}
-            customActions={!isCreateMode ? [{
-              label: 'Split',
-              onClick: () => setSplitDialogOpen(true),
-              disabled: isLoading || isAlreadySplit || transaction?.plaidPending,
-              variant: 'secondary',
-              title: isAlreadySplit ? "Transaction is already split" : "Split this transaction"
-            }] : undefined}
             isLoading={isLoading}
           />
+          </CardContent>
         </Card>
+
+        {!isCreateMode && (
+          <Card className="mt-4">
+            <CardHeader>
+              <div className="text-lg">
+                Split Transactions
+              </div>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2">
+              <div className="flex justify-between my-2">
+                <span>You can split transactions into multiple future transactions.</span>
+                <DialogActionPanel
+                  className="ml-auto"
+                  customActions={!isCreateMode ? [
+                    {
+                      label: 'Split',
+                      onClick: () => setSplitDialogOpen(true),
+                      disabled: isLoading || isAlreadySplit || transaction?.plaidPending,
+                      variant: 'secondary' as const,
+                      title: isAlreadySplit ? "Transaction is already split" : "Split this transaction",
+                      className: isAlreadySplit ? "hidden" : ""
+                    },
+                    {
+                      label: 'Unsplit',
+                      onClick: handleUnsplit,
+                      disabled: isLoading || !isAlreadySplit || transaction?.plaidPending,
+                      variant: 'secondary' as const,
+                      title: !isAlreadySplit ? "Transaction is not split" : "Remove all splits and restore to single transaction",
+                      confirmation: {
+                        title: 'Unsplit Transactions',
+                        message: 'Are you sure you want to unsplit the transactions? All child transactions will be deleted and cannot be recovered.'
+                      },
+                      className: isAlreadySplit ? "" : "hidden"
+                    }
+                  ] : undefined}
+                  isLoading={isLoading}
+                />
+              </div>
+              <div className="flex flex-col divide-y divide-gray-100">
+                {
+                  splittedTransactions.map(splittedTransaction => {
+                    const isSplitParent = splittedTransaction.id === splittedTransaction.splitParentId;
+                    const isCurrentTransaction = splittedTransaction.id === transaction?.id;
+
+                    return (
+                      <div
+                        key={splittedTransaction.id}
+                        className={
+                          cn("flex justify-between py-3 px-4 rounded-2xl cursor-pointer hover:bg-accent/20 items-center", {
+                            "bg-yellow-100": isCurrentTransaction
+                          })
+                        }
+                        onClick={() => navigate(`/transactions/${splittedTransaction.id}/edit`)}
+                      >
+                        <div className={cn("flex gap-3 items-center", { "": !isSplitParent, "font-semibold": isCurrentTransaction })}>
+                          {!isSplitParent ? <span className="text-gray-400 text-2xl">╰</span> : undefined}
+                          <span>{splittedTransaction.name}</span>
+                        </div>
+                        <div>
+                          {new Date(splittedTransaction.datetime).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </div>
+                      </div>
+                    );
+                  })
+                }
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Spacer for fixed button on mobile */}
         <div className="h-20 md:hidden" />

@@ -10,6 +10,10 @@ interface ActionConfig {
   variant?: 'primary' | 'secondary';
   className?: string;
   title?: string;
+  confirmation?: {
+    title: string;
+    message: string;
+  };
 }
 
 interface DeleteActionConfig extends Omit<ActionConfig, 'variant'> {
@@ -20,11 +24,12 @@ interface DeleteActionConfig extends Omit<ActionConfig, 'variant'> {
 }
 
 interface DialogActionPanelProps {
-  cancel: Omit<ActionConfig, 'variant'>;
-  submit: Omit<ActionConfig, 'variant'>;
+  cancel?: Omit<ActionConfig, 'variant'>;
+  submit?: Omit<ActionConfig, 'variant'>;
   delete?: DeleteActionConfig;
   customActions?: ActionConfig[];
   isLoading?: boolean;
+  className?: string;
 }
 
 export function DialogActionPanel({
@@ -32,9 +37,11 @@ export function DialogActionPanel({
   submit,
   delete: deleteAction,
   customActions,
-  isLoading
+  isLoading,
+  className
 }: DialogActionPanelProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [confirmingActionIndex, setConfirmingActionIndex] = useState<number | null>(null);
 
   const handleDeleteClick = () => {
     if (deleteAction?.confirmation) {
@@ -47,6 +54,21 @@ export function DialogActionPanel({
   const handleDeleteConfirm = () => {
     deleteAction?.onClick?.();
     setShowDeleteConfirm(false);
+  };
+
+  const handleCustomActionClick = (action: ActionConfig, index: number) => {
+    if (action.confirmation) {
+      setConfirmingActionIndex(index);
+    } else {
+      action.onClick?.();
+    }
+  };
+
+  const handleCustomActionConfirm = () => {
+    if (confirmingActionIndex !== null && customActions) {
+      customActions[confirmingActionIndex]?.onClick?.();
+      setConfirmingActionIndex(null);
+    }
   };
 
   return (
@@ -82,8 +104,38 @@ export function DialogActionPanel({
         </Dialog>
       )}
 
+      {/* Custom Action Confirmation Dialog */}
+      {confirmingActionIndex !== null && customActions?.[confirmingActionIndex]?.confirmation && (
+        <Dialog open={true} onOpenChange={() => setConfirmingActionIndex(null)}>
+          <DialogContent className="z-60">
+            <DialogHeader>
+              <DialogTitle>{customActions[confirmingActionIndex].confirmation!.title}</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-gray-600 py-4">
+              {customActions[confirmingActionIndex].confirmation!.message}
+            </p>
+            <DialogFooter>
+              <Button
+                variant="secondary"
+                onClick={() => setConfirmingActionIndex(null)}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleCustomActionConfirm}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Processing...' : 'Confirm'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {/* Action Panel */}
-      <div className="flex items-center justify-between gap-2">
+      <div className={cn("flex items-center justify-between", className)}>
         <div className="flex items-center gap-2">
           {deleteAction && (
             <Button
@@ -100,7 +152,7 @@ export function DialogActionPanel({
             <Button
               key={index}
               variant={action.variant || 'secondary'}
-              onClick={action.onClick}
+              onClick={() => handleCustomActionClick(action, index)}
               disabled={action.disabled || isLoading}
               className={action.className}
               title={action.title}
@@ -110,24 +162,33 @@ export function DialogActionPanel({
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            onClick={cancel.onClick}
-            disabled={cancel.disabled || isLoading}
-            className={cancel.className}
-            title={cancel.title}
-          >
-            {cancel.label}
-          </Button>
-          <Button
-            variant="primary"
-            onClick={submit.onClick}
-            disabled={submit.disabled || isLoading}
-            className={submit.className}
-            title={submit.title}
-          >
-            {submit.label}
-          </Button>
+          {
+            cancel
+            ? <Button
+                variant="secondary"
+                onClick={cancel.onClick}
+                disabled={cancel.disabled || isLoading}
+                className={cancel.className}
+                title={cancel.title}
+              >
+                {cancel.label}
+              </Button>
+            : undefined
+          }
+          
+          {
+            submit
+            ? <Button
+                variant="primary"
+                onClick={submit.onClick}
+                disabled={submit.disabled || isLoading}
+                className={submit.className}
+                title={submit.title}
+              >
+                {submit.label}
+              </Button>
+            : undefined
+          }
         </div>
       </div>
     </>

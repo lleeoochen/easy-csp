@@ -91,3 +91,14 @@ export const useDeleteTransaction = () => {
     },
   });
 };
+
+export const useUnsplitTransaction = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (transactionId: string) =>
+      TransactionsService.unsplitTransaction(transactionId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+  });
+};
