@@ -21,7 +21,7 @@ export const useTransaction = (transactionId: string | null) => {
   });
 };
 
-export const useTransactions = (baseRequest: Omit<ListTransactionsRequest, 'startAfter'>) => {
+export const useTransactions = (baseRequest: Omit<ListTransactionsRequest, 'startAfter'>, enabled = true) => {
   return useInfiniteQuery({
     queryKey: ['transactions', baseRequest],
     queryFn: async ({ pageParam }) => {
@@ -37,6 +37,7 @@ export const useTransactions = (baseRequest: Omit<ListTransactionsRequest, 'star
         ? lastPage.lastFetchSnapshot
         : undefined;
     },
+    enabled: enabled,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 10, // 10 minutes
   });

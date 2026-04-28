@@ -92,10 +92,20 @@ export class TransactionsService {
         );
       }
 
-      // Sort by datetime in descending order (newest first)
+      // Add splitParentId filtering if provided
+      if (request?.splitParentId) {
+        transactionsQuery = query(
+          transactionsQuery,
+          where("splitParentId", "==", request.splitParentId)
+        );
+      }
+
+      // Sort by specified field and direction (defaults to datetime desc)
+      const orderByField = request?.orderBy?.field ?? 'datetime';
+      const orderByDirection = request?.orderBy?.direction ?? 'desc';
       transactionsQuery = query(
         transactionsQuery,
-        orderBy("datetime", "desc")
+        orderBy(orderByField, orderByDirection)
       );
 
       if (request?.startAfter) {

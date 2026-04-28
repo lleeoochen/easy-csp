@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Page } from '@/components/Page';
 import { Card, CardHeader, CardContent } from '@/components/common/card';
@@ -12,13 +12,14 @@ import type { Transaction } from "@easy-csp/shared-types";
 import { CSPCategory } from "@easy-csp/shared-types";
 import { upperCaseToSentence } from '@/utils/stringUtils';
 import { useFinancialInstitutions } from '@/hooks/api/useFinancialInstitutions';
-import { useUpdateTransaction, useDeleteTransaction, useCreateTransaction, useTransaction } from '@/hooks/api/useTransactions';
+import { useUpdateTransaction, useDeleteTransaction, useCreateTransaction, useTransaction, useTransactions } from '@/hooks/api/useTransactions';
 import { useAccounts } from '@/hooks/api/useAccounts';
 import "@/components/common/datepicker.css";
 import { formatCurrency, getTransactionSignPrefix } from '@/utils/financialUtils';
-import { ArrowLeft, Split } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { TransactionSplitDialog } from "./TransactionSplitDialog";
 import { Button } from '@/components/common/button';
+import { cn } from "@/components/common/utils";
 
 const MANUAL_ACCOUNT = "MANUAL_ACCOUNT";
 
@@ -28,6 +29,22 @@ const TransactionEditPage = () => {
   const isCreateMode = id === 'new';
 
   const { data: transaction, isLoading: loadingTransaction } = useTransaction(isCreateMode ? null : id!);
+  const { data: splittedTransactionPages } = useTransactions(
+    {
+      splitParentId: transaction?.splitParentId,
+      orderBy: {
+        direction: "asc",
+        field: "datetime"
+      }
+    },
+    !!transaction?.splitParentId // enabled when transaction was splitted
+  );
+
+  const splittedTransactions = useMemo(() =>
+    splittedTransactionPages?.pages.flatMap(p => p.transactions ?? []) ?? [],
+    [splittedTransactionPages]
+  );
+
   const { data: institutions = [] } = useFinancialInstitutions();
   const { data: accounts = [] } = useAccounts();
   const updateTransaction = useUpdateTransaction();
@@ -56,7 +73,6 @@ const TransactionEditPage = () => {
   }>({});
 
   const isAlreadySplit = !!(transaction?.splitParentId);
-  const isSplitParent = transaction?.splitParentId === transaction?.id;
 
   // Validation function
   const validateFields = (): boolean => {
@@ -420,18 +436,37 @@ const TransactionEditPage = () => {
 
         {/* Split Status Banner */}
         {!isCreateMode && isAlreadySplit && (
-          <Card className="bg-card p-4 mt-2">
-            <div className="flex items-center gap-2 text-sm">
-              <Split size={18} strokeWidth={2.5} />
-              <span className="font-medium">
-                {isSplitParent ? 'Split Transaction (Parent)' : 'Split Transaction'}
-              </span>
-            </div>
-            <p className="text-xs mt-1">
-              {isSplitParent
-                ? 'This transaction has been split into multiple parts.'
-                : 'This is part of a split transaction.'}
-            </p>
+          <Card className="mt-2">
+            <CardHeader>
+              <h2 className="text-lg font-semibold">
+                Transactions Splitted
+              </h2>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col divide-y divide-gray-100">
+                {
+                  splittedTransactions.map(splittedTransaction => {
+                    const isSplitParent = splittedTransaction.id === splittedTransaction.splitParentId;
+                    const isCurrentTransaction = splittedTransaction.id === transaction.id;
+
+                    return (
+                      <div
+                        key={splittedTransaction.id}
+                        className="flex justify-between py-2 cursor-pointer hover:bg-accent/20"
+                        onClick={() => navigate(`/transactions/${splittedTransaction.id}/edit`)}
+                      >
+                        <div className={cn("flex gap-2 items-center", { "ml-2": !isSplitParent, "font-semibold": isCurrentTransaction })}>
+                          {!isSplitParent ? <span className="text-gray-400">⤷</span> : undefined}
+                          <span>{splittedTransaction.name}</span>
+                          <span className="text-gray-400">{isCurrentTransaction ? '- Current' : ''}</span>
+                        </div>
+                        <div>{new Date(splittedTransaction.datetime).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+                      </div>
+                    );
+                  })
+                }
+              </div>
+            </CardContent>
           </Card>
         )}
 
