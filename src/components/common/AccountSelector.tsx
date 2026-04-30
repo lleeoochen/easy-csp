@@ -40,7 +40,7 @@ export const AccountSelector = ({
 
   return (
     <div className={className}>
-      <Label htmlFor="account" className="text-sm font-medium text-gray-700">
+      <Label htmlFor="account">
         {label}
       </Label>
       <Select

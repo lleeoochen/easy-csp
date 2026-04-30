@@ -43,7 +43,7 @@ export const FundListItem = ({ fund, onDelete }: FundListItemProps) => {
                 </div>
 
                 {/* Progress Bar (if target amount is set) */}
-                {fund.targetAmount && account && (
+                {account && (
                   <Progress 
                     className="grow shrink basis-1/3"
                     value={progress}
@@ -52,23 +52,16 @@ export const FundListItem = ({ fund, onDelete }: FundListItemProps) => {
                 )}
               </div>
 
-              {fund.targetAmount && account && (
+              {account && (
                 <div className="flex justify-between w-full">
                   <div className="text-gray-400 text-sm">
-                    Target: {formatCurrency(fund.targetAmount)}
+                    {fund.targetAmount ? `Target: ${formatCurrency(fund.targetAmount)}` : ''}
                   </div>
                   <div className="text-gray-400 text-sm">
                     {
                       formatCurrency(account.balance)
                     }
                   </div>
-                </div>
-              )}
-
-              {/* Right: Current Balance */}
-              {account && !fund.targetAmount && (
-                <div className="text-sm font-semibold text-green-700">
-                  {formatCurrency(account.balance, 0, false)}
                 </div>
               )}
             </div>

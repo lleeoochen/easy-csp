@@ -15,7 +15,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { TRANSACTIONS_COLLECTION, ACCOUNTS_COLLECTION } from "@easy-csp/shared-types";
+import { TRANSACTIONS_COLLECTION } from "@easy-csp/shared-types";
 import type { Transaction } from "@easy-csp/shared-types";
 import type { ListTransactionsRequest, ListTransactionsResponse } from '@/types/requestTypes';
 import { prepareFirestoreData, withoutUndefinedValue } from '@/utils/firestoreHelpers';
@@ -315,96 +315,6 @@ export class TransactionsService {
     } catch (error) {
       console.error("Error updating transaction:", error);
       throw error;
-    }
-  }
-
-
-  /**
-   * Updates the fund allocation for a transaction
-   *
-   * Sets or clears the allocatedFundId field on a transaction.
-   * Validates that the fund account exists and has isFundAccount === true.
-   *
-   * @param transactionId - Firestore document ID of the transaction to update
-   * @param allocatedFundId - Fund account ID to allocate to, or null to clear allocation
-   * @returns Promise resolving to success status and optional message
-   * @throws Error if user is not authenticated
-   *
-   * @example
-   * // Allocate transaction to a fund
-   * const result = await TransactionsService.updateTransactionFundAllocation("txn123", "fund456");
-   * if (result.success) {
-   *   console.log("Transaction allocated to fund");
-   * }
-   *
-   * @example
-   * // Clear fund allocation
-   * const result = await TransactionsService.updateTransactionFundAllocation("txn123", null);
-   * if (result.success) {
-   *   console.log("Fund allocation cleared");
-   * }
-   */
-  public static async updateTransactionFundAllocation(
-    transactionId: string,
-    allocatedFundId: string | null
-  ): Promise<{ success: boolean; message?: string }> {
-    try {
-      const uid = this.getAuthenticatedUserId();
-      const firestore = getFirestore();
-
-      // If allocatedFundId is provided, validate it
-      if (allocatedFundId) {
-        // Get the fund account document
-        const fundAccountRef = doc(firestore, ACCOUNTS_COLLECTION, allocatedFundId);
-        const fundAccountSnapshot = await getDoc(fundAccountRef);
-
-        // Verify fund account exists
-        if (!fundAccountSnapshot.exists()) {
-          return {
-            success: false,
-            message: "Fund account not found",
-          };
-        }
-
-        // Verify fund account belongs to user
-        const fundAccountData = fundAccountSnapshot.data();
-        if (fundAccountData.uid !== uid) {
-          return {
-            success: false,
-            message: "Fund account does not belong to user",
-          };
-        }
-
-        // Verify account is a fund account
-        if (!fundAccountData.isFundAccount) {
-          return {
-            success: false,
-            message: "Referenced account is not a fund account",
-          };
-        }
-      }
-
-      // Update transaction with fund allocation
-      const transactionRef = doc(firestore, TRANSACTIONS_COLLECTION, transactionId);
-      await updateDoc(
-        transactionRef,
-        prepareFirestoreData({
-          allocatedFundId: allocatedFundId,
-        })
-      );
-
-      return {
-        success: true,
-        message: allocatedFundId
-          ? "Transaction allocated to fund"
-          : "Fund allocation cleared",
-      };
-    } catch (error) {
-      console.error("Error updating transaction fund allocation:", error);
-      return {
-        success: false,
-        message: "Failed to update fund allocation",
-      };
     }
   }
 

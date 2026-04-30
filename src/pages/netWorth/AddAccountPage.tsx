@@ -52,7 +52,7 @@ const AddAccountPage = () => {
   };
 
   return (
-    <Page title="Add Account" maxWidth="half">
+    <Page title="Add Account" maxWidth="cozy">
       <div className="flex flex-col gap-6">
         <div className='mr-auto'>
           <BackButton to="/net-worth" />

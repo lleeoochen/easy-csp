@@ -19,6 +19,7 @@ export interface TransactionSumOptions {
   excludeBuckets?: CSPBucket[];
   /** User's CSP data for bucket filtering (required when using includeBuckets/excludeBuckets) */
   csp?: ConsciousSpendingPlan;
+  includePending?: boolean;
   debug?: boolean;
 }
 
@@ -58,6 +59,7 @@ export function sumTransactions(
     excludeFundAllocated = false,
     includeBuckets,
     excludeBuckets,
+    includePending = false,
     csp
   } = options;
 
@@ -82,6 +84,10 @@ export function sumTransactions(
     .filter(transaction => {
       // Filter by hidden status
       if (!includeHidden && transaction.hidden) {
+        return false;
+      }
+
+      if (!includePending && transaction.plaidPending) {
         return false;
       }
 

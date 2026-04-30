@@ -16,7 +16,7 @@ export const FundListCard = ({
   emptyMessage,
 }: FundListCardProps) => {
   return (
-    <Card className="md:h-full">
+    <Card className="md:h-full flex-1">
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>

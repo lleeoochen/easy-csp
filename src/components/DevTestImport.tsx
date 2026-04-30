@@ -15,11 +15,11 @@ export const DevTestImport = () => {
       const testImport = httpsCallable(functions, 'testImportPlaidTransaction');
 
       // // Example 1: Import a pending transaction
-      // const pendingResult = await testImport({
+      // await testImport({
       //   transaction: {
       //     transaction_id: "pending_coffee_1",
       //     account_id: "KqGJbvo1g1hwdzg5kaRRfRoEAb5pJ8fRvMq3B", // Replace with your actual account_id
-      //     name: "Starbucks",
+      //     name: "Starbucks New",
       //     amount: 5.50,
       //     date: "2026-04-21",
       //     pending: true,
@@ -32,17 +32,12 @@ export const DevTestImport = () => {
       //   institutionId: "P39JKvl8G8fQAaW5EoxxfzDzVE7MwwCw8Mqro" // Replace with your actual institutionId
       // });
 
-      // console.log("✅ Pending transaction imported:", pendingResult.data);
-
-      // Wait a moment to simulate time passing
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       // Example 2: Import the posted version (this should remove the pending one)
       const postedResult = await testImport({
         transaction: {
           transaction_id: "posted_coffee_2",
           account_id: "KqGJbvo1g1hwdzg5kaRRfRoEAb5pJ8fRvMq3B", // Same account
-          name: "Starbucks",
+          name: "Starbucks New 2",
           amount: 5.50,
           date: "2026-04-21",
           pending: false,
@@ -57,7 +52,7 @@ export const DevTestImport = () => {
       });
 
       console.log("✅ Posted transaction imported (pending should be removed):", postedResult.data);
-      setTestResult("✅ Success! Imported pending→posted conversion. Check transactions page.");
+      // setTestResult("✅ Success! Imported pending→posted conversion. Check transactions page.");
     } catch (error) {
       console.error("❌ Test import error:", error);
       setTestResult(`❌ Error: ${error.message}`);

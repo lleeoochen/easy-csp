@@ -164,6 +164,25 @@ const AccountEditPage = () => {
                     />
                   </div>
                 )}
+
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => navigate('/net-worth')}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={updateNicknameMutation.isPending || updateManualAccountMutation.isPending}
+                    className="flex-1"
+                  >
+                    {(updateNicknameMutation.isPending || updateManualAccountMutation.isPending) ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
         </form>

@@ -18,7 +18,7 @@ export const Page = ({ children, title, maxWidth = 'half' }: PageProps) => {
 
   const widthClasses = {
     full: 'w-full lg:w-3/4',
-    half: 'w-full lg:w-2/3',
+    half: 'w-full lg:w-1/2',
     cozy: 'w-full lg:w-1/3'
   };
 

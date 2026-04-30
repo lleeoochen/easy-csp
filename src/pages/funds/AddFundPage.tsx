@@ -6,10 +6,20 @@ import { Input } from '@/components/common/input';
 import { Label } from '@/components/common/label';
 import { Select } from '@/components/common/select';
 import { BackButton } from '@/components/common/BackButton';
-import { useCreateFund } from '@/hooks/api/useFunds';
+import { useCreateFund, useFunds } from '@/hooks/api/useFunds';
 import { useAccountsWithInfo } from '@/hooks/api/useAccounts';
 import { toast } from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
+import { AccountType } from '@easy-csp/shared-types';
+import { AccountSelector } from '@/components/common/AccountSelector';
+
+// Only asset accounts can be fund accounts
+const assetAccountTypes: AccountType[] = [
+  AccountType.Checking,
+  AccountType.Savings,
+  AccountType.Investment,
+  AccountType.Other,
+];
 
 const AddFundPage = () => {
   const navigate = useNavigate();
@@ -18,8 +28,18 @@ const AddFundPage = () => {
   const [accountId, setAccountId] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
 
+  const { data: funds = [] } = useFunds();
   const createFund = useCreateFund();
   const { data: accounts = [] } = useAccountsWithInfo();
+
+  // Filter out accounts already associated with other funds
+  const availableAccounts = accounts.filter((account) => {
+    if (!assetAccountTypes.includes(account.accountType)) {
+      return false;
+    }
+    // Exclude accounts already linked to other funds
+    return !funds.some((f) => f.accountId === account.id);
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +77,7 @@ const AddFundPage = () => {
   };
 
   return (
-    <Page title="Add Fund" maxWidth="half">
+    <Page title="Add Fund" maxWidth="cozy">
       <div className="flex flex-col gap-6">
         <div className="mr-auto">
           <BackButton to="/funds" />
@@ -89,18 +109,13 @@ const AddFundPage = () => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="account">Linked Account *</Label>
-              <Select
-                options={accounts.map((acc) => ({
-                  value: acc.id,
-                  label: acc.displayName,
-                }))}
-                value={accountId}
-                onValueChange={setAccountId}
-                placeholder="Select an account"
-              />
-            </div>
+            <AccountSelector
+              value={accountId}
+              onValueChange={setAccountId}
+              label="Linked Account *"
+              placeholder="Select an account"
+              accounts={availableAccounts}
+            />
 
             <div className="space-y-2">
               <Label htmlFor="targetAmount">Target Amount (optional)</Label>

@@ -27,7 +27,6 @@ describe('RulesService - Fund Assignment Methods', () => {
     accountType: AccountType.Savings,
     balance: 5000,
     isManual: false,
-    isFundAccount: true,
   };
 
   const mockNonFundAccount: FinancialAccount = {
@@ -38,7 +37,6 @@ describe('RulesService - Fund Assignment Methods', () => {
     accountType: AccountType.Checking,
     balance: 2000,
     isManual: false,
-    isFundAccount: false,
   };
 
   beforeEach(() => {

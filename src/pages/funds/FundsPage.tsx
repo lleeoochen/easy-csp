@@ -27,8 +27,8 @@ export const FundsPage = () => {
   const investmentFunds = funds.filter((fund) => fund.type === 'investment');
 
   return (
-    <Page title='Funds'>
-      <div className='flex flex-col gap-2'>
+    <Page title='Funds' maxWidth='half'>
+      <div className='flex flex-col gap-3'>
         <Button
           variant="primary"
           onClick={() => navigate('/funds/add')}
@@ -38,21 +38,23 @@ export const FundsPage = () => {
           Create Fund
         </Button>
 
-        {/* Saving Funds Card */}
-        <FundListCard
-          title="Saving Funds"
-          funds={savingFunds}
-          onDelete={setDeleteFund}
-          emptyMessage="No saving funds yet."
-        />
+        <div className='flex flex-col gap-3 md:flex-row'>
+          {/* Saving Funds Card */}
+          <FundListCard
+            title="Saving Funds"
+            funds={savingFunds}
+            onDelete={setDeleteFund}
+            emptyMessage="No saving funds yet."
+          />
 
-        {/* Investment Funds Card */}
-        <FundListCard
-          title="Investment Funds"
-          funds={investmentFunds}
-          onDelete={setDeleteFund}
-          emptyMessage="No investment funds yet."
-        />
+          {/* Investment Funds Card */}
+          <FundListCard
+            title="Investment Funds"
+            funds={investmentFunds}
+            onDelete={setDeleteFund}
+            emptyMessage="No investment funds yet."
+          />
+        </div>
 
         <DeleteFundDialog
           open={!!deleteFund}
