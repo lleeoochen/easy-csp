@@ -31,7 +31,7 @@ export const AccountListCard = ({
           {headerContent}
         </div>
       </CardHeader>
-      <CardContent className="p-0! divide-y divide-gray-200 md:h-full">
+      <CardContent className="p-0! divide-y divide-gray-200  min-h-32 md:min-h-48 md:h-full">
         {accounts.length === 0 ? (
           <p className="text-gray-500 text-sm p-4">{emptyMessage || 'No accounts found.'}</p>
         ) : (

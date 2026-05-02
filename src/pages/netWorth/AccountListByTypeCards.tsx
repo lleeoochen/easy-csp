@@ -31,7 +31,7 @@ export const AccountListByTypeCards = ({
   }, {} as Record<AccountType, UI_FinancialAccount[]>);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <>
       {Object.entries(accountsByType).map(([type, typeAccounts]) => {
         const typeSum = typeAccounts.reduce((sum, account) => sum + account.balance, 0);
 
@@ -54,6 +54,6 @@ export const AccountListByTypeCards = ({
           />
         );
       })}
-    </div>
+    </>
   );
 };

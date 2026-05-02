@@ -18,33 +18,55 @@ const InstitutionErrorBanner = ({ institution }: { institution: FinancialInstitu
   const { mutate: retrySync, isPending: isRetrying } = useRetrySyncInstitution();
   const { mutate: removeInstitution, isPending: isRemoving } = useRemoveInstitution();
 
-  if (institution.status !== FinancialInstitutionStatus.InstitutionError || !institution.plaidErrorCode) {
+  // Show banner for both InstitutionError and SyncFailed statuses
+  if (
+    institution.status !== FinancialInstitutionStatus.InstitutionError &&
+    institution.status !== FinancialInstitutionStatus.SyncFailed
+  ) {
     return null;
   }
 
-  const errorCode = institution.plaidErrorCode as PlaidErrorCode;
-  const message = getPlaidErrorMessage(errorCode);
   const docId = institution.docId!;
+  let message: string;
+  let showRetryButton = false;
+  let showReconnectButton = false;
+  let showRemoveButton = false;
+
+  // Handle InstitutionError with Plaid error code
+  if (institution.status === FinancialInstitutionStatus.InstitutionError && institution.plaidErrorCode) {
+    const errorCode = institution.plaidErrorCode as PlaidErrorCode;
+    message = getPlaidErrorMessage(errorCode);
+    showRetryButton = RETRY_SYNC_ERRORS.has(errorCode);
+    showReconnectButton = RECONNECT_REQUIRED_ERRORS.has(errorCode);
+    showRemoveButton = REMOVE_INSTITUTION_ERRORS.has(errorCode);
+  } else {
+    // Handle SyncFailed or InstitutionError without error code
+    message = institution.errorMessage || "Sync failed. Please try again.";
+    showRetryButton = true; // Always offer retry for generic sync failures
+  }
 
   return (
     <div className="flex items-start gap-2 mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
       <AlertTriangleIcon className="w-4 h-4 mt-0.5 shrink-0" />
       <div className="flex-1">
         <p>{message}</p>
+        {institution.errorMessage && institution.plaidErrorCode && (
+          <p className="mt-1 text-xs text-red-600">Technical details: {institution.errorMessage}</p>
+        )}
         <div className="flex gap-2 mt-2">
-          {RETRY_SYNC_ERRORS.has(errorCode) && (
+          {showRetryButton && (
             <Button variant="primary" onClick={() => retrySync(docId)} disabled={isRetrying}>
               {isRetrying ? "Retrying..." : "Retry Sync"}
             </Button>
           )}
-          {RECONNECT_REQUIRED_ERRORS.has(errorCode) && (
+          {showReconnectButton && (
             <LinkFinancialInstitutionButton
               buttonText="Reconnect"
               institutionDocId={docId}
               institutionId={institution.institutionId}
             />
           )}
-          {REMOVE_INSTITUTION_ERRORS.has(errorCode) && (
+          {showRemoveButton && (
             <Button variant="primary" onClick={() => removeInstitution(docId)} disabled={isRemoving}>
               {isRemoving ? "Removing..." : "Remove"}
             </Button>
@@ -71,7 +93,7 @@ export const AccountListByInstitutionCards = ({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {institutions.map((institution, index) => {
           const statusDisplay = getFinancialInstitutionStatusDisplay(institution.status);
           const institutionAccounts = accountsByInstitution[institution.institutionId] || [];

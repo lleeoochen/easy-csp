@@ -97,8 +97,8 @@ export function CSPOverviewCard({ incomeBudgets, expenseBuckets, currentMonthStr
   };
 
   return (
-    <Card className="flex-1 w-full md:h-full! xl:h-fit! xl:w-2/3! m-auto">
-      <CardHeader className={`flex flex-row items-stretch`}>
+    <Card className="w-full xl:w-2/3!">
+      <CardHeader className={`flex flex-row items-stretch md:hidden`}>
         <div className="flex flex-col items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2">
@@ -107,7 +107,7 @@ export function CSPOverviewCard({ incomeBudgets, expenseBuckets, currentMonthStr
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex flex-col md:grid md:grid-cols-3 md:divide-x md:divide-y-0 p-0! divide-y divide-gray-200 md:h-full! xl:h-fit!">
+      <CardContent className="flex flex-col md:grid md:grid-cols-3 md:divide-x md:divide-y-0 p-0! divide-y divide-gray-200 md:rounded-2xl">
         <CSPBudgetActionMenu
           className="px-4 py-1.5"
           budget={incomeBudget}

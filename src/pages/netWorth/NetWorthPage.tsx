@@ -97,46 +97,44 @@ const NetWorthPage = () => {
       title="Net Worth"
       maxWidth="half"
     >
-      <div className="flex flex-col gap-3 m-auto">
-        {/* Action Buttons */}
-        <div className="flex gap-2 ml-auto">
-          <Button
-            variant="primary"
-            onClick={() => refreshInstitutions()}
-            disabled={isRefreshing}
-            className='flex items-center gap-2'
-          >
-            <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-            Sync
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => navigate('/net-worth/add-account')}
-            className='flex items-center gap-2'
-          >
-            <Plus className="w-4 h-4" />
-            Add Account
-          </Button>
-        </div>
-
-        {/* Net Worth Chart */}
-        <NetWorthSummaryChart breakdown={breakdown} />
-
-        {/* View Mode Tabs */}
-        <SegmentedControl<ViewMode>
-          options={[
-            { value: 'type', label: 'By Account Type' },
-            { value: 'institution', label: 'By Institution' },
-          ]}
-          value={viewMode}
-          onChange={setViewMode}
-          className="mx-auto mt-10"
-        />
-
+      <div className="flex flex-col gap-3 m-auto md:flex-row">
         {/* Content based on view mode */}
         <div className='m-auto w-full flex flex-col gap-3'>
+          {/* View Mode Tabs */}
+          <div className='flex flex-row gap-3 mt-5'>
+            <SegmentedControl<ViewMode>
+              options={[
+                { value: 'type', label: 'By Account Type' },
+                { value: 'institution', label: 'By Institution' },
+              ]}
+              value={viewMode}
+              onChange={setViewMode}
+            />
+            {/* Action Buttons */}
+            <div className="flex gap-2 ml-auto">
+              <Button
+                variant="primary"
+                onClick={() => refreshInstitutions()}
+                disabled={isRefreshing}
+                className='flex items-center gap-2 h-fit'
+              >
+                <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+                Sync
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => navigate('/net-worth/add-account')}
+                className='flex items-center gap-2 h-fit'
+              >
+                <Plus className="w-4 h-4" />
+                Account
+              </Button>
+            </div>
+          </div>
+          {/* Net Worth Chart */}
+          <NetWorthSummaryChart breakdown={breakdown} />
           {viewMode === 'type' ? (
-            <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {/* Assets Section */}
               {assetAccounts.length > 0 && (
                 <AccountListByTypeCards
@@ -156,7 +154,7 @@ const NetWorthPage = () => {
                   onDelete={setDeleteAccount}
                 />
               )}
-            </>
+            </div>
           ) : (
             <AccountListByInstitutionCards
               institutions={institutions}

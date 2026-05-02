@@ -2,6 +2,7 @@ import { CSPBucket, type CSPCategoryBudget } from "@easy-csp/shared-types";
 import { CSPBucketCard } from "./CSPBucketCard";
 import { CSPOverviewCard } from "./CSPOverviewCard";
 import { useCSP } from '@/hooks/api/useCSP';
+import { cn } from "@/components/common/utils";
 const CSP_BUCKET_ORDER: CSPBucket[] = [
   CSPBucket.Income,
   CSPBucket.FixedCost,
@@ -14,9 +15,10 @@ const CSP_BUCKET_ORDER: CSPBucket[] = [
 interface CSPBucketCardListProps {
   selectedMonth: number;
   selectedYear: number;
+  className?: string;
 }
 
-export function CSPBucketCardList({ selectedMonth, selectedYear }: CSPBucketCardListProps) {
+export function CSPBucketCardList({ selectedMonth, selectedYear, className }: CSPBucketCardListProps) {
   const { data: consciousSpendingPlan = {}, isLoading, error, refetch } = useCSP();
 
   // Format current month as YYYY-MM for URL parameter
@@ -24,7 +26,7 @@ export function CSPBucketCardList({ selectedMonth, selectedYear }: CSPBucketCard
 
   if (isLoading) {
     return (
-      <div className="p-8 text-center">
+      <div className={cn("p-8 text-center", className)}>
         <div className="animate-pulse">Loading conscious spending plan...</div>
       </div>
     );
@@ -32,7 +34,7 @@ export function CSPBucketCardList({ selectedMonth, selectedYear }: CSPBucketCard
 
   if (error) {
     return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-lg mx-4">
+      <div className={cn("p-4 bg-red-50 border border-red-200 rounded-lg mx-4", className)}>
         <p className="text-red-600">Error loading conscious spending plan: {error.message}</p>
         <button
           onClick={() => refetch()}
@@ -68,7 +70,7 @@ export function CSPBucketCardList({ selectedMonth, selectedYear }: CSPBucketCard
 
   return (
     <>
-      <div className="flex flex-col gap-3">
+      <div className={cn("flex flex-col items-center gap-3 lg:gap-5", className)}>
         {/* Overview Card */}
         <CSPOverviewCard
           incomeBudgets={consciousSpendingPlan[CSPBucket.Income] ?? []}
@@ -76,7 +78,7 @@ export function CSPBucketCardList({ selectedMonth, selectedYear }: CSPBucketCard
           currentMonthString={currentMonthString}
         />
         {/* Category Sections - Horizontal on desktop */}
-        <div className="flex flex-col lg:grid lg:grid-cols-2 xl:grid-cols-4 gap-3 w-full">
+        <div className="flex flex-col xl:grid xl:grid-cols-2 2xl:grid-cols-4 gap-3 w-full">
           {spendingBuckets.map(([cspBucket, cspBudgets]) => (
             <CSPBucketCard
               key={cspBucket}

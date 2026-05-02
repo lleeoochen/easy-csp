@@ -27,7 +27,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
 
   const scrollToKey = (key: string, behavior: ScrollBehavior = 'smooth') => {
     const btn = btnRefs.current.get(key);
-    if (btn) btn.scrollIntoView({ behavior, inline: 'center', block: 'nearest' });
+    if (btn) btn.scrollIntoView({ behavior, inline: 'center', block: 'center' });
   };
 
   const goToCurrentMonth = () => {
@@ -72,7 +72,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
         </Button>
       )}
 
-      <div className="flex flex-row-reverse gap-2 overflow-x-auto py-1.5 scrollbar-hide rounded-2xl snap-x snap-mandatory">
+      <div className="flex flex-row-reverse gap-2 overflow-x-auto p-1.5 scrollbar-hide rounded-2xl snap-x snap-mandatory">
         {months.map(({ year, month, displayName, key }) => {
           const isSelected = year === selectedYear && month === selectedMonth;
           const isCurrent = year === currentYear && month === currentMonth;
@@ -84,11 +84,10 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
               onClick={() => onMonthSelect(year, month)}
               className={cn(
                 'shrink-0 snap-center px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap min-w-fit',
-                'bg-gray-100 text-gray-700 hover:bg-gray-200',
+                'bg-transparent text-gray-300 hover:bg-gray-200 shadow-none',
                 {
-                  'bg-primary-bg text-white shadow-md': isSelected,
-                  'ring-white ring-2': isCurrent && isSelected,
-                  'ring-primary-bg ring-2': isCurrent && !isSelected,
+                  'text-primary-bg bg-white shadow-md': isSelected,
+                  'underline underline-offset-2': isCurrent,
                 }
               )}
             >

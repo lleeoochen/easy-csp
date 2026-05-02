@@ -47,7 +47,7 @@ export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString }: CSP
   }, [cspBudgets, cspBucket, transactions, csp]);
 
   return (
-    <Card className="flex-1 md:h-full! xl:h-fit!">
+    <Card className="flex-1 md:h-full!">
       <CardHeader className={`flex flex-row items-stretch`}>
         <div className="flex flex-col items-start justify-between">
           <div className="flex-1">
@@ -63,7 +63,7 @@ export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString }: CSP
           {formatCurrency(totalSpent)}
         </div>
       </CardHeader>
-      <CardContent className="flex flex-col p-0! divide-y divide-gray-200 md:h-full! xl:h-fit!">
+      <CardContent className="flex flex-col p-0! divide-y divide-gray-200 md:h-full!">
         {cspBudgets.map((budget) => (
           <div key={budget.category} className="px-4 py-1.5">
             <CSPBudgetRow
@@ -73,7 +73,7 @@ export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString }: CSP
             />
           </div >
         ))}
-        <div className="p-2 flex">
+        <div className="p-2 flex mt-auto">
           { FUND_BUCKETS.includes(cspBucket)
             ? (
               <Button variant="secondary" className="flex-1" onClick={() => navigate('/funds')}>

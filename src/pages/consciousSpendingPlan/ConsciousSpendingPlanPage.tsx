@@ -8,16 +8,19 @@ const ConsciousSpendingPlanPage = () => {
 
   return (
     <Page title="Conscious Spending Plan" maxWidth="full">
-      <MonthSelector
-        selectedMonth={selectedMonth}
-        selectedYear={selectedYear}
-        onMonthSelect={handleMonthSelect}
-        className="mb-4"
-      />
-      <CSPBucketCardList
-        selectedMonth={selectedMonth}
-        selectedYear={selectedYear}
-      />
+      <div className="flex flex-col lg:gap-10 w-full">
+        <MonthSelector
+          selectedMonth={selectedMonth}
+          selectedYear={selectedYear}
+          onMonthSelect={handleMonthSelect}
+          className="mb-4"
+        />
+        <CSPBucketCardList
+          selectedMonth={selectedMonth}
+          selectedYear={selectedYear}
+          className="lg:flex-1 "
+        />
+      </div>
     </Page>
   );
 };
