@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Plus, RefreshCw } from 'lucide-react';
+import { Plus, RefreshCw, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Page } from '@/components/Page';
 import { Button } from '@/components/common/button';
 import { useAccountsWithInfo } from '@/hooks/api/useAccounts';
 import { useFinancialInstitutions, useRefreshFinancialInstitutions } from '@/hooks/api/useFinancialInstitutions';
+import { useRecordNetWorthSnapshot } from '@/hooks/api/useNetWorthHistory';
 import { NetWorthSummaryChart } from './NetWorthSummaryChart';
+import { NetWorthHistoryChart, AssetsHistoryChart, LiabilitiesHistoryChart } from './NetWorthHistoryChart';
 import { AccountListByTypeCards } from './AccountListByTypeCards';
 import { AccountListByInstitutionCards } from './AccountListByInstitutionCards';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
@@ -13,7 +15,9 @@ import { calculateNetWorth, isAssetAccount } from '@/utils/netWorthUtils';
 import { Toaster } from 'react-hot-toast';
 import { cn } from '@/components/common/utils';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
+import { Carousel, CarouselContent, CarouselItem, CarouselDots } from '@/components/common/carousel';
 import type { UI_FinancialAccount } from '@/types/uiTypes';
+import { Card, CardContent, CardHeader } from '@/components/common/card';
 
 type ViewMode = 'type' | 'institution';
 
@@ -22,6 +26,7 @@ const NetWorthPage = () => {
   const { data: accounts, isLoading, error } = useAccountsWithInfo();
   const { data: institutions = [] } = useFinancialInstitutions();
   const { mutate: refreshInstitutions, isPending: isRefreshing } = useRefreshFinancialInstitutions();
+  const { mutate: recordSnapshot, isPending: isSnapshotting } = useRecordNetWorthSnapshot();
 
   const [viewMode, setViewMode] = useState<ViewMode>('type');
   const [deleteAccount, setDeleteAccount] = useState<UI_FinancialAccount | null>(null);
@@ -100,39 +105,62 @@ const NetWorthPage = () => {
       <div className="flex flex-col gap-3 m-auto md:flex-row">
         {/* Content based on view mode */}
         <div className='m-auto w-full flex flex-col gap-3'>
-          {/* View Mode Tabs */}
-          <div className='flex flex-row gap-3 mt-5'>
-            <SegmentedControl<ViewMode>
-              options={[
-                { value: 'type', label: 'By Account Type' },
-                { value: 'institution', label: 'By Institution' },
-              ]}
-              value={viewMode}
-              onChange={setViewMode}
-            />
-            {/* Action Buttons */}
-            <div className="flex gap-2 ml-auto">
-              <Button
-                variant="primary"
-                onClick={() => refreshInstitutions()}
-                disabled={isRefreshing}
-                className='flex items-center gap-2 h-fit'
-              >
-                <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-                Sync
-              </Button>
-              <Button
-                variant="primary"
-                onClick={() => navigate('/net-worth/add-account')}
-                className='flex items-center gap-2 h-fit'
-              >
-                <Plus className="w-4 h-4" />
-                Account
-              </Button>
-            </div>
+          {/* Action Buttons */}
+          <div className="flex gap-2 ml-auto">
+            <Button
+              variant="secondary"
+              onClick={() => recordSnapshot()}
+              disabled={isSnapshotting}
+              className='items-center gap-2 h-fit hidden'
+              title="DEV: Record net worth snapshot"
+            >
+              <Camera className={cn("w-4 h-4", isSnapshotting && "animate-pulse")} />
+              Snapshot
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => refreshInstitutions()}
+              disabled={isRefreshing}
+              className='flex items-center gap-2 h-fit'
+            >
+              <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+              Sync
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => navigate('/net-worth/add-account')}
+              className='flex items-center gap-2 h-fit'
+            >
+              <Plus className="w-4 h-4" />
+              Account
+            </Button>
           </div>
-          {/* Net Worth Chart */}
-          <NetWorthSummaryChart breakdown={breakdown} />
+          {/* Net Worth Chart Carousel */}
+          <Card>
+            <CardHeader>
+              <h2 className="text-lg">Net Worth</h2>
+            </CardHeader>
+            <CardContent>
+              <Carousel opts={{ align: 'center' }}>
+                <CarouselContent>
+                  <CarouselItem><NetWorthSummaryChart breakdown={breakdown} /></CarouselItem>
+                  <CarouselItem><NetWorthHistoryChart /></CarouselItem>
+                  <CarouselItem><AssetsHistoryChart /></CarouselItem>
+                  <CarouselItem><LiabilitiesHistoryChart /></CarouselItem>
+                </CarouselContent>
+                <CarouselDots count={4} />
+              </Carousel>
+            </CardContent>
+          </Card>
+          <SegmentedControl<ViewMode>
+            options={[
+              { value: 'type', label: 'By Account Type' },
+              { value: 'institution', label: 'By Institution' },
+            ]}
+            value={viewMode}
+            onChange={setViewMode}
+            className='m-auto mt-3'
+          />
           {viewMode === 'type' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {/* Assets Section */}

@@ -75,7 +75,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
       <div className="flex flex-row-reverse gap-2 overflow-x-auto p-1.5 scrollbar-hide rounded-2xl snap-x snap-mandatory">
         {months.map(({ year, month, displayName, key }) => {
           const isSelected = year === selectedYear && month === selectedMonth;
-          const isCurrent = year === currentYear && month === currentMonth;
+          // const isCurrent = year === currentYear && month === currentMonth;
 
           return (
             <Button
@@ -87,7 +87,7 @@ export const MonthSelector: React.FC<MonthSelectorProps> = ({
                 'bg-transparent text-gray-300 hover:bg-gray-200 shadow-none',
                 {
                   'text-primary-bg bg-white shadow-md': isSelected,
-                  'underline underline-offset-2': isCurrent,
+                  // 'underline underline-offset-2': isCurrent,
                 }
               )}
             >
