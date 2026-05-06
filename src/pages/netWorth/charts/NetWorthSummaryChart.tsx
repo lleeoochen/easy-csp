@@ -1,6 +1,6 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import type { NetWorthBreakdown } from '@/services/netWorthService';
-import { formatCurrency } from '@/utils/financialUtils';
+import { formatCurrency, formatCurrencyAbbreviated } from '@/utils/financialUtils';
 
 interface NetWorthSummaryChartProps {
   breakdown: NetWorthBreakdown;
@@ -36,7 +36,7 @@ export const NetWorthSummaryChart = ({ breakdown }: NetWorthSummaryChartProps) =
           cy="50%"
           outerRadius={100}
           fontSize={12}
-          label={({ name, value }) => `${name}: ${formatCurrency(value)}`}
+          label={({ name, value }) => `${name}: ${formatCurrencyAbbreviated(value, 0)}`}
         >
           {data.map((entry) => (
             <Cell key={entry.name} fill={COLORS[entry.name as keyof typeof COLORS]} />
