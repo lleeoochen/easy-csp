@@ -66,11 +66,9 @@ export const AccountListItem = ({ account, onDelete }: AccountListItemProps) => 
           <DropdownMenuItem onClick={() => navigate(`/net-worth/account/${account.id}/edit`)}>
             Edit Account
           </DropdownMenuItem>
-          {account.isManual && (
-            <DropdownMenuItem onClick={() => onDelete(account)} className="text-red-600">
-              Delete Account
-            </DropdownMenuItem>
-          )}
+          <DropdownMenuItem onClick={() => onDelete(account)} className="text-red-600">
+            Delete Account
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

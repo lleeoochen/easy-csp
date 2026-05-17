@@ -5,13 +5,15 @@ import { AccountListCard } from './AccountListCard';
 import { getFinancialInstitutionStatusDisplay, getPlaidErrorMessage } from '@/utils/statusUtils';
 import { useRetrySyncInstitution, useRemoveInstitution } from '@/hooks/api/useFinancialInstitutions';
 import LinkFinancialInstitutionButton from '@/components/LinkFinancialInstitutionButton';
-import { AlertTriangleIcon } from 'lucide-react';
+import { AlertTriangleIcon, Trash2 } from 'lucide-react';
 import type { UI_FinancialAccount } from '@/types/uiTypes';
 
 interface AccountListByInstitutionCardsProps {
   institutions: FinancialInstitution[];
   accountsByInstitution: Record<string, UI_FinancialAccount[]>;
+  archivedAccountsByInstitution?: Record<string, UI_FinancialAccount[]>;
   onDelete: (account: UI_FinancialAccount) => void;
+  onDeleteInstitution?: (institution: FinancialInstitution, accounts: UI_FinancialAccount[]) => void;
 }
 
 const InstitutionErrorBanner = ({ institution }: { institution: FinancialInstitution }) => {
@@ -80,7 +82,9 @@ const InstitutionErrorBanner = ({ institution }: { institution: FinancialInstitu
 export const AccountListByInstitutionCards = ({
   institutions,
   accountsByInstitution,
+  archivedAccountsByInstitution,
   onDelete,
+  onDeleteInstitution,
 }: AccountListByInstitutionCardsProps) => {
   if (institutions.length === 0) {
     return (
@@ -97,17 +101,31 @@ export const AccountListByInstitutionCards = ({
         {institutions.map((institution, index) => {
           const statusDisplay = getFinancialInstitutionStatusDisplay(institution.status);
           const institutionAccounts = accountsByInstitution[institution.institutionId] || [];
+          const archivedAccounts = archivedAccountsByInstitution?.[institution.institutionId] || [];
 
           return (
             <AccountListCard
               key={`${institution.institutionId}-${index}`}
               title={institution.institutionName}
               accounts={institutionAccounts}
+              archivedAccounts={archivedAccounts}
               onDelete={onDelete}
               headerContent={
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusDisplay.color}`}>
-                  {statusDisplay.text}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusDisplay.color}`}>
+                    {statusDisplay.text}
+                  </span>
+                  {onDeleteInstitution && (
+                    <Button
+                      variant='icon'
+                      onClick={() => onDeleteInstitution(institution, institutionAccounts)}
+                      className="p-1 text-muted-foreground hover:text-red-600 transition-colors flex items-center"
+                      title="Remove institution"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
               }
               subtitle={<InstitutionErrorBanner institution={institution} />}
               emptyMessage="No accounts found for this institution."

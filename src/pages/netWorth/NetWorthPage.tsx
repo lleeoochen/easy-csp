@@ -11,12 +11,14 @@ import { NetWorthHistoryChart, AssetsHistoryChart, LiabilitiesHistoryChart } fro
 import { AccountListByTypeCards } from './AccountListByTypeCards';
 import { AccountListByInstitutionCards } from './AccountListByInstitutionCards';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
+import { DeleteInstitutionDialog } from './DeleteInstitutionDialog';
 import { calculateNetWorth, isAssetAccount } from '@/utils/netWorthUtils';
 import { Toaster } from 'react-hot-toast';
 import { cn } from '@/components/common/utils';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { Carousel, CarouselContent, CarouselItem, CarouselDots } from '@/components/common/carousel';
 import type { UI_FinancialAccount } from '@/types/uiTypes';
+import type { FinancialInstitution } from '@easy-csp/shared-types';
 import { Card, CardContent, CardHeader } from '@/components/common/card';
 
 type ViewMode = 'type' | 'institution';
@@ -30,6 +32,7 @@ const NetWorthPage = () => {
 
   const [viewMode, setViewMode] = useState<ViewMode>('type');
   const [deleteAccount, setDeleteAccount] = useState<UI_FinancialAccount | null>(null);
+  const [deleteInstitution, setDeleteInstitution] = useState<{ institution: FinancialInstitution; accounts: UI_FinancialAccount[] } | null>(null);
 
   if (isLoading) {
     return (
@@ -69,7 +72,11 @@ const NetWorthPage = () => {
     );
   }
 
-  const netWorthSummary = calculateNetWorth(accounts);
+  // Separate active and archived accounts
+  const activeAccounts = accounts.filter(acc => !acc.archived);
+  const archivedAccounts = accounts.filter(acc => acc.archived);
+
+  const netWorthSummary = calculateNetWorth(activeAccounts);
 
   // Convert to breakdown format for chart
   const breakdown = {
@@ -83,11 +90,22 @@ const NetWorthPage = () => {
   };
 
   // Separate assets and liabilities
-  const assetAccounts = accounts.filter(acc => isAssetAccount(acc.accountType));
-  const liabilityAccounts = accounts.filter(acc => !isAssetAccount(acc.accountType));
+  const assetAccounts = activeAccounts.filter(acc => isAssetAccount(acc.accountType));
+  const liabilityAccounts = activeAccounts.filter(acc => !isAssetAccount(acc.accountType));
 
   // Group accounts by institution
-  const accountsByInstitution = accounts.reduce((acc, account) => {
+  const accountsByInstitution = activeAccounts.reduce((acc, account) => {
+    if (account.institutionId) {
+      if (!acc[account.institutionId]) {
+        acc[account.institutionId] = [];
+      }
+      acc[account.institutionId].push(account);
+    }
+    return acc;
+  }, {} as Record<string, UI_FinancialAccount[]>);
+
+  // Group archived accounts by institution
+  const archivedAccountsByInstitution = archivedAccounts.reduce((acc, account) => {
     if (account.institutionId) {
       if (!acc[account.institutionId]) {
         acc[account.institutionId] = [];
@@ -187,7 +205,9 @@ const NetWorthPage = () => {
             <AccountListByInstitutionCards
               institutions={institutions}
               accountsByInstitution={accountsByInstitution}
+              archivedAccountsByInstitution={archivedAccountsByInstitution}
               onDelete={setDeleteAccount}
+              onDeleteInstitution={(inst, accts) => setDeleteInstitution({ institution: inst, accounts: accts })}
             />
           )}
         </div>
@@ -198,6 +218,13 @@ const NetWorthPage = () => {
         open={!!deleteAccount}
         account={deleteAccount}
         onClose={() => setDeleteAccount(null)}
+      />
+
+      <DeleteInstitutionDialog
+        open={!!deleteInstitution}
+        institution={deleteInstitution?.institution ?? null}
+        accounts={deleteInstitution?.accounts ?? []}
+        onClose={() => setDeleteInstitution(null)}
       />
 
       <Toaster position="top-right" />

@@ -437,3 +437,48 @@ export const useDeleteManualAccount = () => {
 };
 
 
+
+/**
+ * React Query mutation hook for archiving a linked financial account
+ *
+ * Archives a Plaid-linked account (sets archived: true). The account will be
+ * hidden from the UI and skipped during sync.
+ */
+export const useArchiveFinancialAccount = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ accountId }: { accountId: string }) => {
+      const { getFirestore, doc, updateDoc } = await import('firebase/firestore');
+      const { ACCOUNTS_COLLECTION } = await import('@easy-csp/shared-types');
+      const firestore = getFirestore();
+      await updateDoc(doc(firestore, ACCOUNTS_COLLECTION, accountId), { archived: true });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ACCOUNTS_WITH_INFO_QUERY_KEY });
+    },
+  });
+};
+
+/**
+ * React Query mutation hook for restoring (unarchiving) a linked financial account
+ *
+ * Sets archived to false. The account will reappear in the UI and resume syncing.
+ */
+export const useUnarchiveFinancialAccount = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ accountId }: { accountId: string }) => {
+      const { getFirestore, doc, updateDoc } = await import('firebase/firestore');
+      const { ACCOUNTS_COLLECTION } = await import('@easy-csp/shared-types');
+      const firestore = getFirestore();
+      await updateDoc(doc(firestore, ACCOUNTS_COLLECTION, accountId), { archived: false });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ACCOUNTS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: ACCOUNTS_WITH_INFO_QUERY_KEY });
+    },
+  });
+};

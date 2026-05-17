@@ -75,3 +75,53 @@ export const useMarkInstitutionForResync = () => {
     },
   });
 };
+
+/**
+ * React Query mutation hook for permanently deleting a financial institution
+ *
+ * Calls the deleteFinancialInstitution cloud function which:
+ * - Revokes Plaid access token
+ * - Deletes Secret Manager secret
+ * - Deletes all accounts under the institution
+ * - Deletes the institution document
+ *
+ * Blocks if any account under the institution has funds linked.
+ */
+export const useDeleteFinancialInstitution = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ institutionId }: { institutionId: string }) => {
+      const { httpsCallable, getFunctions } = await import('firebase/functions');
+      const functions = getFunctions();
+      const fn = httpsCallable<{ institutionId: string }, { success: true; deletedAccountIds: string[] }>(
+        functions,
+        'deleteFinancialInstitution'
+      );
+      const result = await fn({ institutionId });
+      return result.data;
+    },
+    onMutate: async ({ institutionId }) => {
+      await queryClient.cancelQueries({ queryKey: FINANCIAL_INSTITUTIONS_QUERY_KEY });
+      const previous = queryClient.getQueryData<FinancialInstitution[]>(FINANCIAL_INSTITUTIONS_QUERY_KEY);
+      queryClient.setQueryData<FinancialInstitution[]>(FINANCIAL_INSTITUTIONS_QUERY_KEY, (old) =>
+        old?.map((inst) =>
+          inst.institutionId === institutionId ? { ...inst, status: FinancialInstitutionStatus.Deleting } : inst
+        )
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(FINANCIAL_INSTITUTIONS_QUERY_KEY, context.previous);
+      }
+    },
+    onSuccess: (_data, { institutionId }) => {
+      queryClient.setQueryData<FinancialInstitution[]>(FINANCIAL_INSTITUTIONS_QUERY_KEY, (old) =>
+        old?.filter((inst) => inst.institutionId !== institutionId)
+      );
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts', 'withInfo'] });
+    },
+  });
+};

@@ -147,6 +147,9 @@ export interface UI_FinancialAccount {
    * undefined for manual accounts or accounts without errors
    */
   syncError?: PlaidErrorCode;
+
+  /** Whether this linked account is archived (hidden from UI, skipped during sync) */
+  archived?: boolean;
 }
 
 export type UI_Fund = Fund & {

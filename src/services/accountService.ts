@@ -154,6 +154,7 @@ export class AccountService {
         balance: account.balance,
         isManual: account.isManual,
         lastSyncTimestamp: account.lastSyncTimestamp,
+        archived: account.archived,
       };
 
       // Step 4: Include sync status from institution (for linked accounts)
@@ -256,6 +257,7 @@ export class AccountService {
       institutionId: undefined,
       institutionName: undefined,
       lastSyncTimestamp: undefined,
+      archived: false
     };
 
     // Step 3: Use withoutUndefinedValue for addDoc
