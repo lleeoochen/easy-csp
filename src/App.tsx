@@ -11,16 +11,14 @@ import AccountEditPage from "./pages/netWorth/AccountEditPage";
 import { DollarSign, BarChart3, Settings, Filter, TrendingUp, Target } from "lucide-react";
 import { initializeApp } from "firebase/app";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
-import { connectFirestoreEmulator, getFirestore, doc, getDoc } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
+import { getAuth, multiFactor } from "firebase/auth";
 import SignInPage from "./pages/SignInPage";
 import { useAuthState } from "./hooks/useAuthState";
 import { Tabs } from "./components/Tabs";
 import { isDevEnvironment } from "./utils/envUtils";
 import { RequireMfaEnrollment } from "./components/RequireMfaEnrollment";
 import { EmailVerification } from "./components/auth/EmailVerification";
-import { USERS_COLLECTION, type User } from "@easy-csp/shared-types";
-import { useState, useEffect } from "react";
 import { FundsPage } from "@/pages/funds/FundsPage";
 import AddFundPage from "@/pages/funds/AddFundPage";
 import EditFundPage from "@/pages/funds/EditFundPage";
@@ -49,42 +47,14 @@ if (isDevEnvironment) {
 }
 
 function App() {
-  const { signedIn, loading, userId } = useAuthState();
-  const [mfaEnabled, setMfaEnabled] = useState<boolean | null>(null);
-  const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
-  const [checkingMfa, setCheckingMfa] = useState(true);
+  const { signedIn, loading } = useAuthState();
 
-  useEffect(() => {
-    const checkMfaStatus = async () => {
-      if (!signedIn || !userId) {
-        setCheckingMfa(false);
-        return;
-      }
+  const auth = getAuth();
+  const currentUser = auth.currentUser;
+  const emailVerified = signedIn ? (currentUser?.emailVerified || false) : null;
+  const mfaEnrolled = signedIn && currentUser ? multiFactor(currentUser).enrolledFactors.length > 0 : null;
 
-      try {
-        const auth = getAuth();
-        const currentUser = auth.currentUser;
-
-        // Check email verification status
-        setEmailVerified(currentUser?.emailVerified || false);
-
-        const firestore = getFirestore();
-        const userDoc = await getDoc(doc(firestore, USERS_COLLECTION, userId));
-        const userData = userDoc.data() as User | undefined;
-
-        setMfaEnabled(userData?.mfaEnabled || false);
-      } catch (error) {
-        console.error('Error checking MFA status:', error);
-        setMfaEnabled(false);
-      } finally {
-        setCheckingMfa(false);
-      }
-    };
-
-    checkMfaStatus();
-  }, [signedIn, userId]);
-
-  if (loading || checkingMfa) {
+  if (loading) {
     return (
       <div className="loading-container">
         <div className="spinner"></div>
@@ -98,8 +68,8 @@ function App() {
     return <EmailVerification />;
   }
 
-  // Show MFA enrollment if user is signed in, email verified, but hasn't enabled MFA
-  if (signedIn && emailVerified === true && mfaEnabled === false) {
+  // Show MFA enrollment if user is signed in, email verified, but no MFA factors enrolled
+  if (signedIn && emailVerified === true && !mfaEnrolled) {
     return <RequireMfaEnrollment />;
   }
 
