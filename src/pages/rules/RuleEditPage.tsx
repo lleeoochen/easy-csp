@@ -13,7 +13,6 @@ import { CSPCategory, RuleCondition, SplitFrequency } from "@easy-csp/shared-typ
 import { useRules, useAddRule, useUpdateRule, useDeleteRule } from '@/hooks/api/useRules';
 import { cn } from '@/components/common/utils';
 import { AccountSelector } from '@/components/common/AccountSelector';
-import { ArrowLeft } from "lucide-react";
 import { Button } from '@/components/common/button';
 import { RulesService } from '@/services/rulesService';
 import { FundSelector } from "@/components/common/FundSelector";
@@ -208,7 +207,7 @@ const RuleEditPage = () => {
         await addRuleMutation.mutateAsync(ruleData);
       }
 
-      navigate('/rules');
+      navigate(-1);
     } catch (error) {
       console.error('Error saving rule:', error);
     } finally {
@@ -222,7 +221,7 @@ const RuleEditPage = () => {
     setIsLoading(true);
     try {
       await deleteRuleMutation.mutateAsync(ruleIndex);
-      navigate('/rules');
+      navigate(-1);
     } catch (error) {
       console.error('Error deleting rule:', error);
     } finally {
@@ -240,35 +239,15 @@ const RuleEditPage = () => {
 
   if (!isCreateMode && !rule) {
     return (
-      <Page maxWidth="cozy">
-        <div className="text-center py-8">
-          <p className="text-gray-600 mb-4">Rule not found</p>
-          <Button
-            variant="secondary"
-            onClick={() => navigate('/rules')}
-            className="text-primary-fg hover:text-primary-fg/80"
-          >
-            Back to Rules
-          </Button>
-        </div>
+      <Page maxWidth="cozy" showBack>
+        <p className="text-gray-600 text-center py-8">Rule not found</p>
       </Page>
     );
   }
 
   return (
     <>
-      <Page maxWidth="cozy" title={isCreateMode ? "Create Rule" : "Edit Rule"}>
-        {/* Header with back button */}
-        <div className="mb-6">
-          <Button
-            variant="secondary"
-            onClick={() => navigate('/rules')}
-            className="flex items-center gap-2 text-primary-fg hover:text-primary-fg/80 transition-colors mb-4"
-          >
-            <ArrowLeft size={20} />
-            <span>Back to Rules</span>
-          </Button>
-        </div>
+      <Page maxWidth="cozy" title={isCreateMode ? "Create Rule" : "Edit Rule"} showBack>
 
         <div className="space-y-2">
           {/* Rule Basic Info */}
@@ -471,7 +450,7 @@ const RuleEditPage = () => {
           <DialogActionPanel
             cancel={{
               label: 'Cancel',
-              onClick: () => navigate('/rules'),
+              onClick: () => navigate(-1),
               disabled: isLoading
             }}
             submit={{

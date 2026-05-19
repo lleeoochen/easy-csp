@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useRules } from '@/hooks/api/useRules';
 import { RulesList } from "./RulesList";
 import { Button } from '@/components/common/button';
-import { BackButton } from '@/components/common/BackButton';
 import { TRAVEL_MODE_RULE_NAME } from '@/types/travelMode';
 
 const RulesPage = () => {
@@ -25,10 +24,9 @@ const RulesPage = () => {
   };
 
   return (
-    <Page title="Transaction Rules" maxWidth="cozy">
+    <Page title="Transaction Rules" maxWidth="cozy" showBack>
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <BackButton to="/settings" />
+        <div className="flex justify-end items-center">
           <Button variant="primary" onClick={handleAddRule} className="flex items-center gap-2">
             Add Rule
           </Button>

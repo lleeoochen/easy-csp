@@ -5,7 +5,6 @@ import { Button } from '@/components/common/button';
 import { Input } from '@/components/common/input';
 import { Label } from '@/components/common/label';
 import { Select } from '@/components/common/select';
-import { BackButton } from '@/components/common/BackButton';
 import { AccountType } from '@easy-csp/shared-types';
 import { useCreateManualAccount } from '@/hooks/api/useAccounts';
 import LinkFinancialInstitutionButton from '@/components/LinkFinancialInstitutionButton';
@@ -45,18 +44,15 @@ const AddAccountPage = () => {
       });
 
       toast.success('Manual account created successfully');
-      navigate('/net-worth');
+      navigate(-1);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to create account');
     }
   };
 
   return (
-    <Page title="Add Account" maxWidth="cozy">
+    <Page title="Add Account" maxWidth="cozy" showBack>
       <div className="flex flex-col gap-6">
-        <div className='mr-auto'>
-          <BackButton to="/net-worth" />
-        </div>
         {/* Link Account Section */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h2 className="text-lg font-semibold mb-2">Link Financial Institution</h2>
@@ -127,7 +123,7 @@ const AddAccountPage = () => {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => navigate('/net-worth')}
+                onClick={() => navigate(-1)}
                 className="flex-1"
               >
                 Cancel

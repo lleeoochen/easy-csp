@@ -5,7 +5,6 @@ import { Button } from '@/components/common/button';
 import { Input } from '@/components/common/input';
 import { Label } from '@/components/common/label';
 import { Select } from '@/components/common/select';
-import { BackButton } from '@/components/common/BackButton';
 import { useCreateFund, useFunds } from '@/hooks/api/useFunds';
 import { useAccountsWithInfo } from '@/hooks/api/useAccounts';
 import { toast } from 'react-hot-toast';
@@ -70,18 +69,15 @@ const AddFundPage = () => {
       });
 
       toast.success('Fund created successfully');
-      navigate('/funds');
+      navigate(-1);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to create fund');
     }
   };
 
   return (
-    <Page title="Add Fund" maxWidth="cozy">
+    <Page title="Add Fund" maxWidth="cozy" showBack>
       <div className="flex flex-col gap-6">
-        <div className="mr-auto">
-          <BackButton to="/funds" />
-        </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h2 className="text-lg font-semibold mb-4">Create New Fund</h2>
@@ -133,7 +129,7 @@ const AddFundPage = () => {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => navigate('/funds')}
+                onClick={() => navigate(-1)}
                 className="flex-1"
               >
                 Cancel

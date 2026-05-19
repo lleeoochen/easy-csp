@@ -1,15 +1,20 @@
 import type { ReactNode } from "react";
 import { PullToRefresh } from "./PullToRefresh";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "./common/button";
 
 type PageProps = {
   children?: ReactNode
   title?: string
   maxWidth?: 'half' | 'full' | 'cozy'
+  showBack?: boolean
 };
 
-export const Page = ({ children, title, maxWidth = 'half' }: PageProps) => {
+export const Page = ({ children, title, maxWidth = 'half', showBack = false }: PageProps) => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const handleRefresh = async () => {
     // Refetch all queries to show loading states
@@ -26,6 +31,18 @@ export const Page = ({ children, title, maxWidth = 'half' }: PageProps) => {
     <PullToRefresh onRefresh={handleRefresh} className={`p-4 pb-24 pt-[env(safe-area-inset-top)] w-full`}>
       <h1 className={`text-2xl my-5 text-primary-fg text-center py-5`}>{ title }</h1>
       <div className={`${widthClasses[maxWidth]} m-auto`}>
+        {showBack && (
+          <div className="mb-6">
+            <Button
+              variant="secondary"
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 text-primary-fg hover:text-primary-fg/80 transition-colors"
+            >
+              <ArrowLeft size={20} />
+              <span>Back</span>
+            </Button>
+          </div>
+        )}
         { children }
       </div>
     </PullToRefresh>

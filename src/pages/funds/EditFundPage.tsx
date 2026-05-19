@@ -6,7 +6,6 @@ import { Button } from '@/components/common/button';
 import { Input } from '@/components/common/input';
 import { Label } from '@/components/common/label';
 import { Select } from '@/components/common/select';
-import { BackButton } from '@/components/common/BackButton';
 import { AccountSelector } from '@/components/common/AccountSelector';
 import { useFunds, useUpdateFund } from '@/hooks/api/useFunds';
 import { useAccountsWithInfo } from '@/hooks/api/useAccounts';
@@ -97,7 +96,7 @@ const EditFundPage = () => {
       });
 
       toast.success('Fund updated successfully');
-      navigate('/funds');
+      navigate(-1);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to update fund');
     }
@@ -115,25 +114,17 @@ const EditFundPage = () => {
 
   if (!fund) {
     return (
-      <Page title="Edit Fund" maxWidth="half">
-        <div className="flex flex-col gap-6">
-          <div className="mr-auto">
-            <BackButton to="/funds" />
-          </div>
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-            <p className="text-red-600">Fund not found</p>
-          </div>
+      <Page title="Edit Fund" maxWidth="half" showBack>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <p className="text-red-600">Fund not found</p>
         </div>
       </Page>
     );
   }
 
   return (
-    <Page title="Edit Fund" maxWidth="cozy">
+    <Page title="Edit Fund" maxWidth="cozy" showBack>
       <div className="flex flex-col gap-6">
-        <div className="mr-auto">
-          <BackButton to="/funds" />
-        </div>
 
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h2 className="text-lg font-semibold mb-4">Edit Fund</h2>
@@ -185,7 +176,7 @@ const EditFundPage = () => {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => navigate('/funds')}
+                onClick={() => navigate(-1)}
                 className="flex-1"
               >
                 Cancel

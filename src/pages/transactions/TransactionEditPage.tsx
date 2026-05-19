@@ -16,7 +16,7 @@ import { useUpdateTransaction, useDeleteTransaction, useCreateTransaction, useTr
 import { useAccounts } from '@/hooks/api/useAccounts';
 import "@/components/common/datepicker.css";
 import { formatCurrency, getTransactionSignPrefix } from '@/utils/financialUtils';
-import { ArrowLeft } from "lucide-react";
+
 import { TransactionSplitDialog } from "./TransactionSplitDialog";
 import { Button } from '@/components/common/button';
 import { cn } from "@/components/common/utils";
@@ -134,7 +134,7 @@ const TransactionEditPage = () => {
         };
 
         await createTransaction.mutateAsync(newTransaction);
-        navigate('/transactions');
+        navigate(-1);
       } catch (error) {
         console.error('Error creating transaction:', error);
       } finally {
@@ -174,7 +174,7 @@ const TransactionEditPage = () => {
           transactionId: transaction.id,
           updates,
         });
-        navigate('/transactions');
+        navigate(-1);
       } catch (error) {
         console.error('Error updating transaction:', error);
       } finally {
@@ -189,7 +189,7 @@ const TransactionEditPage = () => {
     setIsLoading(true);
     try {
       await deleteTransaction.mutateAsync(transaction.id);
-      navigate('/transactions');
+      navigate(-1);
     } catch (error) {
       console.error('Error deleting transaction:', error);
     } finally {
@@ -204,7 +204,7 @@ const TransactionEditPage = () => {
     try {
       const result = await unsplitTransaction.mutateAsync(transaction.id);
       if (result.success) {
-        navigate('/transactions');
+        navigate(-1);
       } else {
         console.error('Error unsplitting transaction:', result.message);
       }
@@ -229,17 +229,8 @@ const TransactionEditPage = () => {
 
   if (!isCreateMode && !transaction) {
     return (
-      <Page maxWidth="cozy" title="Edit Transaction">
-        <div className="text-center py-8">
-          <p className="text-gray-600 mb-4">Transaction not found</p>
-          <Button
-            variant="secondary"
-            onClick={() => navigate('/transactions')}
-            className="text-primary-fg hover:text-primary-fg/80"
-          >
-            Back to Transactions
-          </Button>
-        </div>
+      <Page maxWidth="cozy" title="Edit Transaction" showBack>
+        <p className="text-gray-600 text-center py-8">Transaction not found</p>
       </Page>
     );
   }
@@ -259,18 +250,7 @@ const TransactionEditPage = () => {
 
   return (
     <>
-      <Page maxWidth="cozy" title="Edit Transaction">
-        {/* Header with back button */}
-        <div className="mb-6">
-          <Button
-            variant="secondary"
-            onClick={() => navigate('/transactions')}
-            className="flex items-center gap-2 text-primary-fg hover:text-primary-fg/80 transition-colors mb-4"
-          >
-            <ArrowLeft size={20} />
-            <span>Back to Transactions</span>
-          </Button>
-        </div>
+      <Page maxWidth="cozy" title="Edit Transaction" showBack>
 
         {/* Form Card */}
         <Card>
@@ -455,7 +435,7 @@ const TransactionEditPage = () => {
           <DialogActionPanel
             cancel={{
               label: 'Cancel',
-              onClick: () => navigate('/transactions'),
+              onClick: () => navigate(-1),
               disabled: isLoading
             }}
             submit={{

@@ -10,7 +10,6 @@ import { useSaveTravelMode, useUserRules } from '@/hooks/useTravelMode';
 import { getTravelModeConfig, getDefaultTravelCategories } from '@/utils/travelModeUtils';
 import { CSPBucket } from "@easy-csp/shared-types";
 import { camelCaseToSentence } from '@/utils/stringUtils';
-import { ArrowLeft } from "lucide-react";
 import { FundSelector } from "@/components/common/FundSelector";
 import { useFunds } from "@/hooks/api/useFunds";
 
@@ -63,7 +62,7 @@ const TravelModeEditPage = () => {
       { categories: selectedCategories, fundId: fundId },
       {
         onSuccess: () => {
-          navigate('/settings');
+          navigate(-1);
         },
       }
     );
@@ -96,18 +95,7 @@ const TravelModeEditPage = () => {
 
   return (
     <>
-      <Page maxWidth="cozy" title="Configure Travel Mode">
-        {/* Header with back button */}
-        <div className="mb-6">
-          <Button
-            variant="secondary"
-            onClick={() => navigate('/settings')}
-            className="flex items-center gap-2 text-primary-fg hover:text-primary-fg/80 transition-colors mb-4"
-          >
-            <ArrowLeft size={20} />
-            <span>Back to Settings</span>
-          </Button>
-        </div>
+      <Page maxWidth="cozy" title="Configure Travel Mode" showBack>
 
         {/* Categories Card */}
         <Card>
@@ -189,7 +177,7 @@ const TravelModeEditPage = () => {
           <DialogActionPanel
             cancel={{
               label: 'Cancel',
-              onClick: () => navigate('/settings'),
+              onClick: () => navigate(-1),
               disabled: isPending
             }}
             submit={{

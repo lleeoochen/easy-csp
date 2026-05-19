@@ -7,7 +7,6 @@ import {
   useAccountsWithInfo, useUpdateAccountNickname,
   useUpdateManualAccount
 } from '@/hooks/api/useAccounts';
-import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -51,7 +50,7 @@ const AccountEditPage = () => {
     });
 
     toast.success(nickname.trim() ? 'Nickname updated' : 'Nickname cleared');
-    navigate('/net-worth');
+    navigate(-1);
   };
 
   const handleManualAccountSubmit = async () => {
@@ -71,7 +70,7 @@ const AccountEditPage = () => {
 
     if (!balanceChanged && !nicknameChanged) {
       toast.success('No changes to save');
-      navigate('/net-worth');
+      navigate(-1);
       return;
     }
 
@@ -82,7 +81,7 @@ const AccountEditPage = () => {
     });
 
     toast.success('Account updated successfully');
-    navigate('/net-worth');
+    navigate(-1);
   };
 
   if (accountsLoading) {
@@ -95,31 +94,15 @@ const AccountEditPage = () => {
 
   if (!account) {
     return (
-      <Page maxWidth="cozy">
-        <div className="text-center py-8">
-          <p className="text-red-600 mb-4">Account not found</p>
-          <Button onClick={() => navigate('/net-worth')}>
-            Back to Net Worth
-          </Button>
-        </div>
+      <Page maxWidth="cozy" showBack>
+        <p className="text-red-600 text-center py-8">Account not found</p>
       </Page>
     );
   }
 
   return (
     <>
-      <Page maxWidth="cozy" title="Edit Account" key={account?.id}>
-        {/* Header with back button */}
-        <div className="mb-6">
-          <Button
-            variant="secondary"
-            onClick={() => navigate('/net-worth')}
-            className="flex items-center gap-2 text-primary-fg hover:text-primary-fg/80 transition-colors mb-4"
-          >
-            <ArrowLeft size={20} />
-            <span>Back to Net Worth</span>
-          </Button>
-        </div>
+      <Page maxWidth="cozy" title="Edit Account" key={account?.id} showBack>
 
         <form onSubmit={handleSubmit}>
           <Card>
@@ -169,7 +152,7 @@ const AccountEditPage = () => {
                   <Button
                     type="button"
                     variant="secondary"
-                    onClick={() => navigate('/net-worth')}
+                    onClick={() => navigate(-1)}
                     className="flex-1"
                   >
                     Cancel
