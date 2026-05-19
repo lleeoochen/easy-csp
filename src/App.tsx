@@ -23,6 +23,7 @@ import { EmailVerification } from "./components/auth/EmailVerification";
 import { FundsPage } from "@/pages/funds/FundsPage";
 import AddFundPage from "@/pages/funds/AddFundPage";
 import EditFundPage from "@/pages/funds/EditFundPage";
+import { OfflineBanner } from "./components/OfflineBanner";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBERcnPQeqTU4VrJryfWAiqaFe4BPxDRXQ",
@@ -76,6 +77,7 @@ function App() {
 
   return (
     <div className="app-container bg-background">
+      <OfflineBanner />
       {signedIn ? (
         <Tabs
           paths={[
