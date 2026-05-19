@@ -1,94 +1,113 @@
-# Offline Mode — Show Cached Data When Offline
+# Offline Mode
 
 ## Goal
 
-When the user loses internet connectivity, the app should gracefully show whatever data is already cached rather than showing errors or blank screens.
+When the user loses internet connectivity, show cached data instead of errors or blank screens.
 
 ---
 
-## Current State (Findings)
-
-### React Query Setup (`main.tsx`)
-
-- **@tanstack/react-query v5.90** is the data fetching layer
-- QueryClient configured with:
-  - `staleTime: 5 minutes` — data stays fresh
-  - `gcTime: 10 minutes` — unused data kept in memory
-  - `refetchOnWindowFocus: false`
-  - `refetchOnReconnect: false`
-  - `retry: 1` with 1s delay
-
-### Data Fetching Hooks (`src/hooks/api/`)
-
-All server state uses React Query hooks:
-- `useCSP` — Conscious Spending Plan
-- `useTransactions` / `useTransaction` — Transactions (infinite query)
-- `useAccounts` — Accounts
-- `useFunds` — Funds
-- `useRules` — Rules
-- `useFinancialInstitutions` — Linked institutions
-- `useNetWorthHistory` — Net worth history
-- `useSplitTransactions` — Split transactions
-
-Each hook calls a service function (e.g., `ConsciousSpendingPlanService.getCSP()`) that reads from Firestore.
-
-### Cache Utilities (`src/hooks/api/cacheUtils.ts`)
-
-Helper functions for optimistic cache updates: `updateItemInCache`, `addItemToCache`, `removeItemFromCache`, `reorderItemsInCache`.
-
-### What's Missing
-
-1. **No offline detection** — app doesn't know when user is offline
-2. **No cache persistence** — React Query cache is in-memory only; lost on page refresh
-3. **No offline UI** — no banner/indicator telling user they're viewing cached data
-4. **Mutations while offline** — no strategy for queuing writes
+## Implementation Status: ✅ Complete (pending phone testing)
 
 ---
 
-## Proposed Approach
+## What Was Built
 
-### 1. `useOnlineStatus` Hook
+### 1. `useOnlineStatus` hook (`src/hooks/useOnlineStatus.ts`)
+- Uses `useSyncExternalStore` with `navigator.onLine` + `online`/`offline` events
+- Reactively tracks connectivity state
 
-A simple hook using `navigator.onLine` + `online`/`offline` events to expose connectivity state.
+### 2. `OfflineBanner` component (`src/components/OfflineBanner.tsx`)
+- Amber bar with WifiOff icon: "You're offline — showing cached data"
+- Renders at top of app container when offline
 
-### 2. Offline Banner Component
+### 3. React Query Cache Persistence (`main.tsx`)
+- Replaced `QueryClientProvider` with `PersistQueryClientProvider`
+- localStorage persister with 24h max age
+- `gcTime` bumped from 10min to 24h for offline use
+- All query data survives page refreshes
 
-A small banner (e.g., top of screen) that appears when offline: "You're offline — showing cached data."
+### 4. PWA Service Worker (`vite.config.ts`)
+- `vite-plugin-pwa` v1.3.0 with `generateSW` mode
+- Precaches all static assets (HTML, JS, CSS, images)
+- App shell loads from cache even on cold start when offline
+- Web app manifest with app name, icons, standalone display
 
-### 3. React Query Persist (Cache Persistence)
+### 5. Auth State Caching (`src/hooks/useAuthState.ts`)
+- Caches `signedIn`, `userId`, `emailVerified`, `mfaEnrolled` in localStorage
+- Initializes from cache immediately (no loading flash)
+- 24h expiry on cached auth
+- Only clears cache on confirmed logout (when online)
 
-Use `@tanstack/react-query-persist-client` with a localStorage or IndexedDB persister so cached data survives page refreshes. This means:
-- User loads app online → data cached
-- User goes offline or refreshes → app shows persisted cache
-
-### 4. Query Behavior When Offline
-
-React Query already handles this well with current config:
-- `refetchOnReconnect: false` means it won't error-spam when reconnecting
-- Queries with cached data will continue to show stale data (no network request needed if cache exists)
-- New queries that have never been fetched will show loading/error — acceptable
-
-### 5. Mutation Handling (Future)
-
-For now, mutations while offline will simply fail with an error toast. A future enhancement could queue mutations using `onlineMutationManager` from React Query.
-
----
-
-## Implementation Plan
-
-| Step | What | Files |
-|------|------|-------|
-| 1 | Create `useOnlineStatus` hook | `src/hooks/useOnlineStatus.ts` |
-| 2 | Create `OfflineBanner` component | `src/components/OfflineBanner.tsx` |
-| 3 | Install & configure `@tanstack/react-query-persist-client` | `main.tsx`, `package.json` |
-| 4 | Add `OfflineBanner` to app layout | `src/App.tsx` or `src/components/Page.tsx` |
-| 5 | Adjust query `networkMode` if needed | `main.tsx` default options |
+### 6. Offline Auth Bypass (`src/App.tsx`)
+- Skips email verification and MFA enrollment checks when `navigator.onLine === false`
+- Trusts cached auth state for read-only offline access
 
 ---
 
-## Key Decisions
+## Files Modified
 
-- **Persistence storage**: IndexedDB (via `createSyncStoragePersister` or `createAsyncStoragePersister`) — better for larger datasets than localStorage's 5MB limit
-- **Cache max age**: Match `gcTime` (10 min) or extend for offline (e.g., 24 hours for persisted cache)
-- **Scope**: Read-only offline experience first; offline writes are a separate future feature
-- **No service worker needed** for this phase — React Query persistence handles data; the app shell is already served from Vite's build output
+| File | Change |
+|------|--------|
+| `main.tsx` | PersistQueryClientProvider, localStorage persister, 24h gcTime |
+| `src/App.tsx` | OfflineBanner, skip MFA/email checks when offline |
+| `src/hooks/useOnlineStatus.ts` | New — connectivity detection |
+| `src/hooks/useAuthState.ts` | Rewritten — caches auth state in localStorage |
+| `src/components/OfflineBanner.tsx` | New — offline indicator |
+| `vite.config.ts` | Added vite-plugin-pwa, base path trailing slash |
+| `public/pwa-192x192.svg` | New — PWA icon |
+| `public/pwa-512x512.svg` | New — PWA icon |
+| `package.json` | Added @tanstack/react-query-persist-client, vite-plugin-pwa |
+
+---
+
+## How It Works
+
+1. User loads app online → data cached in localStorage, auth state cached, SW caches app shell
+2. User goes offline (airplane mode, no wifi) → `navigator.onLine` becomes `false`
+3. User opens/reloads app → SW serves cached HTML/JS/CSS, React Query serves cached data, auth bypasses MFA check
+4. Offline banner appears at top
+5. Mutations (edits/deletes) will fail with error — app is read-only when offline
+
+---
+
+## Testing
+
+### Desktop (DevTools limitation)
+- Chrome DevTools Network "Offline" checkbox does NOT reliably set `navigator.onLine = false` on reload
+- Use **Application → Service Workers → Offline** checkbox instead (also unreliable on reload)
+- Best tested on real device
+
+### Phone (recommended)
+1. Deploy to GitHub Pages: `npm run deploy`
+2. Open on phone, add to home screen
+3. Navigate around (caches data)
+4. Turn on airplane mode
+5. Reopen app — should show cached data with offline banner
+
+---
+
+## Known Limitations
+
+- **Read-only when offline** — mutations will fail
+- **First visit must be online** — no data to cache on first use
+- **24h cache expiry** — after 24h offline, auth cache expires and user must reconnect
+- **SVG icons** — placeholder icons, should be replaced with proper PNG app icons
+- **No mutation queue** — offline writes are not queued for later sync (future enhancement)
+
+---
+
+## Security Considerations
+
+- Financial data in localStorage is same risk as Firebase's own IndexedDB cache (already happening)
+- Protected by device lock screen + browser same-origin policy
+- Auth bypass only skips MFA *re-verification*, not initial authentication
+- Cache cleared on explicit logout when online
+
+---
+
+## Future Enhancements
+
+- Offline mutation queue (queue writes, sync when back online)
+- Proper PNG app icons (replace SVG placeholders)
+- Cache size management (evict old data if localStorage fills up)
+- "Last synced X minutes ago" indicator

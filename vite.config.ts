@@ -6,7 +6,7 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/easy-csp",
+  base: "/easy-csp/",
   plugins: [
     react(),
     tailwindcss(),
@@ -14,6 +14,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg}'],
+        navigateFallback: '/easy-csp/index.html',
       },
       manifest: {
         name: 'Easy CSP',

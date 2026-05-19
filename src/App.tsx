@@ -13,7 +13,6 @@ import { DollarSign, BarChart3, Settings, Filter, TrendingUp, Target } from "luc
 import { initializeApp } from "firebase/app";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
-import { getAuth, multiFactor } from "firebase/auth";
 import SignInPage from "./pages/SignInPage";
 import { useAuthState } from "./hooks/useAuthState";
 import { Tabs } from "./components/Tabs";
@@ -24,6 +23,7 @@ import { FundsPage } from "@/pages/funds/FundsPage";
 import AddFundPage from "@/pages/funds/AddFundPage";
 import EditFundPage from "@/pages/funds/EditFundPage";
 import { OfflineBanner } from "./components/OfflineBanner";
+import { useOnlineStatus } from "./hooks/useOnlineStatus";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBERcnPQeqTU4VrJryfWAiqaFe4BPxDRXQ",
@@ -49,12 +49,8 @@ if (isDevEnvironment) {
 }
 
 function App() {
-  const { signedIn, loading } = useAuthState();
-
-  const auth = getAuth();
-  const currentUser = auth.currentUser;
-  const emailVerified = signedIn ? (currentUser?.emailVerified || false) : null;
-  const mfaEnrolled = signedIn && currentUser ? multiFactor(currentUser).enrolledFactors.length > 0 : null;
+  const { signedIn, emailVerified, mfaEnrolled, loading } = useAuthState();
+  const isOnline = useOnlineStatus();
 
   if (loading) {
     return (
@@ -65,14 +61,17 @@ function App() {
     );
   }
 
-  // Show email verification screen if user is signed in but email not verified
-  if (signedIn && emailVerified === false) {
-    return <EmailVerification />;
-  }
+  // Skip email/MFA checks when offline — trust the cached session
+  if (isOnline) {
+    // Show email verification screen if user is signed in but email not verified
+    if (signedIn && !emailVerified) {
+      return <EmailVerification />;
+    }
 
-  // Show MFA enrollment if user is signed in, email verified, but no MFA factors enrolled
-  if (signedIn && emailVerified === true && !mfaEnrolled) {
-    return <RequireMfaEnrollment />;
+    // Show MFA enrollment if user is signed in, email verified, but no MFA factors enrolled
+    if (signedIn && emailVerified && !mfaEnrolled) {
+      return <RequireMfaEnrollment />;
+    }
   }
 
   return (
