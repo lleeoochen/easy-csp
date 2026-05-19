@@ -9,6 +9,7 @@ import { DeleteAccountDialog } from './DeleteAccountDialog';
 import { DeleteInstitutionDialog } from './DeleteInstitutionDialog';
 import { Toaster } from 'react-hot-toast';
 import { cn } from '@/components/common/utils';
+import { LastSynced } from '@/components/LastSynced';
 import { useState } from 'react';
 import type { UI_FinancialAccount } from '@/types/uiTypes';
 import type { FinancialInstitution } from '@easy-csp/shared-types';
@@ -66,25 +67,30 @@ const ManageAccountsPage = () => {
       title="Manage Accounts"
       maxWidth="half"
       showBack
-      actions={<>
-        <Button
-          variant="primary"
-          onClick={() => refreshInstitutions()}
-          disabled={isRefreshing}
-          className="flex items-center gap-2 h-fit"
-        >
-          <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-          Sync
-        </Button>
-        <Button
-          variant="primary"
-          onClick={() => navigate('/net-worth/add-account')}
-          className="flex items-center gap-2 h-fit"
-        >
-          <Plus className="w-4 h-4" />
-          Account
-        </Button>
-      </>}
+      actions={
+        <div className="flex flex-col">
+          <div className="flex flex-row items-center gap-2">
+            <Button
+              variant="primary"
+              onClick={() => refreshInstitutions()}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 h-fit"
+            >
+              <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+              Sync
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => navigate('/net-worth/add-account')}
+              className="flex items-center gap-2 h-fit"
+            >
+              <Plus className="w-4 h-4" />
+              Account
+            </Button>
+          </div>
+          <LastSynced institutions={institutions} />
+        </div>
+      }
     >
       <AccountListByInstitutionCards
           institutions={institutions}

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FinancialInstitutionsService } from '@/services/financialInstitutionsService';
 import { type FinancialInstitution, FinancialInstitutionStatus } from '@easy-csp/shared-types';
 import { removeItemFromCache } from './cacheUtils';
+import { ACCOUNTS_WITH_INFO_QUERY_KEY } from './useAccounts';
 
 export const FINANCIAL_INSTITUTIONS_QUERY_KEY = ['financialInstitutions'];
 
@@ -22,6 +23,7 @@ const startPolling = (queryClient: ReturnType<typeof useQueryClient>) => {
     if (round >= POLL_ROUNDS) return;
     round++;
     await queryClient.refetchQueries({ queryKey: FINANCIAL_INSTITUTIONS_QUERY_KEY, type: 'active' });
+    await queryClient.invalidateQueries({ queryKey: ACCOUNTS_WITH_INFO_QUERY_KEY });
     setTimeout(tick, POLL_INTERVAL_MS);
   };
   setTimeout(tick, POLL_INTERVAL_MS);

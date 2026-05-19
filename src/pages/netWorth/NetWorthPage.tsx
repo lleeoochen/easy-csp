@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Page } from '@/components/Page';
 import { Button } from '@/components/common/button';
 import { useAccountsWithInfo } from '@/hooks/api/useAccounts';
-import { useRefreshFinancialInstitutions } from '@/hooks/api/useFinancialInstitutions';
+import { useFinancialInstitutions, useRefreshFinancialInstitutions } from '@/hooks/api/useFinancialInstitutions';
 import { NetWorthSummaryChart } from './charts/NetWorthSummaryChart';
 import { NetWorthHistoryChart, AssetsHistoryChart, LiabilitiesHistoryChart } from './charts';
 import { AccountListByTypeCards } from './AccountListByTypeCards';
@@ -14,11 +14,13 @@ import { Toaster } from 'react-hot-toast';
 import { cn } from '@/components/common/utils';
 import { Carousel, CarouselContent, CarouselItem, CarouselDots } from '@/components/common/carousel';
 import type { UI_FinancialAccount } from '@/types/uiTypes';
+import { LastSynced } from '@/components/LastSynced';
 import { Card, CardContent, CardHeader } from '@/components/common/card';
 
 const NetWorthPage = () => {
   const navigate = useNavigate();
   const { data: accounts, isLoading, error } = useAccountsWithInfo();
+  const { data: institutions } = useFinancialInstitutions();
   const { mutate: refreshInstitutions, isPending: isRefreshing } = useRefreshFinancialInstitutions();
 
   const [deleteAccount, setDeleteAccount] = useState<UI_FinancialAccount | null>(null);
@@ -81,25 +83,30 @@ const NetWorthPage = () => {
     <Page
       title="Net Worth"
       maxWidth="half"
-      actions={<>
-        <Button
-          variant="primary"
-          onClick={() => refreshInstitutions()}
-          disabled={isRefreshing}
-          className='flex items-center gap-2 h-fit'
-        >
-          <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-          Sync
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={() => navigate('/net-worth/manage-accounts')}
-          className='flex items-center gap-2 h-fit'
-        >
-          <Settings2 className="w-4 h-4" />
-          Manage
-        </Button>
-      </>}
+      actions={
+        <div className='flex flex-col'>
+          <div className="flex flex-row items-center gap-2">
+            <Button
+              variant="primary"
+              onClick={() => refreshInstitutions()}
+              disabled={isRefreshing}
+              className='flex items-center gap-2 h-fit'
+            >
+              <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+              Sync
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => navigate('/net-worth/manage-accounts')}
+              className='flex items-center gap-2 h-fit'
+            >
+              <Settings2 className="w-4 h-4" />
+              Manage
+            </Button>
+          </div>
+          <LastSynced institutions={institutions} />
+        </div>
+      }
     >
       <div className="flex flex-col gap-3 m-auto md:flex-row">
         <div className='m-auto w-full flex flex-col gap-3'>

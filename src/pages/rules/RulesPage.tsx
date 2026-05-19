@@ -24,13 +24,12 @@ const RulesPage = () => {
   };
 
   return (
-    <Page title="Transaction Rules" maxWidth="cozy" showBack>
+    <Page title="Transaction Rules" maxWidth="cozy" showBack actions={
+        <Button variant="primary" onClick={handleAddRule} className="flex items-center gap-2">
+          Add Rule
+        </Button>
+      }>
       <div className="space-y-4">
-        <div className="flex justify-end items-center">
-          <Button variant="primary" onClick={handleAddRule} className="flex items-center gap-2">
-            Add Rule
-          </Button>
-        </div>
 
         {isLoading && <div className="animate-pulse">Loading rules...</div>}
         {error && (

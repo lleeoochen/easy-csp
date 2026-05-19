@@ -33,7 +33,7 @@ export const Page = ({ children, title, maxWidth = 'half', showBack = false, act
       <h1 className={`text-2xl my-5 text-primary-fg text-center py-5`}>{ title }</h1>
       <div className={`${widthClasses[maxWidth]} m-auto`}>
         {(showBack || actions) && (
-          <div className="mb-6 flex items-center">
+          <div className="mb-6 flex items-start">
             {showBack && (
               <Button
                 variant="secondary"
