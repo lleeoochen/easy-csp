@@ -18,7 +18,6 @@ import "@/components/common/datepicker.css";
 import { formatCurrency, getTransactionSignPrefix } from '@/utils/financialUtils';
 
 import { TransactionSplitDialog } from "./TransactionSplitDialog";
-import { Button } from '@/components/common/button';
 import { cn } from "@/components/common/utils";
 
 const MANUAL_ACCOUNT = "MANUAL_ACCOUNT";

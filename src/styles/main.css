@@ -18,6 +18,15 @@ body.signin-page {
   background-repeat: no-repeat;
 }
 
+/* Prevent Recharts animation overlay from blocking clicks outside chart */
+.recharts-wrapper {
+  pointer-events: none;
+}
+.recharts-wrapper .recharts-surface,
+.recharts-wrapper .recharts-tooltip-wrapper {
+  pointer-events: auto;
+}
+
 .w-fill {
   width: -webkit-fill-available;
   width: -moz-available;

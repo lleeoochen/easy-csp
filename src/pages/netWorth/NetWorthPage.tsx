@@ -1,38 +1,27 @@
 import { useState } from 'react';
-import { Plus, RefreshCw, Camera } from 'lucide-react';
+import { RefreshCw, Settings2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Page } from '@/components/Page';
 import { Button } from '@/components/common/button';
 import { useAccountsWithInfo } from '@/hooks/api/useAccounts';
-import { useFinancialInstitutions, useRefreshFinancialInstitutions } from '@/hooks/api/useFinancialInstitutions';
-import { useRecordNetWorthSnapshot } from '@/hooks/api/useNetWorthHistory';
+import { useRefreshFinancialInstitutions } from '@/hooks/api/useFinancialInstitutions';
 import { NetWorthSummaryChart } from './charts/NetWorthSummaryChart';
 import { NetWorthHistoryChart, AssetsHistoryChart, LiabilitiesHistoryChart } from './charts';
 import { AccountListByTypeCards } from './AccountListByTypeCards';
-import { AccountListByInstitutionCards } from './AccountListByInstitutionCards';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
-import { DeleteInstitutionDialog } from './DeleteInstitutionDialog';
 import { calculateNetWorth, isAssetAccount } from '@/utils/netWorthUtils';
 import { Toaster } from 'react-hot-toast';
 import { cn } from '@/components/common/utils';
-import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { Carousel, CarouselContent, CarouselItem, CarouselDots } from '@/components/common/carousel';
 import type { UI_FinancialAccount } from '@/types/uiTypes';
-import type { FinancialInstitution } from '@easy-csp/shared-types';
 import { Card, CardContent, CardHeader } from '@/components/common/card';
-
-type ViewMode = 'type' | 'institution';
 
 const NetWorthPage = () => {
   const navigate = useNavigate();
   const { data: accounts, isLoading, error } = useAccountsWithInfo();
-  const { data: institutions = [] } = useFinancialInstitutions();
   const { mutate: refreshInstitutions, isPending: isRefreshing } = useRefreshFinancialInstitutions();
-  const { mutate: recordSnapshot, isPending: isSnapshotting } = useRecordNetWorthSnapshot();
 
-  const [viewMode, setViewMode] = useState<ViewMode>('type');
   const [deleteAccount, setDeleteAccount] = useState<UI_FinancialAccount | null>(null);
-  const [deleteInstitution, setDeleteInstitution] = useState<{ institution: FinancialInstitution; accounts: UI_FinancialAccount[] } | null>(null);
 
   if (isLoading) {
     return (
@@ -62,9 +51,9 @@ const NetWorthPage = () => {
           <p className="text-muted-foreground mb-6">
             Add a manual account or link your financial institutions to get started
           </p>
-          <Button onClick={() => navigate('/net-worth/add-account')}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Account
+          <Button onClick={() => navigate('/net-worth/manage-accounts')}>
+            <Settings2 className="w-4 h-4 mr-2" />
+            Manage Accounts
           </Button>
         </div>
         <Toaster position="top-right" />
@@ -72,13 +61,9 @@ const NetWorthPage = () => {
     );
   }
 
-  // Separate active and archived accounts
   const activeAccounts = accounts.filter(acc => !acc.archived);
-  const archivedAccounts = accounts.filter(acc => acc.archived);
-
   const netWorthSummary = calculateNetWorth(activeAccounts);
 
-  // Convert to breakdown format for chart
   const breakdown = {
     checking: netWorthSummary.assets.checking,
     savings: netWorthSummary.assets.savings,
@@ -89,70 +74,35 @@ const NetWorthPage = () => {
     total: netWorthSummary.netWorth,
   };
 
-  // Separate assets and liabilities
   const assetAccounts = activeAccounts.filter(acc => isAssetAccount(acc.accountType));
   const liabilityAccounts = activeAccounts.filter(acc => !isAssetAccount(acc.accountType));
-
-  // Group accounts by institution
-  const accountsByInstitution = activeAccounts.reduce((acc, account) => {
-    if (account.institutionId) {
-      if (!acc[account.institutionId]) {
-        acc[account.institutionId] = [];
-      }
-      acc[account.institutionId].push(account);
-    }
-    return acc;
-  }, {} as Record<string, UI_FinancialAccount[]>);
-
-  // Group archived accounts by institution
-  const archivedAccountsByInstitution = archivedAccounts.reduce((acc, account) => {
-    if (account.institutionId) {
-      if (!acc[account.institutionId]) {
-        acc[account.institutionId] = [];
-      }
-      acc[account.institutionId].push(account);
-    }
-    return acc;
-  }, {} as Record<string, UI_FinancialAccount[]>);
 
   return (
     <Page
       title="Net Worth"
       maxWidth="half"
+      actions={<>
+        <Button
+          variant="primary"
+          onClick={() => refreshInstitutions()}
+          disabled={isRefreshing}
+          className='flex items-center gap-2 h-fit'
+        >
+          <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+          Sync
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={() => navigate('/net-worth/manage-accounts')}
+          className='flex items-center gap-2 h-fit'
+        >
+          <Settings2 className="w-4 h-4" />
+          Manage
+        </Button>
+      </>}
     >
       <div className="flex flex-col gap-3 m-auto md:flex-row">
-        {/* Content based on view mode */}
         <div className='m-auto w-full flex flex-col gap-3'>
-          {/* Action Buttons */}
-          <div className="flex gap-2 ml-auto">
-            <Button
-              variant="secondary"
-              onClick={() => recordSnapshot()}
-              disabled={isSnapshotting}
-              className='items-center gap-2 h-fit hidden'
-              title="DEV: Record net worth snapshot"
-            >
-              <Camera className={cn("w-4 h-4", isSnapshotting && "animate-pulse")} />
-              Snapshot
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => refreshInstitutions()}
-              disabled={isRefreshing}
-              className='flex items-center gap-2 h-fit'
-            >
-              <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-              Sync
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => navigate('/net-worth/add-account')}
-              className='flex items-center gap-2 h-fit'
-            >
-              <Plus className="w-4 h-4" />
-              Account
-            </Button>
-          </div>
           {/* Net Worth Chart Carousel */}
           <Card>
             <CardHeader>
@@ -170,61 +120,32 @@ const NetWorthPage = () => {
               </Carousel>
             </CardContent>
           </Card>
-          <SegmentedControl<ViewMode>
-            options={[
-              { value: 'type', label: 'By Account Type' },
-              { value: 'institution', label: 'By Institution' },
-            ]}
-            value={viewMode}
-            onChange={setViewMode}
-            className='m-auto mt-3'
-          />
-          {viewMode === 'type' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {/* Assets Section */}
-              {assetAccounts.length > 0 && (
-                <AccountListByTypeCards
-                  title="Assets"
-                  accounts={assetAccounts}
-                  subtotal={netWorthSummary.assets.total}
-                  onDelete={setDeleteAccount}
-                />
-              )}
 
-              {/* Liabilities Section */}
-              {liabilityAccounts.length > 0 && (
-                <AccountListByTypeCards
-                  title="Liabilities"
-                  accounts={liabilityAccounts}
-                  subtotal={netWorthSummary.liabilities.total}
-                  onDelete={setDeleteAccount}
-                />
-              )}
-            </div>
-          ) : (
-            <AccountListByInstitutionCards
-              institutions={institutions}
-              accountsByInstitution={accountsByInstitution}
-              archivedAccountsByInstitution={archivedAccountsByInstitution}
-              onDelete={setDeleteAccount}
-              onDeleteInstitution={(inst, accts) => setDeleteInstitution({ institution: inst, accounts: accts })}
-            />
-          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {assetAccounts.length > 0 && (
+              <AccountListByTypeCards
+                title="Assets"
+                accounts={assetAccounts}
+                subtotal={netWorthSummary.assets.total}
+                onDelete={setDeleteAccount}
+              />
+            )}
+            {liabilityAccounts.length > 0 && (
+              <AccountListByTypeCards
+                title="Liabilities"
+                accounts={liabilityAccounts}
+                subtotal={netWorthSummary.liabilities.total}
+                onDelete={setDeleteAccount}
+              />
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Modals */}
       <DeleteAccountDialog
         open={!!deleteAccount}
         account={deleteAccount}
         onClose={() => setDeleteAccount(null)}
-      />
-
-      <DeleteInstitutionDialog
-        open={!!deleteInstitution}
-        institution={deleteInstitution?.institution ?? null}
-        accounts={deleteInstitution?.accounts ?? []}
-        onClose={() => setDeleteInstitution(null)}
       />
 
       <Toaster position="top-right" />

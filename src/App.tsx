@@ -8,6 +8,7 @@ import TravelModeEditPage from "./pages/travelMode/TravelModeEditPage";
 import NetWorthPage from "./pages/netWorth/NetWorthPage";
 import AddAccountPage from "./pages/netWorth/AddAccountPage";
 import AccountEditPage from "./pages/netWorth/AccountEditPage";
+import ManageAccountsPage from "./pages/netWorth/ManageAccountsPage";
 import { DollarSign, BarChart3, Settings, Filter, TrendingUp, Target } from "lucide-react";
 import { initializeApp } from "firebase/app";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
@@ -125,6 +126,13 @@ function App() {
               name: "Edit Account",
               icon: TrendingUp,
               element: <AccountEditPage />,
+              showInNav: false
+            },
+            {
+              path: "/net-worth/manage-accounts",
+              name: "Manage Accounts",
+              icon: TrendingUp,
+              element: <ManageAccountsPage />,
               showInNav: false
             },
             {

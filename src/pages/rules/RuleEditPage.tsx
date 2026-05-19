@@ -13,7 +13,6 @@ import { CSPCategory, RuleCondition, SplitFrequency } from "@easy-csp/shared-typ
 import { useRules, useAddRule, useUpdateRule, useDeleteRule } from '@/hooks/api/useRules';
 import { cn } from '@/components/common/utils';
 import { AccountSelector } from '@/components/common/AccountSelector';
-import { Button } from '@/components/common/button';
 import { RulesService } from '@/services/rulesService';
 import { FundSelector } from "@/components/common/FundSelector";
 
