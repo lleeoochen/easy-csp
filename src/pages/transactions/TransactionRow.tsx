@@ -2,21 +2,22 @@ import type { Transaction } from "@easy-csp/shared-types";
 import { isManualTransaction } from "@easy-csp/shared-types";
 import { useCategoryMap, useIgnoredCategoryIds } from '@/hooks/useCategoryMap';
 import { useAccounts } from '@/hooks/api/useAccounts';
+import { useFunds } from '@/hooks/api/useFunds';
 import { cn } from '@/components/common/utils';
 import { formatCurrency, getTransactionSignPrefix } from '@/utils/financialUtils';
-import { Split, Target, PenLine } from "lucide-react";
+import { Split, PenLine } from "lucide-react";
 
 const SAVING_TARGET_COLORS = [
-  "text-blue-600",
-  "text-purple-600",
-  "text-green-600",
-  "text-orange-600",
-  "text-pink-600",
-  "text-teal-600",
-  "text-indigo-600",
-  "text-red-600",
-  "text-cyan-600",
-  "text-amber-600",
+  "text-blue-400",
+  "text-purple-400",
+  "text-green-400",
+  "text-orange-400",
+  "text-pink-400",
+  "text-teal-400",
+  "text-indigo-400",
+  "text-red-400",
+  "text-cyan-400",
+  "text-amber-400",
 ];
 
 function hashStringToIndex(str: string, arrayLength: number): number {
@@ -54,6 +55,8 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
   const categoryMap = useCategoryMap();
   const ignoredCategoryIds = useIgnoredCategoryIds();
   const { data: accounts = [] } = useAccounts();
+  const { data: funds = [] } = useFunds();
+  const fundName = transaction.allocatedFundId ? funds.find(f => f.id === transaction.allocatedFundId)?.name : null;
 
   const account = transaction.accountId
     ? accounts.find(acc => acc.id === transaction.accountId)
@@ -63,7 +66,7 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
 
   const targetColor = transaction.allocatedFundId
     ? SAVING_TARGET_COLORS[hashStringToIndex(transaction.allocatedFundId, SAVING_TARGET_COLORS.length)]
-    : "text-blue-600";
+    : "bg-blue-600";
 
   const categoryText = categoryMap[transaction.category] ?? transaction.category;
 
@@ -86,15 +89,15 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
                   {displayName}
                 </span>
               </div>
-              <div className={cn(
-                "flex flex-row gap-1 items-center text-sm flex-wrap",
-                transaction.allocatedFundId ? `${targetColor} font-medium` : "text-gray-400"
-              )}>
-                {transaction.allocatedFundId && (
-                  <Target className={targetColor} size={18} strokeWidth={2} />
-                )}
+              <div className="flex flex-row gap-1 items-center text-sm flex-wrap">
                 <SplitIndicator transaction={transaction} />
-                {isPending ? 'Pending' : categoryText}
+                <span className="text-gray-400">{isPending ? 'Pending' : categoryText}</span>
+                {fundName && (
+                  <>
+                    <span className="text-gray-400 text-xs">•</span>
+                    <span className={cn(targetColor, "")}>{fundName}</span>
+                  </>
+                )}
               </div>
             </div>
           </div>
