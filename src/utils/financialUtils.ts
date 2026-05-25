@@ -7,7 +7,7 @@ import { AccountType } from "@easy-csp/shared-types";
 /**
  * Formats a number as currency with dollar sign and proper rounding
  * @param amount The numeric amount to format
- * @param decimals Number of decimal places to show (default: 2)
+ * @param decimals Number of decimal places to show (default: 0)
  * @param showCents Whether to show cents even when amount is whole number (default: true)
  * @returns Formatted currency string (e.g., "$1,234.56")
  */

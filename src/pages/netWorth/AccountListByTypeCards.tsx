@@ -48,7 +48,7 @@ export const AccountListByTypeCards = ({
                 "text-green-300": isHealthy,
                 "text-red-300": !isHealthy,
               })}>
-                {formatCurrency(typeSum, 0, false)}
+                {formatCurrency(typeSum, 2)}
               </div>
             }
           />

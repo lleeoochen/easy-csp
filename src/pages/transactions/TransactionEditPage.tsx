@@ -342,7 +342,7 @@ const TransactionEditPage = () => {
                 </>
               ) : (
                 <p className="text-sm text-gray-500 mt-1">
-                  {getTransactionSignPrefix(transaction!.amount)}{formatCurrency(transaction!.amount)}
+                  {getTransactionSignPrefix(transaction!.amount)}{formatCurrency(transaction!.amount, 2)}
                 </p>
               )}
             </div>

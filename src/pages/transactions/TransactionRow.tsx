@@ -105,7 +105,7 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
               isIgnored && "text-gray-400",
               !isIgnored && !isPending && transaction.amount < 0 && "text-green-600"
             )}>
-              {getTransactionSignPrefix(transaction.amount) + formatCurrency(transaction.amount)}
+              {getTransactionSignPrefix(transaction.amount) + formatCurrency(transaction.amount, 2)}
             </div>
             <div className="text-sm text-gray-400 text-muted-foreground">
               {new Date(transaction.datetime).toLocaleDateString("en-US", { month: "short", day: "numeric" })}

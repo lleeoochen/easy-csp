@@ -56,7 +56,7 @@ export function TransactionsList({ transactions, hasNextPage, handleTransactionC
               <CardHeader>
                 <div className="flex justify-between text-lg">
                   <div>{monthYear}</div>
-                  {hasNextPage ? <></> : <div>{formatCurrency(total)}</div>}
+                  {hasNextPage ? <></> : <div>{formatCurrency(total, 2)}</div>}
                 </div>
               </CardHeader>
               <CardContent className="px-0! py-0! divide-y divide-gray-200">
