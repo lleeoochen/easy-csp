@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/common/card';
 import { useNetWorthHistory } from '@/hooks/api/useNetWorthHistory';
@@ -7,9 +7,7 @@ import { formatCurrency, formatCurrencyAbbreviated } from '@/utils/financialUtil
 
 type FilteredDataList = {
     month: string;
-    netWorth: number | undefined;
-    assets: number | undefined;
-    liabilities: number | undefined;
+    [key: string]: number | string | undefined;
 }[];
 
 function getTickInterval(max: number): number {
@@ -19,8 +17,8 @@ function getTickInterval(max: number): number {
   return 100;
 }
 
-function generateTicks(data: FilteredDataList, dataKey: string): number[] {
-  const values = data.map(d => d[dataKey]).filter((v): v is number => v != null);
+function generateTicks(data: FilteredDataList, dataKeys: string[]): number[] {
+  const values = data.flatMap(d => dataKeys.map(k => d[k])).filter((v): v is number => v != null && typeof v === 'number');
   if (values.length === 0) return [];
   const min = Math.min(...values);
   const max = Math.max(...values);
@@ -50,11 +48,12 @@ function useYearData(year: number) {
     return new Set(chartData.map(d => parseInt(d.date.split('-')[0])));
   }, [chartData]);
 
-  const filtered = useMemo(() => {
+  const filtered = useMemo((): FilteredDataList => {
     return MONTHS.map((month, i) => {
       const key = `${year}-${String(i + 1).padStart(2, '0')}`;
       const point = chartData?.find(d => d.date === key);
-      return { month, netWorth: point?.netWorth, assets: point?.assets, liabilities: point?.liabilities };
+      if (!point) return { month };
+      return { month, ...point } as FilteredDataList[number];
     });
   }, [chartData, year]);
 
@@ -63,16 +62,31 @@ function useYearData(year: number) {
 
 export type ChartConfig = { dataKey: string; name: string; color: string; gradientId: string; title: string };
 
-export const HistoryChart = ({ config }: { config: ChartConfig }) => {
+export type MultiChartProps =
+  | { config: ChartConfig; configs?: never; title?: never }
+  | { configs: ChartConfig[]; title: string; config?: never };
+
+export const HistoryChart = (props: MultiChartProps) => {
   const [year, setYear] = useState(new Date().getFullYear());
+  const [soloSeries, setSoloSeries] = useState<string | null>(null);
   const { filtered, chartData, isLoading, error, availableYears } = useYearData(year);
 
-  if (error) console.error(`${config.title} query error:`, error);
+  const title = props.config?.title ?? props.title!;
+
+  // For multi-series, filter to only those with data
+  const activeSeries = useMemo(() => {
+    const series = props.config ? [props.config] : props.configs;
+    return series.filter(s => filtered.some(d => d[s.dataKey] != null && d[s.dataKey] !== 0));
+  }, [filtered, props.config, props.configs]);
+
+  const handleLegendClick = (dataKey: string) => {
+    setSoloSeries(prev => prev === dataKey ? null : dataKey);
+  };
 
   if (isLoading) {
     return (
       <Card>
-        <CardHeader><h2 className="text-lg">{config.title}</h2></CardHeader>
+        <CardHeader><h2 className="text-lg">{title}</h2></CardHeader>
         <CardContent><div className="h-48 animate-pulse bg-muted rounded" /></CardContent>
       </Card>
     );
@@ -81,7 +95,7 @@ export const HistoryChart = ({ config }: { config: ChartConfig }) => {
   if (error) {
     return (
       <Card>
-        <CardHeader><h2 className="text-lg">{config.title}</h2></CardHeader>
+        <CardHeader><h2 className="text-lg">{title}</h2></CardHeader>
         <CardContent><p className="text-red-400 text-sm py-8 text-center">Error loading history: {(error as Error).message}</p></CardContent>
       </Card>
     );
@@ -90,13 +104,13 @@ export const HistoryChart = ({ config }: { config: ChartConfig }) => {
   if (!chartData || chartData.length === 0) {
     return (
       <Card>
-        <CardHeader><h2 className="text-lg">{config.title}</h2></CardHeader>
+        <CardHeader><h2 className="text-lg">{title}</h2></CardHeader>
         <CardContent><p className="text-muted-foreground text-sm py-8 text-center">No history yet. Snapshots are recorded monthly.</p></CardContent>
       </Card>
     );
   }
 
-  const ticks = generateTicks(filtered, config.dataKey);
+  const ticks = generateTicks(filtered, activeSeries.map(s => s.dataKey));
 
   return (
     <div>
@@ -104,16 +118,21 @@ export const HistoryChart = ({ config }: { config: ChartConfig }) => {
       <ResponsiveContainer width="100%" height={280}>
         <AreaChart data={filtered} margin={{ top: 20 }}>
           <defs>
-            <linearGradient id={config.gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={config.color} stopOpacity={0.3} />
-              <stop offset="95%" stopColor={config.color} stopOpacity={0} />
-            </linearGradient>
+            {activeSeries.map(s => (
+              <linearGradient key={s.gradientId} id={s.gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={s.color} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={s.color} stopOpacity={0} />
+              </linearGradient>
+            ))}
           </defs>
           <XAxis dataKey="month" tick={{ fontSize: 12 }} padding={{ left: 10, right: 10 }} />
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#99a1af" opacity={0.5} />
           <YAxis mirror width="auto" dy={-10} dx={-5} axisLine={false} tickFormatter={(v) => formatCurrencyAbbreviated(v, 0)} tick={{ fontSize: 12 }} tickLine={false} ticks={ticks} domain={[ticks[0], ticks[ticks.length - 1]]} />
           <Tooltip formatter={(value: number) => [formatCurrency(value), '']} contentStyle={{ borderRadius: '0.5rem' }} />
-          <Area type="monotone" dataKey={config.dataKey} name={config.name} stroke={config.color} fill={`url(#${config.gradientId})`} strokeWidth={2} connectNulls />
+          {activeSeries.length > 1 && <Legend iconType="circle" onClick={p => p.dataKey && handleLegendClick(p.dataKey as string)} />}
+          {activeSeries.map(s => (
+            <Area key={s.dataKey} type="monotone" dataKey={s.dataKey} name={s.name} stroke={s.color} fill={`url(#${s.gradientId})`} strokeWidth={2} connectNulls dot={{ r: 3, fill: s.color }} hide={soloSeries !== null && soloSeries !== s.dataKey} />
+          ))}
         </AreaChart>
       </ResponsiveContainer>
     </div>

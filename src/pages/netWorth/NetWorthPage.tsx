@@ -1,15 +1,17 @@
 import { useState } from 'react';
-import { RefreshCw, Settings2 } from 'lucide-react';
+import { RefreshCw, Settings2, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Page } from '@/components/Page';
 import { Button } from '@/components/common/button';
 import { useAccountsWithInfo } from '@/hooks/api/useAccounts';
 import { useFinancialInstitutions, useRefreshFinancialInstitutions } from '@/hooks/api/useFinancialInstitutions';
+import { useRecordNetWorthSnapshot } from '@/hooks/api/useNetWorthHistory';
 import { NetWorthSummaryChart } from './charts/NetWorthSummaryChart';
-import { NetWorthHistoryChart, AssetsHistoryChart, LiabilitiesHistoryChart } from './charts';
+import { AccountTypeHistoryChart } from './charts';
 import { AccountListByTypeCards } from './AccountListByTypeCards';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
 import { calculateNetWorth, isAssetAccount } from '@/utils/netWorthUtils';
+import { formatCurrency } from '@/utils/financialUtils';
 import { Toaster } from 'react-hot-toast';
 import { cn } from '@/components/common/utils';
 import { Carousel, CarouselContent, CarouselItem, CarouselDots } from '@/components/common/carousel';
@@ -19,13 +21,14 @@ import { Card, CardContent, CardHeader } from '@/components/common/card';
 
 const NetWorthPage = () => {
   const navigate = useNavigate();
-  const { data: accounts, isLoading, error } = useAccountsWithInfo();
-  const { data: institutions } = useFinancialInstitutions();
+  const { data: accounts, isPending: isAccountsPending, error } = useAccountsWithInfo();
+  const { data: institutions, isPending: isInstitutionsPending } = useFinancialInstitutions();
   const { mutate: refreshInstitutions, isPending: isRefreshing } = useRefreshFinancialInstitutions();
+  const { mutate: recordSnapshot, isPending: isSnapshotting } = useRecordNetWorthSnapshot();
 
   const [deleteAccount, setDeleteAccount] = useState<UI_FinancialAccount | null>(null);
 
-  if (isLoading) {
+  if (isAccountsPending || isInstitutionsPending) {
     return (
       <Page title="Net Worth" maxWidth="full">
         <div className="p-8 text-center">
@@ -97,6 +100,15 @@ const NetWorthPage = () => {
             </Button>
             <Button
               variant="secondary"
+              onClick={() => recordSnapshot()}
+              disabled={isSnapshotting}
+              className='flex items-center gap-2 h-fit'
+            >
+              <Camera className={cn("w-4 h-4", isSnapshotting && "animate-pulse")} />
+              Snapshot
+            </Button>
+            <Button
+              variant="secondary"
               onClick={() => navigate('/net-worth/manage-accounts')}
               className='flex items-center gap-2 h-fit'
             >
@@ -113,17 +125,23 @@ const NetWorthPage = () => {
           {/* Net Worth Chart Carousel */}
           <Card>
             <CardHeader>
-              <h2 className="text-lg">Net Worth</h2>
+              <div className="flex justify-between items-start">
+                <h2 className="text-lg">Net Worth</h2>
+                <div className={cn('text-lg font-bold', netWorthSummary.netWorth >= 0 ? 'text-green-300' : 'text-red-300')}>
+                  {formatCurrency(netWorthSummary.netWorth)}
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <Carousel opts={{ align: 'center' }}>
                 <CarouselContent>
                   <CarouselItem><NetWorthSummaryChart breakdown={breakdown} /></CarouselItem>
-                  <CarouselItem><NetWorthHistoryChart /></CarouselItem>
-                  <CarouselItem><AssetsHistoryChart /></CarouselItem>
-                  <CarouselItem><LiabilitiesHistoryChart /></CarouselItem>
+                  {/* <CarouselItem><NetWorthHistoryChart /></CarouselItem> */}
+                  <CarouselItem><AccountTypeHistoryChart /></CarouselItem>
+                  {/* <CarouselItem><AssetsHistoryChart /></CarouselItem> */}
+                  {/* <CarouselItem><LiabilitiesHistoryChart /></CarouselItem> */}
                 </CarouselContent>
-                <CarouselDots count={4} />
+                <CarouselDots count={2} />
               </Carousel>
             </CardContent>
           </Card>
