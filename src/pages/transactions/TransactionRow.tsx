@@ -8,16 +8,16 @@ import { formatCurrency, getTransactionSignPrefix } from '@/utils/financialUtils
 import { Split, PenLine } from "lucide-react";
 
 const SAVING_TARGET_COLORS = [
-  "text-blue-400",
-  "text-purple-400",
-  "text-green-400",
-  "text-orange-400",
-  "text-pink-400",
-  "text-teal-400",
-  "text-indigo-400",
-  "text-red-400",
-  "text-cyan-400",
-  "text-amber-400",
+  "text-blue-500",
+  "text-purple-500",
+  "text-green-500",
+  "text-orange-500",
+  "text-pink-500",
+  "text-teal-500",
+  "text-indigo-500",
+  "text-red-500",
+  "text-cyan-500",
+  "text-amber-500",
 ];
 
 function hashStringToIndex(str: string, arrayLength: number): number {
@@ -89,15 +89,15 @@ export function TransactionRow({ transaction, onClick }: TransactionRowProps) {
                   {displayName}
                 </span>
               </div>
-              <div className="flex flex-row gap-1 items-center text-sm flex-wrap">
+              <div className="flex flex-row gap-1 items-center text-sm truncate">
                 <SplitIndicator transaction={transaction} />
-                <span className="text-gray-400">{isPending ? 'Pending' : categoryText}</span>
                 {fundName && (
                   <>
-                    <span className="text-gray-400 text-xs">•</span>
                     <span className={cn(targetColor, "")}>{fundName}</span>
+                    <span className="text-gray-400 text-xs">•</span>
                   </>
                 )}
+                <span className="text-gray-400">{isPending ? 'Pending' : categoryText}</span>
               </div>
             </div>
           </div>

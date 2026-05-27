@@ -51,7 +51,13 @@ const TransactionsPage = () => {
   } = useTransactions(baseRequest);
 
   const transactions = useMemo(() => {
-    let filtered = data?.pages.flatMap(page => page.transactions ?? []) ?? [];
+    console.log('Pages:', data?.pages.length, data?.pages.map(p => p.transactions?.length));
+    const seen = new Set<string>();
+    let filtered = (data?.pages.flatMap(page => page.transactions ?? []) ?? []).filter(t => {
+      if (seen.has(t.id)) return false;
+      seen.add(t.id);
+      return true;
+    });
 
     // Apply fund filter
     if (fundFilter && fundFilter !== 'none') {

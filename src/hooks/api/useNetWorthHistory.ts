@@ -10,6 +10,12 @@ export interface NetWorthHistoryChartPoint {
   netWorth: number;
   assets: number;
   liabilities: number;
+  checking: number;
+  savings: number;
+  investment: number;
+  credit: number;
+  loan: number;
+  other: number;
 }
 
 /**
@@ -20,11 +26,22 @@ export const useNetWorthHistory = () => {
     queryKey: NET_WORTH_HISTORY_QUERY_KEY,
     queryFn: async (): Promise<NetWorthHistoryChartPoint[]> => {
       const history = await NetWorthHistoryService.getHistory();
-      console.log('📊 NetWorthHistory fetched:', history);
       if (!history?.dataPoints) return [];
 
       return Object.entries(history.dataPoints)
-        .map(([date, dp]) => ({ date, netWorth: dp.assets - dp.liabilities, assets: dp.assets, liabilities: dp.liabilities }))
+        .map(([date, dp]) => {
+          // Backward compat: old data may have assets/liabilities but no per-type fields
+          const raw = dp as unknown as Record<string, number | undefined>;
+          const checking = dp.checking ?? 0;
+          const savings = dp.savings ?? 0;
+          const investment = dp.investment ?? 0;
+          const credit = dp.credit ?? 0;
+          const loan = dp.loan ?? 0;
+          const other = dp.other ?? 0;
+          const assets = checking + savings + investment + other || raw.assets || 0;
+          const liabilities = credit + loan || raw.liabilities || 0;
+          return { date, netWorth: assets - liabilities, assets, liabilities, checking, savings, investment, credit, loan, other };
+        })
         .sort((a, b) => a.date.localeCompare(b.date));
     },
     staleTime: 1000 * 60 * 10,

@@ -10,24 +10,29 @@ type FilteredDataList = {
     [key: string]: number | string | undefined;
 }[];
 
-function getTickInterval(max: number): number {
-  const abs = Math.abs(max);
-  if (abs >= 100000) return 10000;
-  if (abs >= 10000) return 1000;
-  return 100;
+function getTickInterval(range: number): number {
+  if (range === 0) return 1000;
+  // Target ~5-7 ticks by finding a "nice" interval close to range/5
+  const rawInterval = range / 5;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(rawInterval)));
+  const nice = [1, 2, 2.5, 5, 10];
+  const normalized = rawInterval / magnitude;
+  const chosen = nice.find(n => n >= normalized) ?? 10;
+  return chosen * magnitude;
 }
 
-function generateTicks(data: FilteredDataList, dataKeys: string[]): number[] {
+function generateTicks(data: FilteredDataList, dataKeys: string[]): { ticks: number[]; interval: number } {
   const values = data.flatMap(d => dataKeys.map(k => d[k])).filter((v): v is number => v != null && typeof v === 'number');
-  if (values.length === 0) return [];
+  if (values.length === 0) return { ticks: [], interval: 1000 };
   const min = Math.min(...values);
   const max = Math.max(...values);
-  const interval = getTickInterval(Math.max(Math.abs(min), Math.abs(max)));
+  const range = max - min;
+  const interval = getTickInterval(range);
   const start = Math.floor(min / interval - 1) * interval;
   const end = Math.ceil(max / interval + 1) * interval;
   const ticks: number[] = [];
   for (let t = start; t <= end; t += interval) ticks.push(t);
-  return ticks;
+  return { ticks, interval };
 }
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -110,7 +115,15 @@ export const HistoryChart = (props: MultiChartProps) => {
     );
   }
 
-  const ticks = generateTicks(filtered, activeSeries.map(s => s.dataKey));
+  const visibleSeries = soloSeries ? activeSeries.filter(s => s.dataKey === soloSeries) : activeSeries;
+  const { ticks, interval } = generateTicks(filtered, visibleSeries.map(s => s.dataKey));
+  const tickFormatter = (v: number) => {
+    // Use 1 decimal when interval doesn't evenly divide 1000 (e.g., 500 → $7.5K)
+    // Use full format when interval < 1000
+    if (interval < 1000) return formatCurrency(v, 0, true);
+    const decimals = interval % 1000 !== 0 ? 1 : 0;
+    return formatCurrencyAbbreviated(v, decimals);
+  };
 
   return (
     <div>
@@ -127,7 +140,7 @@ export const HistoryChart = (props: MultiChartProps) => {
           </defs>
           <XAxis dataKey="month" tick={{ fontSize: 12 }} padding={{ left: 10, right: 10 }} />
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#99a1af" opacity={0.5} />
-          <YAxis mirror width="auto" dy={-10} dx={-5} axisLine={false} tickFormatter={(v) => formatCurrencyAbbreviated(v, 0)} tick={{ fontSize: 12 }} tickLine={false} ticks={ticks} domain={[ticks[0], ticks[ticks.length - 1]]} />
+          <YAxis mirror width="auto" dy={-10} dx={-5} axisLine={false} tickFormatter={tickFormatter} tick={{ fontSize: 12 }} tickLine={false} ticks={ticks} domain={[ticks[0], ticks[ticks.length - 1]]} />
           <Tooltip formatter={(value: number) => [formatCurrency(value), '']} contentStyle={{ borderRadius: '0.5rem' }} />
           {activeSeries.length > 1 && <Legend iconType="circle" onClick={p => p.dataKey && handleLegendClick(p.dataKey as string)} />}
           {activeSeries.map(s => (

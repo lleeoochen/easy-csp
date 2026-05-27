@@ -32,6 +32,7 @@ export const NetWorthSummaryChart = ({ breakdown }: NetWorthSummaryChartProps) =
           data={data}
           dataKey="value"
           nameKey="name"
+          isAnimationActive={false}
           cx="50%"
           cy="50%"
           outerRadius={100}

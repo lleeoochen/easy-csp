@@ -93,7 +93,6 @@ export const CSPBudgetActionMenu = ({
                   value={Math.min(actualAmount / budgetAmount * 100, 100)}
                   activeColorClass={cn("bg-gray-500", {
                     "bg-red-400": isOverBudget && !exceedingIsGood,
-                    "bg-green-800": isOverBudget && exceedingIsGood
                   })}
                 />
               </div>
@@ -103,7 +102,6 @@ export const CSPBudgetActionMenu = ({
                 </div>
                 <div className={cn("text-gray-400 text-sm", {
                   "text-red-400": isOverBudget && !exceedingIsGood,
-                  "text-green-800": isOverBudget && exceedingIsGood
                 })}>
                   {
                     formatCurrency(actualAmount)

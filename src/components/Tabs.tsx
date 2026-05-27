@@ -66,7 +66,7 @@ const TabsContent = ({ paths }: TabsProps) => {
 
       {/* Bottom Navigation */}
       <nav className={cn(
-        "fixed grid grid-cols-5 bottom-5 left-5 right-5 bg-tabs-bar-bg z-10 backdrop-blur-lg rounded-2xl shadow-xl/30 mx-auto mb-[env(safe-area-inset-bottom)] transition-transform duration-300 w-4/5 md:w-fit",
+        "fixed grid grid-cols-5 bottom-5 left-0 right-0 bg-tabs-bar-bg z-10 backdrop-blur-lg rounded-2xl shadow-xl/30 mx-auto mb-[env(safe-area-inset-bottom)] transition-transform duration-300 w-7/8 md:w-fit",
         !shouldShowNav && "translate-y-[calc(100%+1.25rem+env(safe-area-inset-bottom))]"
       )}>
         {
