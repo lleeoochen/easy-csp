@@ -1,198 +1,162 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Page } from '@/components/Page';
 import { Card, CardHeader, CardContent } from '@/components/common/card';
 import { Button } from '@/components/common/button';
-import { Label } from '@/components/common/label';
 import { DialogActionPanel } from '@/components/common/DialogActionPanel';
-import { useCSP } from '@/hooks/api/useCSP';
-import { useSaveTravelMode, useUserRules } from '@/hooks/useTravelMode';
-import { getTravelModeConfig, getDefaultTravelCategories } from '@/utils/travelModeUtils';
-import { CSPBucket } from "@easy-csp/shared-types";
-import { camelCaseToSentence } from '@/utils/stringUtils';
-import { FundSelector } from "@/components/common/FundSelector";
+import { DatePicker } from '@/components/common/DatePicker';
+import { useUserRules } from '@/hooks/useTravelMode';
+import { getTravelModeConfig, getTravelModeStatus } from '@/utils/travelModeUtils';
+import { TravelModeService } from '@/services/travelModeService';
 import { useFunds } from "@/hooks/api/useFunds";
-
-const CSP_BUCKET_ORDER: CSPBucket[] = [
-  CSPBucket.Income,
-  CSPBucket.FixedCost,
-  CSPBucket.Savings,
-  CSPBucket.Investment,
-  CSPBucket.GuildFreeSpending,
-  CSPBucket.Ignored,
-];
+import { camelCaseToSentence } from '@/utils/stringUtils';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { RULES_QUERY_KEY } from "@/hooks/api/useRules";
+import { getAuth } from "firebase/auth";
+import { Settings } from "lucide-react";
 
 const TravelModeEditPage = () => {
   const navigate = useNavigate();
-  const { data: csp } = useCSP();
-  const { data: rulesData, isLoading: loadingRules } = useUserRules();
-  const { mutate: saveConfig, isPending, isError, error } = useSaveTravelMode();
+  const { data: rulesData, isLoading } = useUserRules();
   const { data: funds = [] } = useFunds();
+  const queryClient = useQueryClient();
 
-  const existingConfig = useMemo(() => getTravelModeConfig(rulesData ?? null), [rulesData]);
-  const defaultCategories = useMemo(() => getDefaultTravelCategories(csp), [csp]);
+  const config = useMemo(() => getTravelModeConfig(rulesData ?? null), [rulesData]);
+  const status = useMemo(() => getTravelModeStatus(rulesData ?? null), [rulesData]);
 
-  const initialCategories = existingConfig?.categories ?? defaultCategories;
-  const initialFundId = existingConfig?.fundId ?? "";
+  const [startDate, setStartDate] = useState<Date | null>(
+    config?.startDate ? new Date(config.startDate) : null
+  );
+  const [endDate, setEndDate] = useState<Date | null>(
+    config?.endDate ? new Date(config.endDate) : null
+  );
 
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialCategories);
-  const [fundId, setFundId] = useState<string>(initialFundId);
+  const fundName = useMemo(() => {
+    if (!config?.fundId) return null;
+    return funds.find(f => f.id === config.fundId)?.name ?? 'Unknown Fund';
+  }, [config, funds]);
 
-  // Sync state when initial values change (e.g., when CSP data loads)
-  useEffect(() => {
-    setSelectedCategories(initialCategories);
-  }, [initialCategories]);
+  const { mutate: saveDates, isPending } = useMutation({
+    mutationFn: async () => {
+      const uid = getAuth().currentUser?.uid;
+      if (!uid) throw new Error('Not authenticated');
+      if (!startDate || !endDate) throw new Error('Dates required');
+      // Set start to beginning of day, end to end of day
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      await TravelModeService.setTripDates(uid, start.getTime(), end.getTime());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RULES_QUERY_KEY });
+      navigate(-1);
+    },
+  });
 
-  useEffect(() => {
-    setFundId(initialFundId);
-  }, [initialFundId]);
+  const { mutate: cancelTrip, isPending: isCancelling } = useMutation({
+    mutationFn: async () => {
+      const uid = getAuth().currentUser?.uid;
+      if (!uid) throw new Error('Not authenticated');
+      await TravelModeService.cancelTrip(uid);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: RULES_QUERY_KEY });
+      navigate(-1);
+    },
+  });
 
-  const handleCategoryToggle = (category: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
-    );
-  };
-
-  const handleSave = async () => {
-    if (selectedCategories.length === 0 || !fundId) return;
-
-    saveConfig(
-      { categories: selectedCategories, fundId: fundId },
-      {
-        onSuccess: () => {
-          navigate(-1);
-        },
-      }
-    );
-  };
-
-  const isValid = selectedCategories.length > 0 && fundId !== "";
-
-  // Group categories by bucket
-  const categoriesByBucket = useMemo(() => {
-    if (!csp) return [];
-
-    return CSP_BUCKET_ORDER.map((bucket) => ({
-      bucket,
-      categories: (csp[bucket] || [])
-        .filter((budget) => !budget.isTrackingFund)
-        .map((budget) => ({
-          id: budget.category,
-          name: budget.name || camelCaseToSentence(budget.category),
-        })),
-    })).filter((group) => group.categories.length > 0); // Only show buckets with categories
-  }, [csp]);
-
-  if (loadingRules) {
+  if (isLoading) {
     return (
-      <Page maxWidth="cozy">
+      <Page maxWidth="cozy" title="Travel Mode" showBack>
         <div className="animate-pulse">Loading...</div>
       </Page>
     );
   }
 
+  // Not configured — redirect to full config
+  if (!config) {
+    navigate('/travel-mode/configure', { replace: true });
+    return null;
+  }
+
+  const isValid = startDate !== null && endDate !== null && startDate <= endDate;
+  const hasDates = status !== 'no-dates' && status !== 'not-configured';
+
   return (
-    <>
-      <Page maxWidth="cozy" title="Configure Travel Mode" showBack>
-
-        {/* Categories Card */}
-        <Card>
-          <CardHeader>
-            Travel Categories
-          </CardHeader>
-          <CardContent className="py-4">
-            <Label className="text-sm font-medium text-gray-700 mb-2 block">
-              Select categories to track during travel
-            </Label>
-            <div className="space-y-4 rounded-lg p-3">
-              {categoriesByBucket.map(({ bucket, categories }) => (
-                <div key={bucket} className="space-y-2">
-                  <h4 className="text-sm font-semibold text-gray-600">
-                    {camelCaseToSentence(bucket)}
-                  </h4>
-                  <div className="space-y-1.5 pl-2">
-                    {categories.map((category) => (
-                      <label
-                        key={category.id}
-                        className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedCategories.includes(category.id)}
-                          onChange={() => handleCategoryToggle(category.id)}
-                          className="w-4 h-4 text-primary-bg border-gray-300 rounded focus:ring-primary-bg"
-                        />
-                        <span className="text-sm text-gray-700">{category.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
+    <Page maxWidth="cozy" title="Travel Mode" showBack>
+      {/* Trip Dates */}
+      <Card>
+        <CardHeader>Trip Dates</CardHeader>
+        <CardContent className="py-4">
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <DatePicker
+                value={startDate}
+                onChange={setStartDate}
+                label="Start Date"
+              />
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex-1">
+              <DatePicker
+                value={endDate}
+                onChange={setEndDate}
+                label="End Date"
+              />
+            </div>
+          </div>
 
-        <Card className="mt-2">
-          <CardHeader>
-            Assign an Travel Fund
-          </CardHeader>
-          <CardContent className="py-4">
-            {
-              funds.length > 0
-              ? (
-                <FundSelector
-                  value={fundId}
-                  onValueChange={setFundId}
-                  label="Travel Fund"
-                  placeholder="Select an fund"
-                  includeNoneOption={false}
-                />
-              ) : (
-                <div>
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      navigate('/funds');
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    Create a travel fund
-                  </Button>
-                </div>
-              )
-            }
+        </CardContent>
+      </Card>
 
-            {isError && error && (
-              <div className="text-sm text-red-600 bg-red-50 p-2 rounded mt-4">
-                {error.message || "Failed to save travel mode configuration"}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {/* Summary */}
+      <Card className="mt-2">
+        <CardHeader>Categories and Associated Fund</CardHeader>
+        <CardContent className="py-4">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-600 space-y-1">
+              <p>
+                <span className="font-medium">Categories:</span>{' '}
+                {config.categories.map(c => camelCaseToSentence(c)).join(', ')}
+              </p>
+              <p>
+                <span className="font-medium">Fund:</span>{' '}
+                {fundName}
+              </p>
+            </div>
+            <Button
+              onClick={() => navigate('/travel-mode/configure')}
+              className="text-gray-500"
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Action buttons - Fixed at bottom on mobile */}
-        <Card className="bg-white p-4 mt-2">
-          <DialogActionPanel
-            cancel={{
-              label: 'Cancel',
-              onClick: () => navigate(-1),
-              disabled: isPending
-            }}
-            submit={{
-              label: isPending ? 'Saving...' : 'Save',
-              onClick: handleSave,
-              disabled: isPending || !isValid
-            }}
-            isLoading={isPending}
-          />
-        </Card>
-
-        {/* Spacer for fixed button on mobile */}
-        <div className="h-20 md:hidden" />
-      </Page>
-    </>
+      {/* Actions */}
+      <Card className="bg-white p-4 mt-2">
+        <DialogActionPanel
+          cancel={{
+            label: 'Cancel',
+            onClick: () => navigate(-1),
+            disabled: isPending
+          }}
+          submit={{
+            label: isPending ? 'Saving...' : 'Save',
+            onClick: () => saveDates(),
+            disabled: isPending || !isValid
+          }}
+          customActions={hasDates ? [{
+            label: isCancelling ? 'Cancelling...' : 'Cancel Trip',
+            onClick: () => cancelTrip(),
+            disabled: isCancelling,
+            className: 'text-red-600 hover:text-red-700 hover:bg-red-50',
+          }] : undefined}
+          isLoading={isPending}
+        />
+      </Card>
+    </Page>
   );
 };
 

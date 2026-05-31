@@ -8,10 +8,10 @@
 import { TRAVEL_MODE_RULE_NAME, type TravelModeConfig } from '@/types/travelMode';
 import { type Rule, type RuleTransformation, CSPBucket, type ConsciousSpendingPlan } from '@easy-csp/shared-types';
 
+export type TravelModeStatus = 'not-configured' | 'no-dates' | 'upcoming' | 'active' | 'ended';
+
 /**
  * Get default travel categories from user's guilt-free spending bucket
- * @param csp User's Conscious Spending Plan data
- * @returns Array of category IDs from GuildFreeSpending bucket
  */
 export function getDefaultTravelCategories(csp: ConsciousSpendingPlan | null | undefined): string[] {
   if (!csp) return [];
@@ -24,8 +24,6 @@ export function getDefaultTravelCategories(csp: ConsciousSpendingPlan | null | u
 
 /**
  * Filter rules by travel mode rule name
- * @param rule User's Rule document from Firestore
- * @returns Array of travel mode rule transformations
  */
 export function getTravelModeRules(rule: Rule | null): RuleTransformation[] {
   if (!rule?.transformations) return [];
@@ -34,27 +32,38 @@ export function getTravelModeRules(rule: Rule | null): RuleTransformation[] {
 
 /**
  * Check if travel mode is configured for the user
- * @param rule User's Rule document from Firestore
- * @returns True if travel mode rules exist
  */
 export function isTravelModeConfigured(rule: Rule | null): boolean {
   return getTravelModeRules(rule).length > 0;
 }
 
 /**
- * Check if travel mode is currently enabled
- * @param rule User's Rule document from Firestore
- * @returns True if travel mode rules exist and all are enabled
+ * Get the travel mode status based on date range
  */
-export function isTravelModeEnabled(rule: Rule | null): boolean {
+export function getTravelModeStatus(rule: Rule | null): TravelModeStatus {
   const travelRules = getTravelModeRules(rule);
-  return travelRules.length > 0 && travelRules.every(t => t.enabled);
+  if (travelRules.length === 0) return 'not-configured';
+
+  const dateRange = travelRules[0].activeDateRange;
+  if (!dateRange) return 'no-dates';
+
+  const now = Date.now();
+  if (now < dateRange.startDate) return 'upcoming';
+  if (now <= dateRange.endDate) return 'active';
+  return 'ended';
+}
+
+/**
+ * Get the date range from travel mode rules
+ */
+export function getTravelModeDates(rule: Rule | null): { startDate: number; endDate: number } | null {
+  const travelRules = getTravelModeRules(rule);
+  if (travelRules.length === 0) return null;
+  return travelRules[0].activeDateRange ?? null;
 }
 
 /**
  * Extract travel mode configuration from rules
- * @param rule User's Rule document from Firestore
- * @returns TravelModeConfig if configured, null otherwise
  */
 export function getTravelModeConfig(rule: Rule | null): TravelModeConfig | null {
   const travelRules = getTravelModeRules(rule);
@@ -67,5 +76,12 @@ export function getTravelModeConfig(rule: Rule | null): TravelModeConfig | null 
   const accountId = travelRules[0].action.assignFund;
   if (!accountId) return null;
 
-  return { categories, fundId: accountId };
+  const dateRange = travelRules[0].activeDateRange;
+
+  return {
+    categories,
+    fundId: accountId,
+    startDate: dateRange?.startDate,
+    endDate: dateRange?.endDate,
+  };
 }

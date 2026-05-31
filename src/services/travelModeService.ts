@@ -121,9 +121,6 @@ export class TravelModeService {
 
   /**
    * Gets the travel mode rule from Firestore
-   * @param uid User ID (optional, defaults to authenticated user)
-   * @returns Rule document or null if not found
-   * @throws {TravelModeError} If user is not authenticated or Firestore operation fails
    */
   public static async getTravelModeRule(uid?: string): Promise<Rule | null> {
     try {
@@ -146,71 +143,48 @@ export class TravelModeService {
   /**
    * Creates or updates travel mode rules in Firestore
    * @param uid User ID
-   * @param config Travel mode configuration (categories and account)
-   * @throws {TravelModeError} If configuration is invalid or Firestore operation fails
+   * @param config Travel mode configuration (categories, fund, and optional dates)
    */
   public static async createOrUpdateTravelModeRule(
     uid: string,
     config: TravelModeConfig
   ): Promise<void> {
     try {
-      // Validate user ID
       if (!uid || typeof uid !== "string" || uid.trim() === "") {
-        throw new TravelModeError(
-          "Invalid user ID",
-          TravelModeErrorCode.INVALID_CONFIG
-        );
+        throw new TravelModeError("Invalid user ID", TravelModeErrorCode.INVALID_CONFIG);
       }
 
-      // Validate configuration
       if (!config) {
-        throw new TravelModeError(
-          "Configuration is required",
-          TravelModeErrorCode.INVALID_CONFIG
-        );
+        throw new TravelModeError("Configuration is required", TravelModeErrorCode.INVALID_CONFIG);
       }
 
-      if (!config.categories || !Array.isArray(config.categories)) {
-        throw new TravelModeError(
-          "Categories must be an array",
-          TravelModeErrorCode.INVALID_CONFIG
-        );
+      if (!config.categories || !Array.isArray(config.categories) || config.categories.length === 0) {
+        throw new TravelModeError("At least one category must be selected", TravelModeErrorCode.INVALID_CONFIG);
       }
 
-      if (config.categories.length === 0) {
-        throw new TravelModeError(
-          "At least one category must be selected",
-          TravelModeErrorCode.INVALID_CONFIG
-        );
-      }
-
-      // Validate each category is a non-empty string
       const invalidCategories = config.categories.filter(
         cat => !cat || typeof cat !== "string" || cat.trim() === ""
       );
       if (invalidCategories.length > 0) {
-        throw new TravelModeError(
-          "All categories must be valid non-empty strings",
-          TravelModeErrorCode.INVALID_CONFIG
-        );
+        throw new TravelModeError("All categories must be valid non-empty strings", TravelModeErrorCode.INVALID_CONFIG);
       }
 
       if (!config.fundId || typeof config.fundId !== "string" || config.fundId.trim() === "") {
-        throw new TravelModeError(
-          "Account must be selected",
-          TravelModeErrorCode.INVALID_CONFIG
-        );
+        throw new TravelModeError("Account must be selected", TravelModeErrorCode.INVALID_CONFIG);
       }
 
       const firestore = getFirestore();
       const ruleDocRef = doc(firestore, RULES_COLLECTION, uid);
 
-      // Use Firestore transaction for atomic update
+      // Build activeDateRange if dates are provided
+      const activeDateRange = config.startDate && config.endDate
+        ? { startDate: config.startDate, endDate: config.endDate }
+        : undefined;
+
       await runTransaction(firestore, async (transaction) => {
         const ruleDoc = await transaction.get(ruleDocRef);
 
         let transformations: RuleTransformation[] = [];
-        let enabled = false;
 
         if (ruleDoc.exists()) {
           const existingRule = ruleDoc.data() as Rule;
@@ -218,15 +192,12 @@ export class TravelModeService {
           transformations = existingRule.transformations.filter(
             t => t.name !== TRAVEL_MODE_RULE_NAME
           );
-          enabled = existingRule.transformations.filter(
-            t => t.name === TRAVEL_MODE_RULE_NAME
-          ).every(t => t.enabled);
         }
 
         // Create new travel mode rules (one per category)
         const travelModeRules: RuleTransformation[] = config.categories.map(category => ({
           name: TRAVEL_MODE_RULE_NAME,
-          enabled: enabled,
+          enabled: true,
           matchingCriteria: {
             category: {
               value: category,
@@ -235,13 +206,12 @@ export class TravelModeService {
           },
           action: {
             assignFund: config.fundId
-          }
+          },
+          ...(activeDateRange && { activeDateRange })
         }));
 
-        // Add new travel mode rules
         transformations.push(...travelModeRules);
 
-        // Save updated rules
         transaction.set(ruleDocRef, prepareFirestoreData({
           uid,
           transformations
@@ -253,39 +223,26 @@ export class TravelModeService {
   }
 
   /**
-   * Toggles travel mode on or off by updating the enabled field
+   * Sets trip dates on existing travel mode rules
    * @param uid User ID
-   * @param enabled Whether travel mode should be enabled
-   * @throws {TravelModeError} If travel mode is not configured or Firestore operation fails
+   * @param startDate Trip start date (epoch ms)
+   * @param endDate Trip end date (epoch ms)
    */
-  public static async toggleTravelMode(uid: string, enabled: boolean): Promise<void> {
+  public static async setTripDates(uid: string, startDate: number, endDate: number): Promise<void> {
     try {
-      // Validate user ID
       if (!uid || typeof uid !== "string" || uid.trim() === "") {
-        throw new TravelModeError(
-          "Invalid user ID",
-          TravelModeErrorCode.INVALID_CONFIG
-        );
-      }
-
-      // Validate enabled parameter
-      if (typeof enabled !== "boolean") {
-        throw new TravelModeError(
-          "Enabled parameter must be a boolean",
-          TravelModeErrorCode.INVALID_CONFIG
-        );
+        throw new TravelModeError("Invalid user ID", TravelModeErrorCode.INVALID_CONFIG);
       }
 
       const firestore = getFirestore();
       const ruleDocRef = doc(firestore, RULES_COLLECTION, uid);
 
-      // Use Firestore transaction for atomic update
       await runTransaction(firestore, async (transaction) => {
         const ruleDoc = await transaction.get(ruleDocRef);
 
         if (!ruleDoc.exists()) {
           throw new TravelModeError(
-            "Travel mode not configured. Please configure travel mode before toggling",
+            "Travel mode not configured",
             TravelModeErrorCode.NOT_CONFIGURED
           );
         }
@@ -295,27 +252,69 @@ export class TravelModeService {
 
         if (travelRules.length === 0) {
           throw new TravelModeError(
-            "Travel mode not configured. Please configure travel mode before toggling",
+            "Travel mode not configured",
             TravelModeErrorCode.NOT_CONFIGURED
           );
         }
 
-        // Update enabled field for all travel mode rules
         const transformations = existingRule.transformations.map(t => {
           if (t.name === TRAVEL_MODE_RULE_NAME) {
-            return { ...t, enabled };
+            return { ...t, enabled: true, activeDateRange: { startDate, endDate } };
           }
           return t;
         });
 
-        // Save updated rules
         transaction.set(ruleDocRef, prepareFirestoreData({
           uid,
           transformations
         }), { merge: true });
       });
     } catch (error) {
-      this.handleFirestoreError(error, "toggle travel mode");
+      this.handleFirestoreError(error, "set trip dates");
+    }
+  }
+
+  /**
+   * Cancels the current trip by clearing dates from travel mode rules.
+   * Categories and fund are preserved for next trip.
+   * @param uid User ID
+   */
+  public static async cancelTrip(uid: string): Promise<void> {
+    try {
+      if (!uid || typeof uid !== "string" || uid.trim() === "") {
+        throw new TravelModeError("Invalid user ID", TravelModeErrorCode.INVALID_CONFIG);
+      }
+
+      const firestore = getFirestore();
+      const ruleDocRef = doc(firestore, RULES_COLLECTION, uid);
+
+      await runTransaction(firestore, async (transaction) => {
+        const ruleDoc = await transaction.get(ruleDocRef);
+
+        if (!ruleDoc.exists()) {
+          throw new TravelModeError(
+            "Travel mode not configured",
+            TravelModeErrorCode.NOT_CONFIGURED
+          );
+        }
+
+        const existingRule = ruleDoc.data() as Rule;
+
+        const transformations = existingRule.transformations.map(t => {
+          if (t.name === TRAVEL_MODE_RULE_NAME) {
+            const { activeDateRange: _, ...rest } = t;
+            return rest;
+          }
+          return t;
+        });
+
+        transaction.set(ruleDocRef, prepareFirestoreData({
+          uid,
+          transformations
+        }), { merge: true });
+      });
+    } catch (error) {
+      this.handleFirestoreError(error, "cancel trip");
     }
   }
 }

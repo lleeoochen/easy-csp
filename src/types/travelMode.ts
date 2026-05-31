@@ -19,4 +19,8 @@ export interface TravelModeConfig {
   categories: string[];
   /** ID of the fund to mark transactions to */
   fundId: string;
+  /** Trip start date (epoch ms, start of day) */
+  startDate?: number;
+  /** Trip end date (epoch ms, end of day) */
+  endDate?: number;
 }

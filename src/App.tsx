@@ -5,6 +5,7 @@ import RulesPage from "./pages/rules/RulesPage";
 import RuleEditPage from "./pages/rules/RuleEditPage";
 import SettingsPage from "./pages/SettingsPage";
 import TravelModeEditPage from "./pages/travelMode/TravelModeEditPage";
+import TravelModeConfigPage from "./pages/travelMode/TravelModeConfigPage";
 import NetWorthPage from "./pages/netWorth/NetWorthPage";
 import AddAccountPage from "./pages/netWorth/AddAccountPage";
 import AccountEditPage from "./pages/netWorth/AccountEditPage";
@@ -176,6 +177,13 @@ function App() {
               name: "Travel Mode",
               icon: Settings,
               element: <TravelModeEditPage />,
+              showInNav: false
+            },
+            {
+              path: "/travel-mode/configure",
+              name: "Configure Travel Mode",
+              icon: Settings,
+              element: <TravelModeConfigPage />,
               showInNav: false
             },
           ]}
