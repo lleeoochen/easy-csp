@@ -12,8 +12,8 @@ type FilteredDataList = {
 
 function getTickInterval(range: number): number {
   if (range === 0) return 1000;
-  // Target ~5-7 ticks by finding a "nice" interval close to range/5
-  const rawInterval = range / 5;
+  // Target 3 data ticks — ±1 buffer brings total to ~5
+  const rawInterval = range / 3;
   const magnitude = Math.pow(10, Math.floor(Math.log10(rawInterval)));
   const nice = [1, 2, 2.5, 5, 10];
   const normalized = rawInterval / magnitude;
@@ -118,10 +118,10 @@ export const HistoryChart = (props: MultiChartProps) => {
   const visibleSeries = soloSeries ? activeSeries.filter(s => s.dataKey === soloSeries) : activeSeries;
   const { ticks, interval } = generateTicks(filtered, visibleSeries.map(s => s.dataKey));
   const tickFormatter = (v: number) => {
-    // Use 1 decimal when interval doesn't evenly divide 1000 (e.g., 500 → $7.5K)
-    // Use full format when interval < 1000
-    if (interval < 1000) return formatCurrency(v, 0, true);
-    const decimals = interval % 1000 !== 0 ? 1 : 0;
+    // Use 1 decimal for sub-million intervals so e.g. $1.1M/$1.2M don't collapse to $1M
+    const absMax = Math.max(...ticks.map(Math.abs));
+    const unit = absMax >= 1e9 ? 1e9 : absMax >= 1e6 ? 1e6 : 1e3;
+    const decimals = interval < unit ? 2 : 0;
     return formatCurrencyAbbreviated(v, decimals);
   };
 
