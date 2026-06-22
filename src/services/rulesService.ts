@@ -14,6 +14,7 @@ import {
   RuleCondition
 } from "@easy-csp/shared-types";
 import { prepareFirestoreData } from '@/utils/firestoreHelpers';
+import { TRAVEL_MODE_RULE_NAME } from '@/types/travelMode';
 import { FundService } from "@/services/fundService";
 
 export class RulesService {
@@ -245,6 +246,13 @@ export class RulesService {
       // Process each enabled rule
       for (const rule of rules) {
         if (!rule.enabled) continue;
+
+        // Skip travel mode rules with no dates
+        if (rule.name === TRAVEL_MODE_RULE_NAME && !rule.activeDateRange) continue;
+        // Match transaction datetime against the rule date range (handles late-posting transactions)
+        if (rule.activeDateRange) {
+          if (modifiedTransaction.datetime < rule.activeDateRange.startDate || modifiedTransaction.datetime > rule.activeDateRange.endDate) continue;
+        }
 
         // Check if rule matches transaction
         if (this.evaluateRuleCriteria(modifiedTransaction, rule.matchingCriteria)) {

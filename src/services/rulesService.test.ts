@@ -1,42 +1,29 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { RulesService } from './rulesService';
-import { AccountService } from './accountService';
+import { TRAVEL_MODE_RULE_NAME } from '@/types/travelMode';
+import { FundService } from './fundService';
 import {
   type Transaction,
   type RuleTransformation,
   RuleCondition,
-  AccountType,
-  type FinancialAccount
 } from '@easy-csp/shared-types';
+import type { UI_Fund } from '@/types/uiTypes';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-// Mock AccountService
-vi.mock('./accountService');
+// Mock FundService
+vi.mock('./fundService');
 
 describe('RulesService - Fund Assignment Methods', () => {
   const mockUid = 'test-user-123';
   const mockFundAccountId = 'fund-456';
-  const mockNonFundAccountId = 'account-789';
 
-  const mockFundAccount: FinancialAccount = {
+  const mockFund: UI_Fund = {
     id: mockFundAccountId,
     uid: mockUid,
+    name: 'Emergency Fund',
+    type: 'saving',
     accountId: 'plaid-fund-123',
-    accountName: 'Emergency Fund',
-    accountType: AccountType.Savings,
-    balance: 5000,
-    isManual: false,
-  };
-
-  const mockNonFundAccount: FinancialAccount = {
-    id: mockNonFundAccountId,
-    uid: mockUid,
-    accountId: 'plaid-checking-456',
-    accountName: 'Checking Account',
-    accountType: AccountType.Checking,
-    balance: 2000,
-    isManual: false,
   };
 
   beforeEach(() => {
@@ -44,11 +31,8 @@ describe('RulesService - Fund Assignment Methods', () => {
   });
 
   describe('validateFundAssignmentRule', () => {
-    it('should return valid for a valid fund account', async () => {
-      vi.mocked(AccountService.listAccounts).mockResolvedValue([
-        mockFundAccount,
-        mockNonFundAccount,
-      ]);
+    it('should return valid for a valid fund', async () => {
+      vi.mocked(FundService.listFunds).mockResolvedValue([mockFund]);
 
       const result = await RulesService.validateFundAssignmentRule(mockFundAccountId);
 
@@ -56,31 +40,17 @@ describe('RulesService - Fund Assignment Methods', () => {
       expect(result.message).toBeUndefined();
     });
 
-    it('should return invalid when fund account does not exist', async () => {
-      vi.mocked(AccountService.listAccounts).mockResolvedValue([
-        mockNonFundAccount,
-      ]);
+    it('should return invalid when fund does not exist', async () => {
+      vi.mocked(FundService.listFunds).mockResolvedValue([mockFund]);
 
       const result = await RulesService.validateFundAssignmentRule('non-existent-id');
 
       expect(result.valid).toBe(false);
-      expect(result.message).toBe('Fund account not found');
-    });
-
-    it('should return invalid when account is not a fund account', async () => {
-      vi.mocked(AccountService.listAccounts).mockResolvedValue([
-        mockFundAccount,
-        mockNonFundAccount,
-      ]);
-
-      const result = await RulesService.validateFundAssignmentRule(mockNonFundAccountId);
-
-      expect(result.valid).toBe(false);
-      expect(result.message).toBe('Referenced account is not a fund account');
+      expect(result.message).toBe('Fund not found');
     });
 
     it('should handle errors gracefully', async () => {
-      vi.mocked(AccountService.listAccounts).mockRejectedValue(new Error('Network error'));
+      vi.mocked(FundService.listFunds).mockRejectedValue(new Error('Network error'));
 
       const result = await RulesService.validateFundAssignmentRule(mockFundAccountId);
 
@@ -332,6 +302,92 @@ describe('RulesService - Fund Assignment Methods', () => {
       const result = RulesService.applyRulesToTransaction(mockTransaction, rules);
 
       expect(result).toEqual(mockTransaction);
+    });
+
+    it('should not apply rule when transaction.datetime is outside activeDateRange', () => {
+      const txnTime = mockTransaction.datetime;
+      const rules: RuleTransformation[] = [
+        {
+          name: 'Old travel rule',
+          enabled: true,
+          matchingCriteria: { category: { value: 'groceries', condition: RuleCondition.Exact } },
+          action: { assignFund: mockFundAccountId },
+          activeDateRange: { startDate: txnTime - 2000, endDate: txnTime - 1000 }, // range ended before txn
+        },
+      ];
+
+      const result = RulesService.applyRulesToTransaction(mockTransaction, rules);
+
+      expect(result.allocatedFundId).toBeUndefined();
+    });
+
+    it('should apply rule when transaction.datetime is within activeDateRange', () => {
+      const txnTime = mockTransaction.datetime;
+      const rules: RuleTransformation[] = [
+        {
+          name: 'Active travel rule',
+          enabled: true,
+          matchingCriteria: { category: { value: 'groceries', condition: RuleCondition.Exact } },
+          action: { assignFund: mockFundAccountId },
+          activeDateRange: { startDate: txnTime - 1000, endDate: txnTime + 1000 },
+        },
+      ];
+
+      const result = RulesService.applyRulesToTransaction(mockTransaction, rules);
+
+      expect(result.allocatedFundId).toBe(mockFundAccountId);
+    });
+
+    it('should not apply rule when transaction.datetime is before activeDateRange.startDate', () => {
+      const txnTime = mockTransaction.datetime;
+      const rules: RuleTransformation[] = [
+        {
+          name: 'Future travel rule',
+          enabled: true,
+          matchingCriteria: { category: { value: 'groceries', condition: RuleCondition.Exact } },
+          action: { assignFund: mockFundAccountId },
+          activeDateRange: { startDate: txnTime + 1000, endDate: txnTime + 2000 }, // range starts after txn
+        },
+      ];
+
+      const result = RulesService.applyRulesToTransaction(mockTransaction, rules);
+
+      expect(result.allocatedFundId).toBeUndefined();
+    });
+
+    it('should apply travel rule to late-posting transaction whose datetime falls within the trip range', () => {
+      const tripStart = mockTransaction.datetime - 1000 * 60 * 60 * 24 * 3; // trip started 3 days ago
+      const tripEnd = mockTransaction.datetime - 1000 * 60 * 60 * 24;       // trip ended 1 day ago
+      const latePostingTxn = { ...mockTransaction, datetime: tripEnd - 1000 }; // txn occurred during trip
+      const rules: RuleTransformation[] = [
+        {
+          name: TRAVEL_MODE_RULE_NAME,
+          enabled: true,
+          matchingCriteria: { category: { value: 'groceries', condition: RuleCondition.Exact } },
+          action: { assignFund: mockFundAccountId },
+          activeDateRange: { startDate: tripStart, endDate: tripEnd },
+        },
+      ];
+
+      const result = RulesService.applyRulesToTransaction(latePostingTxn, rules);
+
+      expect(result.allocatedFundId).toBe(mockFundAccountId);
+    });
+
+    it('should not apply travel mode rule when no activeDateRange is set', () => {
+      const rules: RuleTransformation[] = [
+        {
+          name: TRAVEL_MODE_RULE_NAME,
+          enabled: true,
+          matchingCriteria: { category: { value: 'groceries', condition: RuleCondition.Exact } },
+          action: { assignFund: mockFundAccountId },
+          // no activeDateRange
+        },
+      ];
+
+      const result = RulesService.applyRulesToTransaction(mockTransaction, rules);
+
+      expect(result.allocatedFundId).toBeUndefined();
     });
   });
 });

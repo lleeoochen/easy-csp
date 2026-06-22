@@ -303,7 +303,7 @@ export class TravelModeService {
         const transformations = existingRule.transformations.map(t => {
           if (t.name === TRAVEL_MODE_RULE_NAME) {
             const { activeDateRange: _, ...rest } = t;
-            return rest;
+            return { ...rest, enabled: false };
           }
           return t;
         });
