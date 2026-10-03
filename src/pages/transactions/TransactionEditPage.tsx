@@ -354,7 +354,7 @@ const TransactionEditPage = () => {
                 <p className="text-sm text-gray-500 mt-1">Manual Entry</p>
               ) : (
                 <p className="text-sm text-gray-500 mt-1">
-                  {institution?.institutionName} - {account?.accountName}
+                  {institution?.institutionName} - {account?.accountName} (<span>••••{account?.mask}</span>)
                 </p>
               )}
             </div>

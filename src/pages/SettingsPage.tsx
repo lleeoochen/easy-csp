@@ -136,31 +136,32 @@ const SettingsPage = () => {
             </CardContent>
           </Card>
 
-          {/* TEMPORARY: One-time cleanup for orphaned transactions — remove after use */}
-          <Card>
-            <CardHeader className="text-lg">Cleanup</CardHeader>
-            <CardContent>
-              <div className="p-2 flex flex-col gap-2">
-                <p className="text-sm text-gray-500">Delete transactions whose account no longer exists.</p>
-                <Button variant="primary" onClick={handleCleanupOrphanedTransactions}>
-                  Delete Orphaned Transactions
-                </Button>
-                {cleanupStatus && <p className="text-sm">{cleanupStatus}</p>}
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Dev Tools Section - Only show in development */}
           {isDevEnvironment && (
-            <Card>
-              <CardHeader className="text-lg flex items-center">
-                <TestTube className="w-5 h-5 mr-2" />
-                Dev Tools
-              </CardHeader>
-              <CardContent>
-                <DevTestImport />
-              </CardContent>
-            </Card>
+            <>
+              {/* TEMPORARY: One-time cleanup for orphaned transactions — remove after use */}
+              <Card>
+                <CardHeader className="text-lg">Cleanup</CardHeader>
+                <CardContent>
+                  <div className="p-2 flex flex-col gap-2">
+                    <p className="text-sm text-gray-500">Delete transactions whose account no longer exists.</p>
+                    <Button variant="primary" onClick={handleCleanupOrphanedTransactions}>
+                      Delete Orphaned Transactions
+                    </Button>
+                    {cleanupStatus && <p className="text-sm">{cleanupStatus}</p>}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="text-lg flex items-center">
+                  <TestTube className="w-5 h-5 mr-2" />
+                  Dev Tools
+                </CardHeader>
+                <CardContent>
+                  <DevTestImport />
+                </CardContent>
+              </Card>
+            </>
           )}
         </div>
       </div>

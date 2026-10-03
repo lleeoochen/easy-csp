@@ -11,6 +11,7 @@ import { sumTransactions } from '@/utils/transactionUtils';
 import { useCSP } from '@/hooks/api/useCSP';
 import { Button } from "@/components/common/button";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/common/badge";
 
 const FUND_BUCKETS = [CSPBucket.Savings, CSPBucket.Investment];
 
@@ -18,9 +19,10 @@ interface CSPBucketCardProps {
   cspBucket: CSPBucket;
   cspBudgets: CSPCategoryBudget[];
   currentMonthString: string;
+  totalCSPBudgetedSpending: number;
 }
 
-export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString }: CSPBucketCardProps) {
+export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString, totalCSPBudgetedSpending }: CSPBucketCardProps) {
   const [year, month] = currentMonthString.split('-').map(Number);
   const { startDate, endDate } = getMonthBoundaries(year, month - 1);
   const { data: transactionPages } = useTransactions({ startDate, endDate });
@@ -56,7 +58,7 @@ export function CSPBucketCard({ cspBucket, cspBudgets, currentMonthString }: CSP
             </div>
           </div>
           <div className="text-gray-300 text-sm">
-            Target: {formatCurrency(totalBudgeted)}
+            Target: {formatCurrency(totalBudgeted)} <Badge className="bg-gray-500 text-gray-200">{Math.round(totalBudgeted / totalCSPBudgetedSpending * 100)}%</Badge>
           </div>
         </div>
         <div className="text-lg ml-auto my-auto">

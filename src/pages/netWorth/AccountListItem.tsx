@@ -34,19 +34,39 @@ export const AccountListItem = ({ account, onDelete }: AccountListItemProps) => 
               {/* Left: Account Info */}
               <div className="flex-1 min-w-0 space-y-1 grow shrink basis-2/3 truncate">
                 <h4 className="font-medium truncate">{displayName}</h4>
-                {/* Institution Info (for linked accounts) */}
+                {/* Institution / Updated info */}
                 <div className="flex items-center gap-2 text-gray-400 text-sm truncate">
-                  <span>
-                    {account.isManual ? 'Manual' : account.institutionName}
-                  </span>
-                  {account.lastSyncTimestamp && (
+                  {account.isManual ? (
                     <>
-                      <span>
-                        •
-                      </span>
-                      <span>
-                        Updated {formatDistanceToNow(new Date(account.lastSyncTimestamp), { addSuffix: true })}
-                      </span>
+                      <span>Manual</span>
+                      {account.lastUpdated && (
+                        <>
+                          <span>•</span>
+                          <span>
+                            Updated {formatDistanceToNow(new Date(account.lastUpdated), { addSuffix: true })}
+                          </span>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {account.institutionName && (
+                        <span>{account.institutionName}</span>
+                      )}
+                      {account.mask && (
+                        <>
+                          {account.institutionName && <span>•</span>}
+                          <span>••••{account.mask}</span>
+                        </>
+                      )}
+                      {account.lastSyncTimestamp && (
+                        <>
+                          {(account.institutionName || account.mask) && <span>•</span>}
+                          <span>
+                            Updated {formatDistanceToNow(new Date(account.lastSyncTimestamp), { addSuffix: true })}
+                          </span>
+                        </>
+                      )}
                     </>
                   )}
                 </div>

@@ -124,7 +124,7 @@ export interface UI_FinancialAccount {
   institutionName?: string;
 
   /**
-   * Last sync timestamp (denormalized from FinancialInstitution)
+   * Last sync timestamp sourced from FinancialInstitution.lastSyncTimestamp
    * Only defined for linked accounts (isManual === false)
    * Displayed in account cards to show data freshness
    * Epoch milliseconds
@@ -148,8 +148,25 @@ export interface UI_FinancialAccount {
    */
   syncError?: PlaidErrorCode;
 
+  /**
+   * Last updated timestamp for manual accounts
+   * Only defined for manual accounts (isManual === true)
+   * Updated whenever the user modifies the account (balance, nickname, etc.)
+   * Epoch milliseconds
+   * undefined for linked accounts (use FinancialInstitution.lastSyncTimestamp instead)
+   */
+  lastUpdated?: number;
+
   /** Whether this linked account is archived (hidden from UI, skipped during sync) */
   archived?: boolean;
+
+  /**
+   * Last 4 digits of the account number (Plaid's "mask" field)
+   * e.g., "4242"
+   * Only set for linked accounts where Plaid provides it.
+   * undefined for manual accounts or account types that don't have a mask.
+   */
+  mask?: string;
 }
 
 export type UI_Fund = Fund & {

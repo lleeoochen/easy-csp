@@ -262,7 +262,7 @@ export const useUpdateManualAccountBalance = () => {
  *
  * Updates balance and/or nickname for a manual account in a single operation.
  * This is more efficient than separate updates and ensures atomic changes.
- * Automatically updates lastSyncTimestamp to track when the account was last modified.
+ * Automatically updates lastUpdated to track when manual accounts were last modified.
  * On success, invalidates accounts caches to trigger refetch.
  *
  * @returns UseMutationResult with mutate function and loading/error states

@@ -135,9 +135,9 @@ const NetWorthPage = () => {
             <CardContent>
               <Carousel opts={{ align: 'center' }}>
                 <CarouselContent>
+                  <CarouselItem><AccountTypeHistoryChart /></CarouselItem>
                   <CarouselItem><NetWorthSummaryChart breakdown={breakdown} /></CarouselItem>
                   {/* <CarouselItem><NetWorthHistoryChart /></CarouselItem> */}
-                  <CarouselItem><AccountTypeHistoryChart /></CarouselItem>
                   {/* <CarouselItem><AssetsHistoryChart /></CarouselItem> */}
                   {/* <CarouselItem><LiabilitiesHistoryChart /></CarouselItem> */}
                 </CarouselContent>

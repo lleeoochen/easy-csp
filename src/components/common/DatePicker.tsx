@@ -57,7 +57,6 @@ export function DatePicker({ value, onChange, label, id, disabled = false }: Dat
               mode="single"
               selected={value ?? undefined}
               onSelect={handleSelect}
-              disabled={{ before: new Date() }}
               defaultMonth={value ?? undefined}
               className="rdp-custom"
             />

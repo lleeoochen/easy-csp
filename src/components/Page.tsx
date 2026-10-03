@@ -31,7 +31,7 @@ export const Page = ({ children, title, maxWidth = 'half', showBack = false, act
   return (
     <PullToRefresh onRefresh={handleRefresh} className={`p-4 pb-24 pt-[env(safe-area-inset-top)] w-full`}>
       <h1 className={`text-2xl my-5 text-primary-fg text-center py-5`}>{ title }</h1>
-      <div className={`${widthClasses[maxWidth]} m-auto`}>
+      <div className={`${widthClasses[maxWidth]} m-auto mb-14`}>
         {(showBack || actions) && (
           <div className="mb-6 flex items-start">
             {showBack && (

@@ -153,8 +153,9 @@ export class AccountService {
         accountType: account.accountType,
         balance: account.balance,
         isManual: account.isManual,
-        lastSyncTimestamp: account.lastSyncTimestamp,
+        lastUpdated: account.lastUpdated,
         archived: account.archived,
+        mask: account.mask,
       };
 
       // Step 4: Include sync status from institution (for linked accounts)
@@ -165,6 +166,7 @@ export class AccountService {
           accountWithInfo.institutionName = account.institutionName;
           accountWithInfo.syncStatus = institution.status;
           accountWithInfo.syncError = institution.plaidErrorCode;
+          accountWithInfo.lastSyncTimestamp = institution.lastSyncTimestamp;
         }
       }
 
@@ -253,10 +255,10 @@ export class AccountService {
       accountType,
       balance: initialBalance,
       isManual: true,
+      lastUpdated: Date.now(),
       // Plaid metadata fields are undefined for manual accounts
       institutionId: undefined,
       institutionName: undefined,
-      lastSyncTimestamp: undefined,
       archived: false
     };
 
@@ -405,7 +407,7 @@ export class AccountService {
       throw new Error("New balance must be a valid number");
     }
 
-    // Step 3: Update balance field and lastSyncTimestamp
+    // Step 3: Update balance field
     // NOTE: Balance is updated directly from user input.
     // Fund allocations do NOT affect this balance.
     // Step 4: Use prepareFirestoreData for updateDoc
@@ -413,7 +415,6 @@ export class AccountService {
       accountRef,
       prepareFirestoreData({
         balance: newBalance,
-        lastSyncTimestamp: Date.now(),
       })
     );
   }
@@ -423,7 +424,7 @@ export class AccountService {
    *
    * This method allows updating balance and/or nickname for manual accounts
    * in a single Firestore write operation. It automatically updates the
-   * lastSyncTimestamp whenever any field is modified.
+   * lastUpdated whenever any field is modified.
    *
    * @param accountId - Firestore document ID of the account to update
    * @param updates - Object containing fields to update (balance and/or nickname)
@@ -495,7 +496,7 @@ export class AccountService {
 
     // Step 3: Validate and prepare updates
     const updateData: Partial<FinancialAccount> = {
-      lastSyncTimestamp: Date.now(),
+      lastUpdated: Date.now(),
     };
 
     // Validate and add balance if provided

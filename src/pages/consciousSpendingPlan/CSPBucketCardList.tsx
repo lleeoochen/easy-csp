@@ -24,28 +24,6 @@ export function CSPBucketCardList({ selectedMonth, selectedYear, className }: CS
   // Format current month as YYYY-MM for URL parameter
   const currentMonthString = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}`;
 
-  if (isLoading) {
-    return (
-      <div className={cn("p-8 text-center", className)}>
-        <div className="animate-pulse">Loading conscious spending plan...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className={cn("p-4 bg-red-50 border border-red-200 rounded-lg mx-4", className)}>
-        <p className="text-red-600">Error loading conscious spending plan: {error.message}</p>
-        <button
-          onClick={() => refetch()}
-          className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
-        >
-          Try Again
-        </button>
-      </div>
-    );
-  }
-
   // Format current month as YYYY-MM for URL parameter (already defined above)
   // const currentMonthString = `${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}`;
 
@@ -68,6 +46,38 @@ export function CSPBucketCardList({ selectedMonth, selectedYear, className }: CS
     budgets
   }));
 
+  let totalCSPBudgetedSpending = 0;
+
+  expenseBucketsForOverview.forEach(({ bucket, budgets }) => {
+    budgets.forEach(budget => {
+      if (bucket !== CSPBucket.Income && bucket !== CSPBucket.Ignored) {
+        totalCSPBudgetedSpending += budget.amount;
+      }
+    });
+  });
+
+  if (isLoading) {
+    return (
+      <div className={cn("p-8 text-center", className)}>
+        <div className="animate-pulse">Loading conscious spending plan...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={cn("p-4 bg-red-50 border border-red-200 rounded-lg mx-4", className)}>
+        <p className="text-red-600">Error loading conscious spending plan: {error.message}</p>
+        <button
+          onClick={() => refetch()}
+          className="mt-2 px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className={cn("flex flex-col items-center gap-3 lg:gap-5", className)}>
@@ -85,6 +95,7 @@ export function CSPBucketCardList({ selectedMonth, selectedYear, className }: CS
               cspBucket={cspBucket as CSPBucket}
               cspBudgets={cspBudgets}
               currentMonthString={currentMonthString}
+              totalCSPBudgetedSpending={totalCSPBudgetedSpending}
             />
           ))}
         </div>
